@@ -429,7 +429,7 @@ $nombreUsuario = $_SESSION['usuario_nombre'];
 
 <section class="hero-section">
     <div class="container">
-        <h1 class="display-4 fw-bold">Bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Kore Estética Corporal</h1>
+        <h1 class="display-4 fw-bold">Te damos la bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Kore Estética Corporal</h1>
         <p class="lead">Un espacio diseñado para que puedas relajarte y disfrutar de tratamientos que le hacen bien a tu cuerpo</p>
         <button class="btn btn-pink btn-lg mt-3" onclick="window.location.href='reservas-kore.php'">
             <i class="fas fa-calendar-check me-2"></i> Reservar turno
@@ -461,300 +461,118 @@ $nombreUsuario = $_SESSION['usuario_nombre'];
                 <button class="treatment-tab" data-category="combos">Combos Especiales</button>
             </div>
 
-            <!-- Contenido de tratamientos corporales -->
-            <div id="corporales" class="treatment-content active">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-wind fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Presoterapia para piernas cansadas</h5>
-                                <p class="card-text">Tratamiento para aliviar piernas cansadas y mejorar circulación</p>
-                                <div class="service-price">$8000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+<?php 
+include 'conexEstetica.php';
+$conexion = conectarDB();
+
+// Consulta para obtener los tratamientos corporales
+$query_corporales = "SELECT nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '10'";
+$resultado = mysqli_query($conexion, $query_corporales);
+?>
+<!--- Contenido de tratamientos corporales -->
+<div id="corporales" class="treatment-content active">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php while ($row = mysqli_fetch_assoc($resultado)) { ?>
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center">
+                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
+                        <i class="fas fa-wind fa-3x pink-text"></i>
                     </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-running fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Sesión intensiva en piernas</h5>
-                                <p class="card-text">Tratamiento completo para piernas con múltiples técnicas</p>
-                                <div class="service-price">$12000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-wave-square fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Radiofrecuencia corporal</h5>
-                                <p class="card-text">Reafirmación y reducción de medidas con tecnología</p>
-                                <div class="service-price">$9000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-wind fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Vacumterapia</h5>
-                                <p class="card-text">Terapia de vacío para reducción localizada</p>
-                                <div class="service-price">$8000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-microchip fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Aparatología</h5>
-                                <p class="card-text">Tratamiento con equipos especializados</p>
-                                <div class="service-price">$8500</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</div>
+                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
                     </div>
                 </div>
             </div>
-
+        <?php } ?>
+    </div>
+</div>
+<?php 
+// Consulta para obtener los tratamientos corporales
+$query_faciales = "SELECT nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '11'";
+$resultado = mysqli_query($conexion, $query_faciales);
+?>
             <!-- Contenido de tratamientos faciales -->
-            <div id="faciales" class="treatment-content">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-syringe fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Tratamiento facial dermapen</h5>
-                                <p class="card-text">Rejuvenecimiento con microagujas</p>
-                                <div class="service-price">$10000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+<div id="faciales" class="treatment-content">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php while ($row = mysqli_fetch_assoc($resultado)) { ?>
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center">
+                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
+                        <i class="fas fa-wind fa-3x pink-text"></i>
                     </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-bolt fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Radiofrecuencia facial</h5>
-                                <p class="card-text">Estimulación de colágeno con radiofrecuencia</p>
-                                <div class="service-price">$9000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-lightbulb fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Máscara LED</h5>
-                                <p class="card-text">Terapia con luz para diferentes condiciones cutáneas</p>
-                                <div class="service-price">$8000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</div>
+                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
                     </div>
                 </div>
             </div>
+        <?php } ?>
+    </div>
+</div>
 
+<?php 
+// Consulta para obtener los tratamientos corporales
+$query_masajes = "SELECT nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '12'";
+$resultado = mysqli_query($conexion, $query_masajes);
+?>
             <!-- Contenido de masajes -->
-            <div id="masajes" class="treatment-content">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-baby fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Masaje para embarazadas</h5>
-                                <p class="card-text">Masaje especializado para gestantes</p>
-                                <div class="service-price">$9000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+<div id="masajes" class="treatment-content">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php while ($row = mysqli_fetch_assoc($resultado)) { ?>
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center">
+                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
+                        <i class="fas fa-wind fa-3x pink-text"></i>
                     </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-compress fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Masajes reductores</h5>
-                                <p class="card-text">Técnicas para reducción de medidas</p>
-                                <div class="service-price">$8000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-hands fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Masajes relajantes espalda/brazos/cuello</h5>
-                                <p class="card-text">Alivio de tensiones en zona superior</p>
-                                <div class="service-price">$9000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-shoe-prints fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Masajes relajantes piernas/pies</h5>
-                                <p class="card-text">Relajación profunda para miembros inferiores</p>
-                                <div class="service-price">$9000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-user fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Masaje cuerpo completo</h5>
-                                <p class="card-text">Experiencia de relajación integral</p>
-                                <div class="service-price">$12000</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-massage fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Masaje de vacum</h5>
-                                <p class="card-text">Combinación de masaje y tecnología de vacío</p>
-                                <div class="service-price">$8500</div>
-                                <div class="service-duration">Duración: 60 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</div>
+                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
                     </div>
                 </div>
             </div>
-
+        <?php } ?>
+    </div>
+</div>
+<?php 
+// Consulta para obtener los tratamientos corporales
+$query_combos = "SELECT nombre, precio, descripcion FROM combos";
+$resultado = mysqli_query($conexion, $query_combos);
+?>
             <!-- Contenido de combos especiales -->
-            <div id="combos" class="treatment-content">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-dumbbell fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Sesión Booty Up</h5>
-                                <p class="card-text">Tratamiento completo para glúteos</p>
-                                <p class="card-text"><small>Incluye: Vacumterapia, Aparatología y Masaje de levantamiento</small></p>
-                                <div class="service-price">$8200</div>
-                                <div class="service-duration">Duración: 180 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+<div id="combos" class="treatment-content">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php while ($row = mysqli_fetch_assoc($resultado)) { ?>
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center">
+                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
+                        <i class="fas fa-wind fa-3x pink-text"></i>
                     </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-weight-scale fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Reducción Intensiva</h5>
-                                <p class="card-text">Programa completo para reducción de medidas</p>
-                                <p class="card-text"><small>Incluye: Masajes reductores, Aparatología/electrodos y Radiofrecuencia corporal</small></p>
-                                <div class="service-price">$12000</div>
-                                <div class="service-duration">Duración: 180 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-face-smile fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Jornadas Antiarrugas</h5>
-                                <p class="card-text">Plan completo antienvejecimiento</p>
-                                <p class="card-text"><small>Incluye: 1 sesión de dermapen facial + 3 sesiones de radiofrecuencia facial</small></p>
-                                <div class="service-price">$16000</div>
-                                <div class="service-duration">Duración: 240 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-battery-full fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Electrodos + Masajes reductores</h5>
-                                <p class="card-text">Combo para modelado corporal</p>
-                                <p class="card-text"><small>Incluye: Aparatología/electrodos y Masajes reductores</small></p>
-                                <div class="service-price">$9000</div>
-                                <div class="service-duration">Duración: 120 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center">
-                                <i class="fas fa-walking fa-3x pink-text"></i>
-                            </div>
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Sesión Intensiva de piernas</h5>
-                                <p class="card-text">Tratamiento completo para piernas</p>
-                                <p class="card-text"><small>Incluye: Presoterapia, Masajes reductores y Radiofrecuencia corporal</small></p>
-                                <div class="service-price">$12000</div>
-                                <div class="service-duration">Duración: 180 minutos</div>
-                                <a href="reservas-kore.html" class="btn btn-pink mt-3">Agendar</a>
-                            </div>
-                        </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        <br>
+                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
                     </div>
                 </div>
             </div>
+        <?php } ?>
+    </div>
+</div>
         </section>
 
         <!-- Promociones -->
