@@ -33,7 +33,19 @@ function mostrarRegistro() {
 function cerrar(id) {
     document.getElementById(id).style.display = "none";
 }
-
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
 // Cierra si se hace clic fuera del modal
 window.addEventListener("click", function(e) {
     const loginOverlay = document.getElementById("loginOverlay");
@@ -222,7 +234,12 @@ h3 {
 
             <div class="mb-3">
                 <label for="contrasena" class="form-label">Contraseña</label>
-                <input type="password" name="contrasena" id="contrasena" class="form-control" required>
+                <div class="input-group">
+                    <input type="password" name="contrasena" id="loginContrasena" class="form-control" required>
+                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('loginContrasena', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -261,11 +278,21 @@ h3 {
             </div>
           <div class="mb-3">
             <label>Contraseña</label>
-            <input type="password" id="contrasena" name="contrasena" required>
+            <div class="input-group">
+                <input type="password" id="registroContrasena" name="contrasena" class="form-control" required>
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registroContrasena', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
+          </div>
           <div class="mb-3">
             <label>Confirmar contraseña</label>
-            <input type="password" id="contrasena" required>
+            <div class="input-group">
+                <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" required>
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmarContrasena', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
           </div>
             <div style="margin-top:10px;">
               <button type="submit" class="btnForm">Registrarse</button>
@@ -277,16 +304,37 @@ h3 {
 include 'conexEstetica.php'; // Asegúrate de que este archivo contiene la función `conectarDB()`
 $conex = conectarDB();
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Recibir los datos del formulario
-    $nombre = $_POST['nombre'];
-    $apellido = $_POST['apellido'];
-    $email = $_POST['email'];
-    $celular = $_POST['celular'];
-    $contrasena = $_POST['contrasena'];
+    // Validar y sanitizar los datos del formulario
+    $nombre = mysqli_real_escape_string($conex, trim($_POST['nombre']));
+    $apellido = mysqli_real_escape_string($conex, trim($_POST['apellido']));
+    $email = mysqli_real_escape_string($conex, filter_var($_POST['email'], FILTER_SANITIZE_EMAIL));
+    $celular = mysqli_real_escape_string($conex, trim($_POST['celular']));
+    $contrasena = mysqli_real_escape_string($conex, $_POST['contrasena']);
+
+    // Validar formato del email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "<script>alert('El correo electrónico no es válido.');</script>";
+        exit();
+    }
+
+    // Validar que las contraseñas coincidan
+    if ($_POST['contrasena'] !== $_POST['confirmar_contrasena']) {
+        echo "<script>alert('Las contraseñas no coinciden.');</script>";
+        exit();
+    }
+
+    // Validar longitud de la contraseña
+    if (strlen($contrasena) < 8) {
+        echo "<script>alert('La contraseña debe tener al menos 8 caracteres.');</script>";
+        exit();
+    }
+
+    // Encriptar la contraseña antes de almacenarla
+    $contrasena_hash = password_hash($contrasena, PASSWORD_BCRYPT);
 
     // Consulta para insertar los datos en la tabla usuarios
     $query_usuario = "INSERT INTO usuarios (nombre, apellido, email, celular, contrasena) 
-                      VALUES ('$nombre', '$apellido', '$email', '$celular', '$contrasena')";
+                      VALUES ('$nombre', '$apellido', '$email', '$celular', '$contrasena_hash')";
 
     if (mysqli_query($conex, $query_usuario)) {
         echo "<script>alert('Registro exitoso. Ahora puede iniciar sesión.');</script>";

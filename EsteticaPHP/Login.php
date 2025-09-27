@@ -2,6 +2,7 @@
 session_start();
 include 'conexEstetica.php'; // Asegúrate de que este archivo contiene la función `conectarDB()`
 $conn = conectarDB();
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['usuario']); // Usamos el campo 'email' como usuario
     $contrasena = trim($_POST['contrasena']);
@@ -12,15 +13,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $resultado = $stmt->get_result();
+
         if ($resultado->num_rows > 0) {
             $usuario = $resultado->fetch_assoc();
-            // Comparación directa (recomendado usar password_hash en producción)
-            if ($contrasena === $usuario['contrasena']) {
+
+            // Verificar la contraseña con password_verify()
+            if (password_verify($contrasena, $usuario['contrasena'])) {
+                // Contraseña correcta, iniciar sesión
                 $_SESSION['usuario_id'] = $usuario['id'];
                 $_SESSION['usuario_nombre'] = $usuario['nombre'];
                 $_SESSION['usuario_tipo'] = $usuario['tipo'];
 
-                // ✅ Redirigir a Kore_Estetica-Inicio.php
+                // Redirigir al inicio
                 header("Location: index.php");
                 exit();
             } else {

@@ -573,7 +573,7 @@ $resultado = mysqli_query($conexion, $query_combos);
         <?php } ?>
     </div>
 </div>
-        </section>
+</section>
 
         <!-- Promociones -->
         <section class="py-5">
