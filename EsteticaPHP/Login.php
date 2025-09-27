@@ -1,15 +1,15 @@
 <?php
 session_start();
-include 'conexEstetica.php'; // Asegúrate de que este archivo contiene la función `conectarDB()`
-$conn = conectarDB();
+include 'conexEstetica.php'; // Archivo de conexión a la base de datos
+$conex = conectarDB();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = trim($_POST['usuario']); // Usamos el campo 'email' como usuario
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $email = trim($_POST['usuario']);
     $contrasena = trim($_POST['contrasena']);
 
     if (!empty($email) && !empty($contrasena)) {
-        $sql = "SELECT * FROM usuarios WHERE email = ?";
-        $stmt = $conn->prepare($sql);
+        $query = "SELECT * FROM usuarios WHERE email = ?";
+        $stmt = $conex->prepare($query);
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -17,30 +17,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($resultado->num_rows > 0) {
             $usuario = $resultado->fetch_assoc();
 
-            // Verificar la contraseña con password_verify()
+            // Verificar la contraseña
             if (password_verify($contrasena, $usuario['contrasena'])) {
                 // Contraseña correcta, iniciar sesión
-                $_SESSION['usuario_id'] = $usuario['id'];
-                $_SESSION['usuario_nombre'] = $usuario['nombre'];
-                $_SESSION['usuario_tipo'] = $usuario['tipo'];
-
-                // Redirigir al inicio
-                header("Location: index.php");
+                $_SESSION['usuario'] = $usuario['nombre']; // Guarda el nombre del usuario en la sesión
+                $_SESSION['usuario_id'] = $usuario['id']; // Guarda el ID del usuario en la sesión
+                header("Location: index.php"); // Redirige al inicio
                 exit();
             } else {
-                $error = "Contraseña incorrecta.";
+                echo "<script>alert('Contraseña incorrecta.');</script>";
             }
         } else {
-            $error = "Usuario no encontrado.";
+            echo "<script>alert('Usuario no encontrado.');</script>";
         }
 
         $stmt->close();
     } else {
-        $error = "Por favor, complete todos los campos.";
+        echo "<script>alert('Por favor, complete todos los campos.');</script>";
     }
 }
 
-$conn->close();
+$conex->close();
 ?>
 
 <!-- HTML del formulario -->

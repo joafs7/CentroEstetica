@@ -8,8 +8,8 @@ $usuarioLogueado = isset($_SESSION['usuario']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro Estetico</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <title>Centro Estético</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/CSS/index.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Pacifico&family=Playwrite+AU+QLD:wght@200&display=swap" rel="stylesheet">  
     <script>
@@ -216,9 +216,17 @@ h3 {
 <body>
   
 <div class="encabezado">
-<div class="botones">
-    <button class="btn-Iniciar" onclick="mostrarLogin()">Iniciar Sesión</button>
-    <button class="btn-Registrarse" onclick="mostrarRegistro()">Regístrate Ahora</button>
+    <div class="botones">
+        <?php if ($usuarioLogueado): ?>
+            <!-- Mostrar el nombre del usuario y el botón de cerrar sesión -->
+            <span class="text-success">¡Bienvenido/a, <?php echo htmlspecialchars($_SESSION['usuario']); ?>!</span>
+            <a href="logout.php" class="btn btn-Registrarse">Cerrar Sesión</a>
+        <?php else: ?>
+            <!-- Mostrar los botones de iniciar sesión y registrarse si no está logueado -->
+            <button class="btn-Iniciar" onclick="mostrarLogin()">Iniciar Sesión</button>
+            <button class="btn-Registrarse" onclick="mostrarRegistro()">Regístrate Ahora</button>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- Modal Login -->
@@ -345,7 +353,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     mysqli_close($conex);
 }
 ?>
-</div>
 
     <H1 class="bienvenida">Bienvenida/o</H1>
 

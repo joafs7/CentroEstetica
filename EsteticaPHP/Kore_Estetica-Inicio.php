@@ -370,6 +370,9 @@ $nombreUsuario = $_SESSION['usuario_nombre'];
             font-weight: 600;
             margin-top: 10px;
         }
+        html {
+            scroll-behavior: smooth;
+            }
     </style>
 </head>
 <body>
@@ -384,10 +387,10 @@ $nombreUsuario = $_SESSION['usuario_nombre'];
                 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <div class="navbar-nav ms-auto">
-                        <button class="nav-btn active">Inicio</button>
-                        <button class="nav-btn">Servicios</button>
-                        <button class="nav-btn">Galeria</button>
-                        <button class="nav-btn">Contacto</button>
+                        <a href="#inicio" class="nav-btn active">Inicio</a>
+                        <a href="#servicio" class="nav-btn">Servicios</a>
+                        <a href="#promos" class="nav-btn">Combos</a>
+                        <a href="#contacto" class="nav-btn">Contacto</a>
                        
                     </div>
                 </div>
@@ -439,7 +442,7 @@ $nombreUsuario = $_SESSION['usuario_nombre'];
 
 
         <!-- Quiénes somos -->
-        <section class="text-center py-5">
+        <section id="inicio" class="text-center py-5">
             <div class="light-pink-bg p-5 rounded-4">
                 <h3 class="pink-text"><i class="fas fa-heart me-2"></i> Quiénes somos?</h3>
                 <p class="fs-5">Beauty Kore Estética y Bienestar es un espacio diseñado y preparado para que puedas relajarte y disfrutar de los tratamientos que le hacen bien a tu cuerpo. Nuestro equipo de profesionales está comprometido con tu bienestar y belleza.</p>
@@ -447,7 +450,7 @@ $nombreUsuario = $_SESSION['usuario_nombre'];
         </section>
 
         <!-- Tratamientos -->
-        <section class="py-4">
+        <section id="servicio" class="py-4">
             <div class="perfect-center">
                 <h2 class="section-title">Nuestros Tratamientos</h2>
                 <p class="text-muted">Selecciona una categoría para ver los tratamientos disponibles</p>
@@ -576,7 +579,7 @@ $resultado = mysqli_query($conexion, $query_combos);
 </section>
 
         <!-- Promociones -->
-        <section class="py-5">
+        <section id="promos" class="py-5">
             <h2 class="section-title">Promociones Especiales</h2>
             
             <div class="row g-4 justify-content-center">
@@ -709,7 +712,7 @@ $resultado = mysqli_query($conexion, $query_combos);
         </section>
 
         <!-- Contacto -->
-        <section class="contact-section">
+        <section id="contacto" class="contact-section">
             <div class="container">
                 <div class="row">
                     <div class="col-md-6 text-center text-md-start mb-4 mb-md-0">
