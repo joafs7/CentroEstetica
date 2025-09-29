@@ -8,7 +8,7 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 // Guardar el nombre en una variable
-$nombreUsuario = $_SESSION['usuario_nombre'];
+$nombreUsuario = $_SESSION['usuario'];
 ?>
 
 
