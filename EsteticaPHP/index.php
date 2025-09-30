@@ -96,6 +96,13 @@ body {
   color: #fff;
 }
 
+span{
+  text-align: center;
+  margin-top: 10px;
+  font-family: 'Pacifico', cursive;
+  font-size: 20px;
+  color: #555;
+}
 /* Bienvenida */
 .bienvenida {
   text-align: center;
@@ -219,7 +226,7 @@ h3 {
     <div class="botones">
         <?php if ($usuarioLogueado): ?>
             <!-- Mostrar el nombre del usuario y el botón de cerrar sesión -->
-            <span class="text-success">¡Bienvenido/a, <?php echo htmlspecialchars($_SESSION['usuario']); ?>!</span>
+            <span >¡Bienvenido/a, <?php echo htmlspecialchars($_SESSION['usuario']); ?>!</span>
             <a href="logout.php" class="btn btn-Registrarse">Cerrar Sesión</a>
         <?php else: ?>
             <!-- Mostrar los botones de iniciar sesión y registrarse si no está logueado -->
@@ -358,29 +365,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <H3>Seleccione la estetica en la que su belleza pueda deslumbrar!</H3>
   
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    <!--Tarjeta Kore Estetica-->
-<div class="tarjeta">
-<a href="Kore_Estetica-Inicio.php?id_negocio=1" class="text-decoration-none">
-    <div class="card "> 
-      <img src="/Imagenes/KoreEstetica.jpeg" class="card-img-top" alt="Kore Estetica">
-      <div class="card-body">
-        <h5 class="card-title">Kore Estetica</h5>
-      </div>
+<div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center align-items-center">
+    <!-- Tarjeta Kore Estetica -->
+    <div class="col tarjeta">
+        <a href="Kore_Estetica-Inicio.php?id_negocio=1" class="text-decoration-none">
+            <div class="card">
+                <img src="imagenes/KoreEstetica.jpeg" class="card-img-top" alt="Kore Estetica">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Kore Estetica</h5>
+                </div>
+            </div>
+        </a>
     </div>
-    </a>
-</div>
-  <!--Juliette Nails-->
-<div class="tarjeta">
-    <a href="JulietteNails.php?id_negocio=2" class="text-decoration-none">
-    <div class="card ">
-      <img src="/Imagenes/JulietteNails.jpeg" class="card-img-top" alt="Juliette ">
-      <div class="card-body">
-        <h5 class="card-title">Juliette Nails</h5>
+    <!-- Tarjeta Juliette Nails -->
+    <div class="col tarjeta">
+        <a href="JulietteNails.php?id_negocio=2" class="text-decoration-none">
+            <div class="card">
+                <img src="imagenes/JulietteNails.jpeg" class="card-img-top" alt="Juliette Nails">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Juliette Nails</h5>
+                </div>
+            </div>
+        </a>
     </div>
-  </div>
-  </a>
-</div>
 </div>
 
 </body>
