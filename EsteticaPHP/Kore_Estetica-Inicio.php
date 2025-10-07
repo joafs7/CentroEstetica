@@ -397,39 +397,39 @@ $nombreUsuario = $_SESSION['usuario'];
             </div>
         </nav>
 
-        <!-- Menú offcanvas -->
-        <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="staticBackdropLabel">Menú KORE</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-home me-3 pink-text"></i> Inicio
-                    </li>
-                    <li class="list-group-item d-flex align-items-center selected-item">
-                        <i class="fas fa-spa me-3 pink-text"></i> Servicios
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-images me-3 pink-text"></i> Galería
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-tags me-3 pink-text"></i> Promociones
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-shopping-bag me-3 pink-text"></i> Productos
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-phone me-3 pink-text"></i> Contacto
-                    </li>
-                </ul>
-            </div>
-        </div>
+
+<!-- Menú offcanvas -->
+    <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="staticBackdropLabel">Menú KORE</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul class="list-group">
+            <li class="list-group-item d-flex align-items-center">
+                <i class="fas fa-home me-3 pink-text"></i> Inicio
+            </li>
+            <li class="list-group-item d-flex align-items-center selected-item">
+                <i class="fas fa-spa me-3 pink-text"></i> Servicios
+            </li>
+            <li class="list-group-item d-flex align-items-center">
+                <i class="fas fa-images me-3 pink-text"></i> Galería
+            </li>
+            <li class="list-group-item d-flex align-items-center">
+                <i class="fas fa-tags me-3 pink-text"></i> Promociones
+            </li>
+            <li class="list-group-item d-flex align-items-center">
+                <i class="fas fa-shopping-bag me-3 pink-text"></i> Productos
+            </li>
+            <li class="list-group-item d-flex align-items-center">
+                <i class="fas fa-phone me-3 pink-text"></i> Contacto
+            </li>
+        </ul>
+    </div>
+</div>
+
 
         <!-- Sección Hero -->
-
-
 <section class="hero-section">
     <div class="container">
         <h1 class="display-4 fw-bold">Te damos la bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Kore Estética Corporal</h1>
