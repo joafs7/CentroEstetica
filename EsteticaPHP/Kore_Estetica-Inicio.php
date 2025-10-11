@@ -578,59 +578,36 @@ $resultado = mysqli_query($conexion, $query_combos);
 </div>
 </section>
 
-        <!-- Promociones -->
-        <section id="promos" class="py-5">
-            <h2 class="section-title">Promociones Especiales</h2>
-            
-            <div class="row g-4 justify-content-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card promo-card h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title pink-text">Combo Reductor</h5>
-                            <p class="card-text">
-                                <i class="fas fa-spa pink-text me-2"></i> Masaje Reductores<br>
-                                <i class="fas fa-bolt pink-text me-2"></i> Electrodos<br>
-                                <i class="fas fa-wave-square pink-text me-2"></i> Radiofrecuencia
-                            </p>
-                            <p class="text-muted">Sesión de una hora y media</p>
-                            <h4 class="promo-price">$4500</h4>
-                            <a href="reservas-kore.html" class="btn btn-pink mt-3">Reservar ahora</a>
-                        </div>
+<!-- Promociones -->
+<section id="promos" class="py-5">
+    <h2 class="section-title">Promociones Especiales</h2>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php 
+        // Consulta para obtener los combos/promociones
+        $query_combos = "SELECT nombre, precio, descripcion FROM combos";
+        $resultado = mysqli_query($conexion, $query_combos);
+        
+        while ($row = mysqli_fetch_assoc($resultado)) { ?>
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
+                        <i class="fas fa-gift fa-3x pink-text"></i>
                     </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="card promo-card h-100 selected-item">
-                        <div class="card-body text-center">
-                            <h5 class="card-title pink-text">Combo Piernas</h5>
-                            <p class="card-text">
-                                <i class="fas fa-wind pink-text me-2"></i> Presoterapia<br>
-                                <i class="fas fa-hands pink-text me-2"></i> Masajes<br>
-                                <i class="fas fa-wave-square pink-text me-2"></i> Radiofrecuencia
-                            </p>
-                            <p class="text-muted">Sesión de una hora y media</p>
-                            <h4 class="promo-price">$4500</h4>
-                            <a href="reservas-kore.html" class="btn btn-pink mt-3">Reservar ahora</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="card promo-card h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title pink-text">Doble Aparatología</h5>
-                            <p class="card-text">
-                                Combinación de dos aparatologías según tu necesidad
-                            </p>
-                            <p class="text-muted">En la misma zona o diferentes</p>
-                            <h4 class="promo-price">$3800</h4>
-                            <a href="reservas-kore.html" class="btn btn-pink mt-3">Reservar ahora</a>
-                        </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" 
+                           class="btn btn-pink mt-3">
+                            Reservar ahora
+                        </a>
                     </div>
                 </div>
             </div>
-        </section>
-
+        <?php } ?>
+    </div>
+</section>
         <!-- Productos Corporales -->
         <section class="py-5">
             <h2 class="section-title">Productos Corporales</h2>

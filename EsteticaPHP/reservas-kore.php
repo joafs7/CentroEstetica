@@ -839,6 +839,30 @@ $conexion = conectarDB();
             </div>
         </div>
 
+        <!--combos-->
+        <div id="combos" class="services-section" style="display:none;">
+             <h2 class="section-title"></h2>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
+                <?php
+                $query = "SELECT id, nombre, precio FROM combos where id_negocio='1'";
+                $result = mysqli_query($conexion, $query);
+                while ($row = mysqli_fetch_assoc($result)) { ?>
+                    <div class="col-12 col-md-4">
+                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                            <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
+                                <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                            </div>
+                        </div>
+                    </div>
+                <?php }
+                mysqli_free_result($result); ?>
+            </div>
+        </div>
+
         <!-- Calendario -->
         <div class="calendar-section">
             <h2 class="section-title">Selecciona una fecha</h2>
@@ -1046,21 +1070,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Actualizar resumen
     function updateSummary() {
-        document.getElementById('resumen-servicio').textContent = selectedService ? selectedService.nombre : "-";
-        document.getElementById('resumen-fecha').textContent = selectedDate ? selectedDate.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) : "-";
-        document.getElementById('resumen-hora').textContent = selectedTime ? `${selectedTime}:00` : "-";
-        document.getElementById('resumen-total').textContent = selectedService ? `$${selectedService.precio}` : "$0";
+const resumenServicioEl = document.getElementById('resumen-servicio');
+    const resumenFechaEl = document.getElementById('resumen-fecha');
+    const resumenHoraEl = document.getElementById('resumen-hora');
+    const resumenTotalEl = document.getElementById('resumen-total');
+
+    // Verificar si es un servicio o un combo y mostrar el nombre correspondiente
+    if (selectedService) {
+        // Obtener el contenedor padre para verificar si es un combo
+        const serviceCard = document.querySelector(`.service-card[data-id="${selectedService.id}"]`);
+        const isCombo = serviceCard.closest('#combos') !== null;
+
+        resumenServicioEl.textContent = isCombo ? 
+            `Combo: ${selectedService.nombre}` : 
+            selectedService.nombre;
+
+        resumenTotalEl.textContent = `$${selectedService.precio}`;
+    } else {
+        resumenServicioEl.textContent = "-";
+        resumenTotalEl.textContent = "$0";
+    }
+
+    // Actualizar fecha y hora
+    resumenFechaEl.textContent = selectedDate ? 
+        selectedDate.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }) : "-";
+
+    resumenHoraEl.textContent = selectedTime ? 
+        `${selectedTime}:00` : "-";
     }
 
     // Mostrar modal
-    function showConfirmationModal() {
-        document.getElementById('modal-servicio').textContent = selectedService.nombre;
-        document.getElementById('modal-duracion').textContent = `${selectedService.duracion} min`;
-        document.getElementById('modal-fecha').textContent = document.getElementById('resumen-fecha').textContent;
-        document.getElementById('modal-hora').textContent = document.getElementById('resumen-hora').textContent;
-        document.getElementById('modal-total').textContent = document.getElementById('resumen-total').textContent;
-        modalOverlay.classList.add('active');
-    }
+function showConfirmationModal() {
+    const serviceCard = document.querySelector(`.service-card[data-id="${selectedService.id}"]`);
+    const isCombo = serviceCard.closest('#combos') !== null;
+    
+    document.getElementById('modal-servicio').textContent = isCombo ? 
+        `Combo: ${selectedService.nombre}` : 
+        selectedService.nombre;
+        
+    document.getElementById('modal-duracion').textContent = `${selectedService.duracion} min`;
+    document.getElementById('modal-fecha').textContent = document.getElementById('resumen-fecha').textContent;
+    document.getElementById('modal-hora').textContent = document.getElementById('resumen-hora').textContent;
+    document.getElementById('modal-total').textContent = document.getElementById('resumen-total').textContent;
+    modalOverlay.classList.add('active');
+}
 
     function closeConfirmationModal() { modalOverlay.classList.remove('active'); }
 

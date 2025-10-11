@@ -37,35 +37,32 @@ if (empty($_SESSION['nombre']) || empty($_SESSION['apellido'])) {
 
 try {
     $datos = json_decode(file_get_contents('php://input'), true);
-    
     if (!$datos) {
         throw new Exception('Datos no recibidos correctamente');
     }
 
     $conexion = conectarDB();
-
-    // Verificar disponibilidad
     $fecha_realizacion = $datos['fecha'] . ' ' . $datos['hora'];
-    
+
+    // Verificar disponibilidad del horario
     $query_verificar = "SELECT COUNT(*) as total FROM historial 
-                       WHERE fecha_realizacion = ? AND id_negocio = 1";
-    
+                        WHERE fecha_realizacion = ? AND id_negocio = 1";
     $stmt_verificar = $conexion->prepare($query_verificar);
     $stmt_verificar->bind_param('s', $fecha_realizacion);
     $stmt_verificar->execute();
     $result_verificar = $stmt_verificar->get_result();
     $row = $result_verificar->fetch_assoc();
-    
+
     if ($row['total'] > 0) {
         echo json_encode([
             'success' => false,
-            'message' => 'Ya existe una reserva para esta fecha y hora. Por favor, seleccione otro horario.'
+            'message' => 'Ya existe una reserva para esta fecha y hora.'
         ]);
         exit;
     }
 
 
-  // Obtener datos del servicio y su precio
+   // Intentar obtener datos del servicio
     $stmt_servicio = $conexion->prepare("SELECT precio, categoria_id FROM servicios WHERE id = ?");
     $stmt_servicio->bind_param('i', $datos['servicio_id']);
     $stmt_servicio->execute();
@@ -73,57 +70,68 @@ try {
     $servicio = $result->fetch_assoc();
     $stmt_servicio->close();
 
-    if (!$servicio) {
-        throw new Exception('Servicio no encontrado');
-    }
+    $id_servicio = null;
+    $id_combo = null;
+    $id_categoria = null;
+    $precio_total = null;
+    $id_negocio = 1; // ID fijo para Kore
 
-       // Definir el precio total (sin retirado para Kore)
-    $precio_total = $servicio['precio'];
+    // Si no encontramos el servicio, buscamos en la tabla de combos
+   if ($servicio) {
+        // Es un servicio regular
+        $id_servicio = $datos['servicio_id'];
+        $id_combo = null;
+        $id_categoria = $servicio['categoria_id'];
+        $precio_total = $servicio['precio'];
+    } else {
+        // Es un combo
+        $stmt_combo = $conexion->prepare("SELECT precio FROM combos WHERE id = ?");
+        $stmt_combo->bind_param('i', $datos['servicio_id']);
+        $stmt_combo->execute();
+        $result_combo = $stmt_combo->get_result();
+        $combo = $result_combo->fetch_assoc();
+        $stmt_combo->close();
+
+        if (!$combo) {
+            throw new Exception('Servicio o combo no encontrado');
+        }
+
+        $id_servicio = null;
+        $id_combo = $datos['servicio_id'];
+        // Usa el id real de la categoría combos (ajusta este valor según tu base de datos)
+        $id_categoria = 14; // <-- Cambia este valor por el id real de la categoría "Combos"
+        $precio_total = $combo['precio'];
+    }
     
     // Combinar fecha y hora
     $fecha_realizacion = $datos['fecha'] . ' ' . $datos['hora'];
 
     // Preparar la consulta de inserción
-    $query = "INSERT INTO historial (
+$query = "INSERT INTO historial (
         id_usuario,
         nombre,
         apellido,
         id_categoria,
         id_servicio,
+        id_combo,
         id_negocio,
         precio,
         fecha_realizacion
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conexion->prepare($query);
     if (!$stmt) {
         throw new Exception('Error preparando consulta de inserción: ' . $conexion->error);
     }
 
-    $id_negocio = 1; // ID fijo para Kore
-
-    // Debug: Imprimir datos antes de la inserción
-    error_log("Datos a insertar: " . print_r([
-        'usuario_id' => $_SESSION['usuario_id'],
-        'nombre' => $_SESSION['nombre'],
-        'apellido' => $_SESSION['apellido'],
-        'categoria' => $servicio['categoria_id'],
-        'servicio_id' => $datos['servicio_id'],
-        'negocio' => $id_negocio,
-        'precio' => $precio_total,
-        'fecha' => $fecha_realizacion
-    ], true));
-
-    $nombre = $_SESSION['nombre'];
-    $apellido = $_SESSION['apellido'];
-
     $stmt->bind_param(
-        'issiiiis', 
+        'issiiiiss',
         $_SESSION['usuario_id'],
-        $nombre,
-        $apellido,
-        $servicio['categoria_id'],
-        $datos['servicio_id'],
+        $_SESSION['nombre'],
+        $_SESSION['apellido'],
+        $id_categoria,
+        $id_servicio,
+        $id_combo,
         $id_negocio,
         $precio_total,
         $fecha_realizacion
@@ -133,7 +141,6 @@ try {
         throw new Exception('Error al ejecutar la inserción: ' . $stmt->error);
     }
 
-    // Registrar el historial exitosamente
     echo json_encode([
         'success' => true,
         'message' => 'Reserva guardada exitosamente'
@@ -143,7 +150,7 @@ try {
     $conexion->close();
 
 } catch (Exception $e) {
-    error_log('Error en guardar_reserva.php: ' . $e->getMessage());
+    error_log('Error en guardar_historial.php: ' . $e->getMessage());
     echo json_encode([
         'success' => false,
         'message' => 'Error: ' . $e->getMessage()
