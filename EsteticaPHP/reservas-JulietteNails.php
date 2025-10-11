@@ -1,3 +1,16 @@
+<?php
+session_start();
+
+// Si no hay sesión, redirige al login
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: Login.php");
+    exit();
+}
+
+include 'conexEstetica.php';
+$conexion = conectarDB();
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -812,10 +825,42 @@
                 font-size: 1rem;
             }
         }
+
+        .card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: #fdf2f8;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.pink-text {
+    color: #ec4899;
+}
+
+.btn-pink {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 25px;
+    transition: 0.3s;
+}
+
+.btn-pink:hover {
+    background: #db2777;
+    transform: translateY(-2px);
+    color: white;
+}
     </style>
 </head>
 <body>
-    <div class="container">
+<div class="container">
+<div class="container">
         <header>
             <div class="logo-container">
                 <div class="logo">
@@ -838,13 +883,114 @@
             <div class="service-section">
                 <div class="service-title">Servicio a realizar:</div>
                 <div class="service-name">Esmaltado Semipermanente</div>
-            </div>
-            
-            <div class="services-section">
-                <h2 class="section-title">Selecciona tu servicio</h2>
-                <div class="services-grid" id="services-container">
-                    <!-- Los servicios se generarán dinámicamente -->
+            </div>  
+
+<div id="esmaltado" class="services-section">
+    <h2 class="section-title"></h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
+        <?php
+        // Consulta SQL para obtener servicios
+        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '8' AND id_negocio = '2'";
+        $result = mysqli_query($conexion, $query);
+
+        while ($row = mysqli_fetch_assoc($result)) { ?>
+            <div class="col-12 col-md-4">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                    <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
+                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                 </div>
+                </div>
+            </div>
+        <?php }
+        mysqli_free_result($result); 
+        ?>
+    </div>
+</div>
+<div id="softgel" class="services-section" style="display: none;">
+    <h2 class="section-title"></h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
+        <?php
+        // Consulta SQL para obtener servicios
+        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '9' AND id_negocio = '2'";
+        $result = mysqli_query($conexion, $query);
+
+        while ($row = mysqli_fetch_assoc($result)) { ?>
+            <div class="col-12 col-md-4">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                    <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
+                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        
+                    </div>
+                </div>
+            </div>
+        <?php }
+        mysqli_free_result($result); 
+        ?>
+    </div>
+</div>
+
+<div id="capping-polygel" class="services-section" style="display: none;">
+    <h2 class="section-title"></h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
+        <?php
+        // Consulta SQL para obtener servicios
+        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '7' AND id_negocio = '2'";
+        $result = mysqli_query($conexion, $query);
+
+        while ($row = mysqli_fetch_assoc($result)) { ?>
+            <div class="col-12 col-md-4">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                    <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
+                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        
+                    </div>
+                </div>
+            </div>
+        <?php }
+        mysqli_free_result($result); 
+        ?>
+    </div>
+</div>
+<div id="capping" class="services-section" style="display: none;">
+    <h2 class="section-title"></h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
+        <?php
+        // Consulta SQL para obtener servicios
+        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '6' AND id_negocio = '2'";
+        $result = mysqli_query($conexion, $query);
+
+        while ($row = mysqli_fetch_assoc($result)) { ?>
+            <div class="col-12 col-md-4">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                    <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
+                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
+                        <br>
+                        
+                    </div>
+                </div>
+            </div>
+        <?php }
+        mysqli_free_result($result); 
+        ?>
+    </div>
+</div>
+
                 
                 <!-- Servicio adicional de retirado - ahora integrado en la misma cuadrícula -->
                 <div class="services-grid">
@@ -858,6 +1004,9 @@
                 </div>
             </div>
             
+            <!-- Aquí irá tu código PHP para mostrar los servicios desde la BD -->
+            
+            <!-- Sección de calendario -->
             <div class="calendar-section">
                 <h2 class="section-title">Selecciona una fecha</h2>
                 <div class="calendar-container">
@@ -866,7 +1015,7 @@
                             <button class="nav-btn" id="prev-month">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
-                            <div class="current-month" id="current-month">Agosto 2025</div>
+                            <div class="current-month" id="current-month"></div>
                             <button class="nav-btn" id="next-month">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
@@ -874,52 +1023,14 @@
                     </div>
                     
                     <div class="calendar-grid">
-                        <div class="day-name">Lun</div>
-                        <div class="day-name">Mar</div>
-                        <div class="day-name">Mié</div>
-                        <div class="day-name">Jue</div>
-                        <div class="day-name">Vie</div>
-                        <div class="day-name">Sáb</div>
-                        <div class="day-name">Dom</div>
-                        
-                        <!-- Los días del mes se generarán con JavaScript -->
+                        <!-- Se generará con JavaScript -->
                     </div>
                 </div>
                 
                 <div class="time-slots-section">
                     <h2 class="section-title">Horarios disponibles</h2>
-                    <div class="time-slots" id="time-slots">
-                        <!-- Los horarios se generarán con JavaScript -->
-                    </div>
+                    <div class="time-slots" id="time-slots"></div>
                 </div>
-            </div>
-            
-            <div class="resumen-section">
-                <h3 class="resumen-title">Resumen de tu reserva</h3>
-                <div class="resumen-content">
-                    <div class="resumen-item">
-                        <span class="resumen-label">Servicio:</span>
-                        <span class="resumen-value" id="resumen-servicio">-</span>
-                    </div>
-                    <div class="resumen-item">
-                        <span class="resumen-label">Adicional:</span>
-                        <span class="resumen-value" id="resumen-adicional">-</span>
-                    </div>
-                    <div class="resumen-item">
-                        <span class="resumen-label">Fecha:</span>
-                        <span class="resumen-value" id="resumen-fecha">-</span>
-                    </div>
-                    <div class="resumen-item">
-                        <span class="resumen-label">Hora:</span>
-                        <span class="resumen-value" id="resumen-hora">-</span>
-                    </div>
-                    <div class="resumen-total">
-                        <span class="resumen-label">Total:</span>
-                        <span class="resumen-value" id="resumen-total">$0</span>
-                    </div>
-                </div>
-                
-                <button class="btn-confirm" id="confirm-btn">Reservar Turno</button>
             </div>
         </div>
         
@@ -927,40 +1038,22 @@
             <p>© 2025 Juliette Nails | Todos los derechos reservados</p>
             <p>Horario de atención: Lunes a Viernes de 8:00 a 12:00 y 16:00 a 20:00</p>
         </footer>
-    </div>
-    
+</div>
+</div>
+<div class="modal-container">
     <div class="modal-overlay" id="confirmation-modal">
         <div class="confirmation-modal">
             <div class="modal-close" id="modal-close-btn">
                 <i class="fas fa-times"></i>
             </div>
-            
+            <br>
             <h2 class="modal-title">
                 <i class="fas fa-calendar-check"></i>
                 Confirmar Reserva
             </h2>
             
             <div class="modal-content">
-                <div class="modal-item">
-                    <span class="modal-label">Servicio:</span>
-                    <span class="modal-value" id="modal-servicio">-</span>
-                </div>
-                <div class="modal-item">
-                    <span class="modal-label">Adicional:</span>
-                    <span class="modal-value" id="modal-adicional">-</span>
-                </div>
-                <div class="modal-item">
-                    <span class="modal-label">Fecha:</span>
-                    <span class="modal-value" id="modal-fecha">-</span>
-                </div>
-                <div class="modal-item">
-                    <span class="modal-label">Hora:</span>
-                    <span class="modal-value" id="modal-hora">-</span>
-                </div>
-                <div class="modal-total">
-                    <span class="modal-label">Total:</span>
-                    <span class="modal-value" id="modal-total">$0</span>
-                </div>
+                <!-- Contenido del modal -->
             </div>
             
             <div class="modal-buttons">
@@ -973,150 +1066,200 @@
             </div>
         </div>
     </div>
-
+</div>
+       
     <script>
-        // Datos de servicios por categoría
-        const serviciosPorCategoria = {
-            "esmaltado": {
-                nombre: "Esmaltado Semipermanente",
-                servicios: [
-                    { nombre: "Liso", precio: 9000, icono: "hand-sparkles" },
-                    { nombre: "Diseño", precio: 10000, icono: "paint-brush" },
-                    { nombre: "Francesita", precio: 11500, icono: "moon" },
-                    { nombre: "Full Nail Art", precio: 12500, icono: "star" }
-                ],
-                retirado: { nombre: "Retirado Semipermanente", precio: 3000 }
-            },
-            "softgel": {
-                nombre: "Soft Gel",
-                servicios: [
-                    { nombre: "Liso Soft Gel", precio: 11500, icono: "hand-sparkles" },
-                    { nombre: "Diseño Soft Gel", precio: 13000, icono: "paint-brush" },
-                    { nombre: "Francesita Soft Gel", precio: 14500, icono: "moon" },
-                    { nombre: "Full Nail Art Soft Gel", precio: 15500, icono: "star" }
-                ],
-                retirado: { nombre: "Retirado Soft Gel", precio: 4500 }
-            },
-            "capping-polygel": {
-                nombre: "Capping en Poly Gel",
-                servicios: [
-                    { nombre: "Liso Capping", precio: 10500, icono: "hand-sparkles" },
-                    { nombre: "Diseño Capping", precio: 11500, icono: "paint-brush" },
-                    { nombre: "Francesita Capping", precio: 12500, icono: "moon" },
-                    { nombre: "Full Nail Art Capping", precio: 14500, icono: "star" }
-                ],
-                retirado: { nombre: "Retirado Capping", precio: 3000 }
-            },
-            "capping": {
-                nombre: "Capping",
-                servicios: [
-                    { nombre: "Liso Acrílicas", precio: 10000, icono: "hand-sparkles" },
-                    { nombre: "Diseño Acrílicas", precio: 11500, icono: "paint-brush" },
-                    { nombre: "Francesita Acrílicas", precio: 12500, icono: "moon" },
-                    { nombre: "Full Nail Art Acrílicas", precio: 14000, icono: "star" }
-                ],
-                retirado: { nombre: "Retirado Acrílicas", precio: 3000 }
-            }
-        };
+        // Variables globales para fecha y hora
+    let selectedService = null;
+    let selectedDate = null;
+    let selectedTime = null;
+    let isRetiradoSelected = false;
+    const retiradoPrice = 3000;
 
-        // Variables globales
-        let selectedCategory = "esmaltado";
-        let selectedService = null;
-        let selectedRetirado = false;
-        let selectedDate = null;
-        let selectedTime = null;
         
-        // Referencias a elementos del DOM
-        const calendarGrid = document.querySelector('.calendar-grid');
-        const currentMonthEl = document.getElementById('current-month');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-        const timeSlotsEl = document.getElementById('time-slots');
-        const confirmBtn = document.getElementById('confirm-btn');
-        const modalOverlay = document.getElementById('confirmation-modal');
-        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-        const modalModifyBtn = document.getElementById('modal-modify-btn');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        const servicesContainer = document.getElementById('services-container');
-        const serviceNameEl = document.querySelector('.service-name');
-        const retiradoCard = document.getElementById('retirado-card');
-        const retiradoPriceEl = document.getElementById('retirado-price');
+   document.addEventListener('DOMContentLoaded', function() {
+    // Manejo de categorías
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remover clase active de todos los botones
+            categoryButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Agregar clase active al botón clickeado
+            this.classList.add('active');
+            
+            // Obtener la categoría seleccionada
+            const categoria = this.dataset.category;
+            
+            // Ocultar todas las secciones
+            document.querySelectorAll('.services-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Mostrar la sección correspondiente
+            document.getElementById(categoria).style.display = 'block';
+            
+            // Actualizar el título del servicio
+            const categoryName = this.textContent;
+            document.querySelector('.service-name').textContent = categoryName;
+        });
+    });
+    
+    
+    // Referencias DOM adicionales
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn-confirm';
+    confirmBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Reserva';
+    
+    // Configurar el botón de retirado
+    const retiradoCard = document.getElementById('retirado-card');
+    retiradoCard.addEventListener('click', function() {
+        this.classList.toggle('selected');
+        isRetiradoSelected = this.classList.contains('selected');
+        updateResumen();
+    });
+
+    // Función para actualizar el resumen
+    function updateResumen() {
+        let total = 0;
+        let resumenHtml = '';
+
+        if (selectedService) {
+            const precio = parseInt(selectedService.precio.replace(/[^0-9]/g, ''));
+            total += precio;
+            resumenHtml += `
+                <div class="modal-item">
+                    <span class="modal-label">Servicio:</span>
+                    <span class="modal-value">${selectedService.nombre}</span>
+                </div>
+                <div class="modal-item">
+                    <span class="modal-label">Precio:</span>
+                    <span class="modal-value">${selectedService.precio}</span>
+                </div>
+            `;
+        }
+
+        if (isRetiradoSelected) {
+            total += retiradoPrice;
+            resumenHtml += `
+                <div class="modal-item">
+                    <span class="modal-label">Adicional:</span>
+                    <span class="modal-value">Retirado</span>
+                </div>
+                <div class="modal-item">
+                    <span class="modal-label">Precio adicional:</span>
+                    <span class="modal-value">$${retiradoPrice}</span>
+                </div>
+            `;
+        }
+
+        if (selectedDate) {
+            resumenHtml += `
+                <div class="modal-item">
+                    <span class="modal-label">Fecha:</span>
+                    <span class="modal-value">${selectedDate.toLocaleDateString()}</span>
+                </div>
+            `;
+        }
+
+        if (selectedTime) {
+            resumenHtml += `
+                <div class="modal-item">
+                    <span class="modal-label">Hora:</span>
+                    <span class="modal-value">${selectedTime}:00</span>
+                </div>
+            `;
+        }
+
+        resumenHtml += `
+            <div class="modal-total">
+                <span class="modal-label">Total:</span>
+                <span class="modal-value">$${total}</span>
+            </div>
+        `;
+
+        document.querySelector('.modal-content').innerHTML = resumenHtml;
+    }
+
+    // Modificar la función setupServiceCards
+    function setupServiceCards() {
+        const serviceCards = document.querySelectorAll('.service-card:not(.retirado-card)');
+        serviceCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remover selección previa
+                serviceCards.forEach(c => c.classList.remove('selected'));
+                
+                // Agregar clase selected a la tarjeta clickeada
+                this.classList.add('selected');
+
+                // Obtener datos del servicio
+                selectedService = {
+                    id: this.dataset.id,
+                    nombre: this.querySelector('.service-name-card').textContent,
+                    precio: this.querySelector('.service-price').textContent
+                };
+
+                // Actualizar título
+                document.querySelector('.service-name').textContent = selectedService.nombre;
+                
+                // Agregar botón confirmar si no existe
+                if (!document.querySelector('.btn-confirm')) {
+                    document.querySelector('.calendar-section').after(confirmBtn);
+                }
+
+                updateResumen();
+            });
+        });
+    }
+
+    // Configurar el botón de confirmar
+     confirmBtn.addEventListener('click', () => {
+        console.log('Estado actual:', {
+            servicio: selectedService,
+            fecha: selectedDate,
+            hora: selectedTime
+        });
+
+        if (!selectedService) {
+            alert('Por favor selecciona un servicio');
+            return;
+        }
+        if (!selectedDate) {
+            alert('Por favor selecciona una fecha');
+            return;
+        }
+        if (!selectedTime) {
+            alert('Por favor selecciona un horario');
+            return;
+        }
+        showConfirmationModal();
+        updateResumen();
+    });
+
+    setupServiceCards();
+});
+        // Referencias DOM
+     const calendarGrid = document.querySelector('.calendar-grid');
+    const currentMonthEl = document.getElementById('current-month');
+    const prevMonthBtn = document.getElementById('prev-month');
+    const nextMonthBtn = document.getElementById('next-month');
+    const timeSlotsEl = document.getElementById('time-slots');
+    const modalOverlay = document.getElementById('confirmation-modal');
+    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+    const modalModifyBtn = document.getElementById('modal-modify-btn');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
         
         // Fecha actual
         const today = new Date();
         let currentMonth = today.getMonth();
         let currentYear = today.getFullYear();
         
-        // Inicializar la aplicación
-        function initApp() {
-            renderServices(selectedCategory);
-            initCalendar();
-            attachEventListeners();
-        }
-        
-        // Renderizar servicios de una categoría
-        function renderServices(category) {
-            servicesContainer.innerHTML = '';
-            const categoria = serviciosPorCategoria[category];
-            
-            // Actualizar el nombre de la categoría
-            serviceNameEl.textContent = categoria.nombre;
-            
-            // Actualizar precio del retirado
-            retiradoPriceEl.textContent = `$${categoria.retirado.precio}`;
-            
-            // Crear tarjetas de servicio
-            categoria.servicios.forEach(servicio => {
-                const card = document.createElement('div');
-                card.classList.add('service-card');
-                card.setAttribute('data-nombre', servicio.nombre);
-                card.setAttribute('data-precio', servicio.precio);
-                card.innerHTML = `
-                    <div class="service-icon">
-                        <i class="fas fa-${servicio.icono}"></i>
-                    </div>
-                    <div class="service-name-card">${servicio.nombre}</div>
-                    <div class="service-price">$${servicio.precio}</div>
-                `;
-                
-                // Resaltar si es el servicio seleccionado
-                if (selectedService && selectedService.nombre === servicio.nombre) {
-                    card.classList.add('selected');
-                }
-                
-                card.addEventListener('click', () => {
-                    selectedService = {
-                        nombre: servicio.nombre,
-                        precio: servicio.precio
-                    };
-                    
-                    // Actualizar selección visual
-                    document.querySelectorAll('.service-card').forEach(c => {
-                        c.classList.remove('selected');
-                    });
-                    card.classList.add('selected');
-                    
-                    updateSummary();
-                });
-                
-                servicesContainer.appendChild(card);
-            });
-            
-            // Actualizar estado del retirado
-            if (selectedRetirado) {
-                retiradoCard.classList.add('selected');
-            } else {
-                retiradoCard.classList.remove('selected');
-            }
-        }
-        
-        // Inicializar el calendario
+        // Inicializar calendario
         function initCalendar() {
             renderCalendar(currentMonth, currentYear);
-            updateSummary();
         }
         
-        // Renderizar el calendario
+        // Renderizar calendario
         function renderCalendar(month, year) {
             while (calendarGrid.children.length > 7) {
                 calendarGrid.removeChild(calendarGrid.lastChild);
@@ -1166,14 +1309,15 @@
         }
         
         // Seleccionar una fecha
-        function selectDate(date) {
-            selectedDate = date;
-            selectedTime = null;
-            
-            initCalendar();
-            generateTimeSlots();
-            updateSummary();
-        }
+         function selectDate(date) {
+        selectedDate = date;
+        selectedTime = null;
+        console.log('Fecha seleccionada:', selectedDate);
+        
+        renderCalendar(currentMonth, currentYear);
+        generateTimeSlots();
+        updateResumen();
+    }
         
         // Generar horarios disponibles
         function generateTimeSlots() {
@@ -1182,27 +1326,26 @@
             if (!selectedDate) return;
             
             const isToday = selectedDate.toDateString() === today.toDateString();
-            const now = new Date();
-            const currentHour = now.getHours();
+            const currentHour = new Date().getHours();
             
+            // Horarios de mañana
             for (let hour = 8; hour <= 11; hour++) {
                 if (isToday && hour < currentHour) continue;
                 createTimeSlot(hour);
             }
             
+            // Horarios de tarde
             for (let hour = 16; hour <= 19; hour++) {
                 if (isToday && hour < currentHour) continue;
                 createTimeSlot(hour);
             }
         }
         
-        // Crear un botón de horario
+        // Crear slot de horario
         function createTimeSlot(hour) {
             const timeSlot = document.createElement('div');
             timeSlot.classList.add('time-slot');
-            
-            const formattedHour = `${hour}:00`;
-            timeSlot.textContent = formattedHour;
+            timeSlot.textContent = `${hour}:00`;
             
             if (selectedTime === hour) {
                 timeSlot.classList.add('selected');
@@ -1210,195 +1353,82 @@
             
             timeSlot.addEventListener('click', () => {
                 selectedTime = hour;
-                
                 document.querySelectorAll('.time-slot').forEach(slot => {
                     slot.classList.remove('selected');
                 });
-                
                 timeSlot.classList.add('selected');
-                updateSummary();
             });
             
             timeSlotsEl.appendChild(timeSlot);
         }
-        
-        // Actualizar resumen de la reserva
-        function updateSummary() {
-            const servicioEl = document.getElementById('resumen-servicio');
-            servicioEl.textContent = selectedService ? selectedService.nombre : "-";
-            
-            const adicionalEl = document.getElementById('resumen-adicional');
-            adicionalEl.textContent = selectedRetirado ? serviciosPorCategoria[selectedCategory].retirado.nombre : "-";
-            
-            const fechaEl = document.getElementById('resumen-fecha');
-            if (selectedDate) {
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                fechaEl.textContent = selectedDate.toLocaleDateString('es-ES', options);
-            } else {
-                fechaEl.textContent = "-";
-            }
-            
-            const horaEl = document.getElementById('resumen-hora');
-            horaEl.textContent = selectedTime ? `${selectedTime}:00` : "-";
-            
-            const totalEl = document.getElementById('resumen-total');
-            let total = 0;
-            
-            if (selectedService) {
-                total += selectedService.precio;
-            }
-            
-            if (selectedRetirado) {
-                total += serviciosPorCategoria[selectedCategory].retirado.precio;
-            }
-            
-            totalEl.textContent = `$${total}`;
-        }
-        
+
         // Mostrar modal de confirmación
         function showConfirmationModal() {
-            document.getElementById('modal-servicio').textContent = 
-                document.getElementById('resumen-servicio').textContent;
-            
-            document.getElementById('modal-adicional').textContent = 
-                document.getElementById('resumen-adicional').textContent;
-            
-            document.getElementById('modal-fecha').textContent = 
-                document.getElementById('resumen-fecha').textContent;
-            
-            document.getElementById('modal-hora').textContent = 
-                document.getElementById('resumen-hora').textContent;
-            
-            document.getElementById('modal-total').textContent = 
-                document.getElementById('resumen-total').textContent;
-            
             modalOverlay.classList.add('active');
         }
         
-        // Cerrar modal de confirmación
+        // Cerrar modal
         function closeConfirmationModal() {
             modalOverlay.classList.remove('active');
         }
         
-        // Asignar event listeners
-        function attachEventListeners() {
-            // Botones de categoría
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Actualizar botones activos
-                    document.querySelectorAll('.category-btn').forEach(b => {
-                        b.classList.remove('active');
-                    });
-                    btn.classList.add('active');
-                    
-                    // Cambiar categoría
-                    selectedCategory = btn.getAttribute('data-category');
-                    selectedService = null;
-                    selectedRetirado = false;
-                    selectedDate = null;
-                    selectedTime = null;
-                    
-                    // Actualizar servicios
-                    renderServices(selectedCategory);
-                    initCalendar();
-                });
-            });
-            
-            // Tarjeta de retirado
-            retiradoCard.addEventListener('click', () => {
-                selectedRetirado = !selectedRetirado;
-                retiradoCard.classList.toggle('selected');
-                updateSummary();
-            });
-            
-            // Botón de reserva
-            confirmBtn.addEventListener('click', () => {
-                if (!selectedService && !selectedRetirado) {
-                    alert("Por favor selecciona al menos un servicio o retirado");
-                    return;
-                }
-                
-                if (!selectedDate) {
-                    alert("Por favor selecciona una fecha");
-                    return;
-                }
-                
-                if (!selectedTime) {
-                    alert("Por favor selecciona un horario");
-                    return;
-                }
-                
-                showConfirmationModal();
-            });
-            
-            // Confirmar reserva desde el modal
-            modalConfirmBtn.addEventListener('click', () => {
-                const fechaFormateada = selectedDate.toLocaleDateString('es-ES');
-                const horaFormateada = `${selectedTime}:00`;
-                
-                let servicios = [];
-                if (selectedService) servicios.push(selectedService.nombre);
-                if (selectedRetirado) servicios.push(serviciosPorCategoria[selectedCategory].retirado.nombre);
-                
-                let total = 0;
-                if (selectedService) total += selectedService.precio;
-                if (selectedRetirado) total += serviciosPorCategoria[selectedCategory].retirado.precio;
-                
-                alert(`¡Reserva confirmada!\n\nServicios:\n${servicios.join("\n")}\nFecha: ${fechaFormateada}\nHora: ${horaFormateada}\nTotal: $${total}`);
-                
-                closeConfirmationModal();
-                resetForm();
-            });
-            
-            // Modificar reserva desde el modal
-            modalModifyBtn.addEventListener('click', () => {
-                closeConfirmationModal();
-            });
-            
-            // Cerrar modal con el botón X
-            modalCloseBtn.addEventListener('click', () => {
-                closeConfirmationModal();
-            });
-            
-            // Navegación del calendario (mes anterior)
-            prevMonthBtn.addEventListener('click', () => {
-                currentMonth--;
-                if (currentMonth < 0) {
-                    currentMonth = 11;
-                    currentYear--;
-                }
-                renderCalendar(currentMonth, currentYear);
-            });
-            
-            // Navegación del calendario (mes siguiente)
-            nextMonthBtn.addEventListener('click', () => {
-                currentMonth++;
-                if (currentMonth > 11) {
-                    currentMonth = 0;
-                    currentYear++;
-                }
-                renderCalendar(currentMonth, currentYear);
-            });
-        }
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', initCalendar);
         
-        // Reiniciar formulario después de confirmación
-        function resetForm() {
-            selectedService = null;
-            selectedRetirado = false;
-            selectedDate = null;
-            selectedTime = null;
-            
-            document.querySelectorAll('.service-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            retiradoCard.classList.remove('selected');
-            
-            updateSummary();
-            initCalendar();
+        modalConfirmBtn.addEventListener('click', () => {
+     if (!selectedService || !selectedDate || !selectedTime) {
+        alert('Por favor selecciona servicio, fecha y hora');
+        return;
+    }
+
+    const fechaFormateada = selectedDate.toISOString().split('T')[0];
+    const horaFormateada = `${selectedTime}:00`;
+    
+    const datos = {
+        fecha: fechaFormateada,
+        hora: horaFormateada,
+        servicio_id: parseInt(selectedService.id),
+        usuario_id: <?php echo $_SESSION['usuario_id']; ?>,
+        retirado: isRetiradoSelected ? 1 : 0
+    };
+
+    console.log('Enviando datos:', datos); // Para debugging
+
+    fetch('guardar_reserva.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(async response => {
+        const text = await response.text();
+        console.log('Respuesta del servidor:', text); // Para debugging
+        
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error('Respuesta no válida del servidor: ' + text);
         }
-       
-        // Inicializar la aplicación
-        initApp();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('Reserva guardada exitosamente');
+            closeConfirmationModal();
+            window.location.reload();
+        } else {
+            alert('Error al guardar la reserva: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud: ' + error.message);
+    });
+        });
+        
+        modalModifyBtn.addEventListener('click', closeConfirmationModal);
+        modalCloseBtn.addEventListener('click', closeConfirmationModal);
     </script>
 </body>
 </html>

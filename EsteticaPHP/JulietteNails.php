@@ -1,3 +1,16 @@
+<?php
+session_start();
+
+// Si no hay sesión, redirige al login
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: Login.php");
+    exit();
+}
+
+// Guardar el nombre en una variable
+$nombreUsuario = $_SESSION['usuario'];
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -174,10 +187,16 @@ footer {
   </header>
 
   <section id="inicio">
-    <h1>¡Bienvenid@ a Juliette Nails!</h1>
+    <h1>¡Te damos la bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Juliette Nails!</h1>
     <p class="text-center">Gracias por confiar en nosotr@s. Le ofrecemos una experiencia exclusiva, atención personalizada y resultados que reflejan elegancia y distinción.</p>
   </section>
+<?php
+include 'conexEstetica.php';
+$conexion = conectarDB();
 
+$query_servicios = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '6'";
+$resultado_servicios = mysqli_query($conexion, $query_servicios);
+?>
   <!-- SERVICIOS -->
   <section id="servicios">
     <h2>Servicios</h2>

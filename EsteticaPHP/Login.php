@@ -22,6 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Contraseña correcta, iniciar sesión
                 $_SESSION['usuario'] = $usuario['nombre']; // Guarda el nombre del usuario en la sesión
                 $_SESSION['usuario_id'] = $usuario['id']; // Guarda el ID del usuario en la sesión
+                $_SESSION['apellido'] = $usuario['apellido']; // Guarda el apellido del usuario en la sesión
                 header("Location: index.php"); // Redirige al inicio
                 exit();
             } else {
