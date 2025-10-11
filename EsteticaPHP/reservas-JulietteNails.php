@@ -1259,8 +1259,36 @@ $conexion = conectarDB();
             renderCalendar(currentMonth, currentYear);
         }
         
+        // Event listeners para la navegación del calendario
+prevMonthBtn.addEventListener('click', () => {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar(currentMonth, currentYear);
+});
+
+nextMonthBtn.addEventListener('click', () => {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar(currentMonth, currentYear);
+});
+
         // Renderizar calendario
         function renderCalendar(month, year) {
+                const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 3);
+    
+    if (new Date(year, month) > maxDate) {
+        currentMonth = maxDate.getMonth();
+        currentYear = maxDate.getFullYear();
+        month = currentMonth;
+        year = currentYear;
+    }
             while (calendarGrid.children.length > 7) {
                 calendarGrid.removeChild(calendarGrid.lastChild);
             }
