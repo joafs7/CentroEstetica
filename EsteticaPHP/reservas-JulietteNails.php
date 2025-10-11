@@ -1394,7 +1394,7 @@ $conexion = conectarDB();
 
     console.log('Enviando datos:', datos); // Para debugging
 
-    fetch('guardar_reserva.php', {
+     fetch('guardar_reserva.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1404,21 +1404,26 @@ $conexion = conectarDB();
     })
     .then(async response => {
         const text = await response.text();
-        console.log('Respuesta del servidor:', text); // Para debugging
+        console.log('Respuesta del servidor:', text);
         
         try {
-            return JSON.parse(text);
+            const data = JSON.parse(text);
+            if (data.success) {
+                alert('Reserva guardada exitosamente');
+                closeConfirmationModal();
+                window.location.reload();
+            } else {
+                // Mostrar mensaje específico si el horario está ocupado
+                if (data.message.includes('Ya existe una reserva')) {
+                    alert(data.message);
+                    // Regenerar horarios disponibles
+                    generateTimeSlots();
+                } else {
+                    alert('Error al guardar la reserva: ' + data.message);
+                }
+            }
         } catch (e) {
             throw new Error('Respuesta no válida del servidor: ' + text);
-        }
-    })
-    .then(data => {
-        if (data.success) {
-            alert('Reserva guardada exitosamente');
-            closeConfirmationModal();
-            window.location.reload();
-        } else {
-            alert('Error al guardar la reserva: ' + data.message);
         }
     })
     .catch(error => {

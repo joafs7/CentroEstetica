@@ -39,13 +39,31 @@ if (empty($_SESSION['nombre']) || empty($_SESSION['apellido'])) {
 try {
     // Obtener los datos enviados
     $jsonData = file_get_contents('php://input');
-    $datos = json_decode($jsonData, true);
+     $datos = json_decode(file_get_contents('php://input'), true);
     
     if (!$datos) {
         throw new Exception('Datos no recibidos correctamente');
     }
 
     $conexion = conectarDB();
+    $fecha_realizacion = $datos['fecha'] . ' ' . $datos['hora'];
+    
+    $query_verificar = "SELECT COUNT(*) as total FROM historial 
+                       WHERE fecha_realizacion = ? AND id_negocio = 2";
+
+    $stmt_verificar = $conexion->prepare($query_verificar);
+    $stmt_verificar->bind_param('s', $fecha_realizacion);
+    $stmt_verificar->execute();
+    $result_verificar = $stmt_verificar->get_result();
+    $row = $result_verificar->fetch_assoc();
+
+    if ($row['total'] > 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Ya existe una reserva para esta fecha y hora. Por favor, seleccione otro horario.'
+        ]);
+        exit;
+    }
 
     // Obtener precio y categoría del servicio
     $stmt_servicio = $conexion->prepare("SELECT precio, categoria_id FROM servicios WHERE id = ?");
