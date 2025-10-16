@@ -147,12 +147,12 @@ h3 {
 
 /* Modales */
 .login-overlay {
-  position: fixed;
+ position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(250, 250, 250, 0.85);
+  background: rgba(214, 51, 132, 0.15); /* Fondo rosado transparente */
   backdrop-filter: blur(6px);
   display: none;
   justify-content: center;
