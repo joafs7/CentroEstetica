@@ -935,6 +935,7 @@ $conexion = conectarDB();
 </div>
 
 <script>
+    let reservedSlots = {}; // { 'YYYY-MM-DD': [hora, hora, ...] }
 document.addEventListener('DOMContentLoaded', function() {
     // Variables globales
     let selectedCategory = "corporales";
@@ -1165,11 +1166,22 @@ modalConfirmBtn.addEventListener('click', () => {
         console.log('Respuesta del servidor:', text);
         
         try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                alert('Reserva guardada exitosamente');
-                closeConfirmationModal();
-                window.location.reload();
+             const data = JSON.parse(text);
+        if (data.success) {
+            alert('Reserva guardada exitosamente');
+            closeConfirmationModal();
+
+            // Eliminar el horario seleccionado del DOM
+            if (selectedTime !== null) {
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    if (slot.textContent === `${selectedTime}:00`) {
+                        slot.remove();
+                    }
+                });
+                selectedTime = null; // Limpiar selección
+            }
+
+            updateSummary(); // Opcional: actualiza el resumen
             } else {
                 // Mostrar mensaje específico si el horario está ocupado
                 if (data.message.includes('Ya existe una reserva')) {
