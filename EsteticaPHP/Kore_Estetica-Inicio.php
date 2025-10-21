@@ -9,6 +9,11 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Guardar el nombre en una variable
 $nombreUsuario = $_SESSION['usuario'];
+
+// Definir si es admin
+$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
+    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['id_negocio_admin'] == 1;
 ?>
 
 
@@ -392,6 +397,9 @@ $nombreUsuario = $_SESSION['usuario'];
                         <a href="#servicio" class="nav-btn">Servicios</a>
                         <a href="#promos" class="nav-btn">Combos</a>
                         <a href="#contacto" class="nav-btn">Contacto</a>
+                        <?php if ($esAdmin): ?>
+                        <a href="config.php" class="btn btn-warning" style="margin-left:20px;">Configuración</a>
+                        <?php endif; ?>
                         <!-- Botón para abrir sidebar de usuario -->
                         <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
                             <i class="fas fa-user-circle"></i> Mi cuenta

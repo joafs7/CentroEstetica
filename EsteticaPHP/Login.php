@@ -21,6 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['nombre'] = $usuario['nombre']; // AGREGAR ESTA LÍNEA
                 $_SESSION['apellido'] = $usuario['apellido']; // AGREGAR ESTA LÍNEA
                 $_SESSION['email'] = $usuario['email']; // AGREGAR ESTA LÍNEA
+                $_SESSION['tipo'] = $usuario['tipo'];
+                $_SESSION['id_negocio_admin'] = $usuario['id_negocio_admin'];
                 header("Location: index.php");
                 exit();
             } else {

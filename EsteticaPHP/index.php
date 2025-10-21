@@ -1,6 +1,7 @@
 <?php
 session_start();
 $usuarioLogueado = isset($_SESSION['usuario']);
+$esAdmin = isset($_SESSION['tipo']) && $_SESSION['tipo'] == 'admin';
 ?>
 <!DOCTYPE html>
 <html lang="en">
