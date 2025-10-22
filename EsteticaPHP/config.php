@@ -229,24 +229,43 @@
                 <button class="btn-editar">EDITAR</button>
             </div>
 
+<?php
 <!-- Servicios -->
-            <div id="seccion-servicios" class="seccion">
-                <h2><strong>Servicios y Precios</strong></h2>
-                <table class="table table-bordered text-center mt-4">
-                    <thead>
-                        <tr>
-                            <th>Servicio</th>
-                            <th>Precio Actual</th>
-                            <th>Precio Nuevo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-precios"></tbody>
-                </table>
-                <div class="text-center mt-3">
-                    <button id="btn-editar" class="btn btn-dark">Editar</button>
-                    <button id="btn-guardar" class="btn btn-danger" disabled>Guardar</button>
-                </div>
-            </div>
+<div id="seccion-servicios" class="seccion">
+    <h2><strong>Servicios y Precios</strong></h2>
+    <form id="form-precios" method="post" action="config.php">
+        <table class="table table-bordered text-center mt-4">
+            <thead>
+                <tr>
+                    <th>Servicio</th>
+                    <th>Precio Actual</th>
+                    <th>Precio Nuevo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                include_once 'conexEstetica.php';
+                $conexion = conectarDB();
+                $query = "SELECT id, nombre, precio FROM servicios WHERE id_negocio = 1";
+                $result = mysqli_query($conexion, $query);
+                while ($row = mysqli_fetch_assoc($result)) {
+                    echo '<tr>
+                        <td>' . htmlspecialchars($row['nombre']) . '</td>
+                        <td>$<span>' . number_format($row['precio'], 0, ',', '.') . '</span></td>
+                        <td>
+                            <input type="number" class="form-control text-center" name="nuevo_precio[' . $row['id'] . ']" min="0" placeholder="Nuevo precio">
+                        </td>
+                    </tr>';
+                }
+                mysqli_free_result($result);
+                ?>
+            </tbody>
+        </table>
+        <div class="text-center mt-3">
+            <button type="submit" name="guardar_precios" class="btn btn-danger">Guardar</button>
+        </div>
+    </form>
+</div>
 
             <!-- Usuarios -->
             <div id="seccion-usuarios" class="seccion">
