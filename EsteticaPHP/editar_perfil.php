@@ -12,7 +12,8 @@ $apellido = isset($_POST['apellido']) ? trim($_POST['apellido']) : '';
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $celular = isset($_POST['celular']) ? trim($_POST['celular']) : '';
 
-if ($usuarioId === '' || $nombre === '') {
+// Validar que el usuario que edita es el que está en la sesión
+if ($usuarioId === '' || $nombre === '' || !isset($_SESSION['usuario_id']) || $usuarioId != $_SESSION['usuario_id']) {
     header('Location: Kore_Estetica-Inicio.php');
     exit();
 }
@@ -42,5 +43,3 @@ if (file_exists('conexEstetica.php')) {
 // Redirigir de vuelta a la página principal con indicador
 header('Location: Kore_Estetica-Inicio.php?updated=1');
 exit();
-
-

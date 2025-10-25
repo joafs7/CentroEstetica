@@ -225,6 +225,33 @@ $conexion = conectarDB();
             border-color: #ffd43b;
             box-shadow: 0 6px 12px rgba(255, 212, 59, 0.3);
         }
+
+        .service-card.selected::after {
+            content: '\f00c'; /* Código del ícono de check de Font Awesome */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900; /* Necesario para los íconos sólidos de FA6 */
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            color: #2f9e44; /* Un verde para el check */
+            background: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: scale(0);
+            animation: pop-in 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+
+        @keyframes pop-in {
+            to {
+                transform: scale(1);
+            }
+        }
         
         .service-icon {
             font-size: 2.5rem;
@@ -372,13 +399,35 @@ $conexion = conectarDB();
         
         /* ----- SECCIÓN DE HORARIOS ----- */
         .time-slots-section {
+            text-align: center;
             margin-top: 30px;
+        }
+
+        .time-slots-section h3 {
+            font-size: 1.5rem;
+            color: #2f3542;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .time-slots-section h3::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: #e89c94;
+            border-radius: 3px;
         }
         
         .time-slots {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
             margin-top: 20px;
         }
         
@@ -408,6 +457,41 @@ $conexion = conectarDB();
             background: #fadcd9;
             color: #f6b8b3;
             cursor: not-allowed;
+        }
+        
+        .time-slot.auto-disabled {
+            background: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+            position: relative;
+            border-color: #dee2e6;
+        }
+
+        .time-slot.auto-disabled::after {
+            content: '\f023'; /* Ícono de candado de Font Awesome */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: rgba(0, 0, 0, 0.2);
+        }
+
+        .time-slots-group {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #f6b8b3;
+        }
+
+        .time-slots-group h4 {
+            font-size: 1.2rem;
+            color: #e89c94;
+            margin-bottom: 15px;
         }
         
         /* ----- SECCIÓN DE RESUMEN ----- */
@@ -658,6 +742,12 @@ $conexion = conectarDB();
             color: white;
             box-shadow: 0 5px 15px rgba(246, 184, 179, 0.4);
         }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #868e96 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(134, 142, 150, 0.4);
+        }
         
         .modal-btn:hover {
             transform: translateY(-3px);
@@ -766,22 +856,27 @@ $conexion = conectarDB();
         <button class="category-btn" data-category="combos">Combos Especiales</button>
     </div>
 
-    <div class="main-content">            
+    <div class="main-content">
+        <div class="service-section">
+            <div class="service-title">Elija un tratamiento o promoción especial</div>
+        </div>
         <!-- Servicios corporales -->
         <div id="corporales" class="services-section">
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '10' AND id_negocio = '1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '10' AND id_negocio = '1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
-                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                                <i class="fas fa-spa fa-3x pink-text"></i>
                             </div>
-                            <div class="card-body text-center">
+                            <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <p class="service-details flex-grow-1"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                                <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> min</div>
                                 <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                             </div>
                         </div>
@@ -796,16 +891,18 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '11' AND id_negocio = '1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '11' AND id_negocio = '1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
-                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                                <i class="fas fa-smile fa-3x pink-text"></i>
                             </div>
-                            <div class="card-body text-center">
+                            <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <p class="service-details flex-grow-1"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                                <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> min</div>
                                 <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                             </div>
                         </div>
@@ -820,16 +917,18 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '12' AND id_negocio = '1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '12' AND id_negocio = '1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
-                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                                <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
                             </div>
-                            <div class="card-body text-center">
+                            <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <p class="service-details flex-grow-1"><?php echo htmlspecialchars($row['descripcion']); ?></p>
+                                <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> min</div>
                                 <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                             </div>
                         </div>
@@ -841,19 +940,43 @@ $conexion = conectarDB();
 
         <!--combos-->
         <div id="combos" class="services-section" style="display:none;">
-             <h2 class="section-title"></h2>
+            <h2 class="section-title"></h2>
+            <?php
+            // Función para asignar un ícono basado en el nombre del tratamiento
+            function obtenerIconoParaTratamiento($tratamiento) {
+                $tratamiento = strtolower(trim($tratamiento));
+                if (strpos($tratamiento, 'electrodo') !== false) return 'fas fa-bolt';
+                if (strpos($tratamiento, 'radiofrecuencia') !== false) return 'fas fa-wave-square';
+                if (strpos($tratamiento, 'presoterapia') !== false) return 'fas fa-wind';
+                if (strpos($tratamiento, 'masaje') !== false) return 'fas fa-spa';
+                if (strpos($tratamiento, 'doble aparatología') !== false) return 'fas fa-cogs';
+                return 'fas fa-star'; // Ícono por defecto
+            }
+            ?>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, precio FROM combos where id_negocio='1'";
+                $query = "SELECT id, nombre, descripcion, precio, 105 AS duracion_minutos FROM combos WHERE id_negocio='1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
-                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="105">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                                <i class="fas fa-gift fa-3x pink-text"></i>
                             </div>
-                            <div class="card-body text-center">
+                            <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <div class="service-details flex-grow-1 text-start px-3">
+                                    <ul class="list-unstyled">
+                                    <?php
+                                    $tratamientos = explode(',', $row['descripcion']);
+                                    foreach ($tratamientos as $tratamiento) {
+                                        $icono = obtenerIconoParaTratamiento($tratamiento);
+                                        echo '<li><i class="' . $icono . ' pink-text me-2"></i>' . htmlspecialchars(trim($tratamiento)) . '</li>';
+                                    }
+                                    ?>
+                                    </ul>
+                                </div>
+                                <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> min</div>
                                 <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                             </div>
                         </div>
@@ -867,7 +990,7 @@ $conexion = conectarDB();
         <div class="calendar-section">
             <h2 class="section-title">Selecciona una fecha</h2>
             <div class="calendar-container">
-                <div class="calendar-header">
+                 <div class="calendar-header">
                     <div class="calendar-nav">
                         <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
                         <div class="current-month" id="current-month"></div>
@@ -877,7 +1000,7 @@ $conexion = conectarDB();
                 <div class="calendar-grid"></div>
             </div>
             <div class="time-slots-section">
-                <h3>Horarios Disponibles</h3>
+                <h3 id="time-slots-title" style="display: none;">Horarios Disponibles</h3>
                 <div id="time-slots" class="time-slots"></div>
             </div>
         </div>
@@ -930,18 +1053,30 @@ $conexion = conectarDB();
         <div class="modal-buttons">
             <button class="modal-btn btn-confirm-modal" id="modal-confirm-btn"><i class="fas fa-check-circle"></i> Confirmar</button>
             <button class="modal-btn btn-modify" id="modal-modify-btn"><i class="fas fa-edit"></i> Modificar</button>
+            <button class="modal-btn btn-cancel" id="modal-cancel-btn"><i class="fas fa-times-circle"></i> Cancelar</button>
         </div>
     </div>
 </div>
 
 <script>
-    let reservedSlots = {}; // { 'YYYY-MM-DD': [hora, hora, ...] }
+    let reservedSlots = {}; // { 'YYYY-MM-DD': [hora, hora, ...] } // Almacenará las reservas existentes
 document.addEventListener('DOMContentLoaded', function() {
     // Variables globales
     let selectedCategory = "corporales";
-    let selectedService = null;
+    let selectedServices = []; // Ahora será un array de un solo elemento
     let selectedDate = null;
     let selectedTime = null;
+
+    // Función para obtener las reservas del mes
+    function fetchReservedSlots(year, month) {
+        // El mes en JS es 0-11, en PHP es 1-12. Sumamos 1.
+        fetch(`obtener_reservas.php?year=${year}&month=${month + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                reservedSlots = data;
+                generateTimeSlots(); // Volver a generar los horarios si ya hay una fecha seleccionada
+            });
+    }
 
     // Referencias DOM
     const calendarGrid = document.querySelector('.calendar-grid');
@@ -954,6 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalConfirmBtn = document.getElementById('modal-confirm-btn');
     const modalModifyBtn = document.getElementById('modal-modify-btn');
     const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalCancelBtn = document.getElementById('modal-cancel-btn');
     const confirmBtn = document.getElementById('confirm-btn');
 
     // Fecha actual
@@ -963,9 +1099,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Renderizar calendario
     function renderCalendar(month, year) {
+        fetchReservedSlots(year, month); // Obtener reservas para el mes que se va a renderizar
         calendarGrid.innerHTML = "";
         const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
         currentMonthEl.textContent = `${monthNames[month]} ${year}`;
+
+        const dayNames = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+        dayNames.forEach(name => {
+            const dayNameEl = document.createElement('div');
+            dayNameEl.classList.add('day-name');
+            dayNameEl.textContent = name;
+            calendarGrid.appendChild(dayNameEl);
+        });
         
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
@@ -1014,6 +1159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateTimeSlots() {
         timeSlotsEl.innerHTML = '';
         if (!selectedDate) return;
+        document.getElementById('time-slots-title').style.display = 'inline-block';
 
         const isToday = selectedDate.toDateString() === new Date().toDateString();
         const currentHour = new Date().getHours();
@@ -1021,18 +1167,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const morningContainer = document.createElement('div');
         morningContainer.className = 'time-slots-group';
         morningContainer.innerHTML = '<h4>Mañana</h4>';
+        const morningGrid = document.createElement('div');
+        morningGrid.style.display = 'grid';
+        morningGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(100px, 1fr))';
+        morningGrid.style.gap = '10px';
         for (let hour = 8; hour <= 11; hour++) {
             if (isToday && hour <= currentHour) continue;
-            morningContainer.appendChild(createTimeSlot(hour));
+            morningGrid.appendChild(createTimeSlot(hour));
         }
+        morningContainer.appendChild(morningGrid);
 
         const afternoonContainer = document.createElement('div');
         afternoonContainer.className = 'time-slots-group';
         afternoonContainer.innerHTML = '<h4>Tarde</h4>';
+        const afternoonGrid = document.createElement('div');
+        afternoonGrid.style.display = 'grid';
+        afternoonGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(100px, 1fr))';
+        afternoonGrid.style.gap = '10px';
         for (let hour = 16; hour <= 19; hour++) {
             if (isToday && hour <= currentHour) continue;
-            afternoonContainer.appendChild(createTimeSlot(hour));
+            afternoonGrid.appendChild(createTimeSlot(hour));
         }
+        afternoonContainer.appendChild(afternoonGrid);
 
         timeSlotsEl.appendChild(morningContainer);
         timeSlotsEl.appendChild(afternoonContainer);
@@ -1042,12 +1198,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const slot = document.createElement('div');
         slot.classList.add('time-slot');
         slot.textContent = `${hour}:00`;
+
+        // Verificar si el slot está reservado
+        const fechaFormateada = selectedDate.toISOString().split('T')[0];
+        if (reservedSlots[fechaFormateada] && reservedSlots[fechaFormateada].includes(hour)) {
+            slot.classList.add('unavailable');
+            slot.title = 'Horario no disponible';
+            return slot; // Devolver el slot deshabilitado
+        }
+
         if (selectedTime === hour) slot.classList.add('selected');
         slot.addEventListener('click', () => {
             document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
             slot.classList.add('selected');
             selectedTime = hour;
             updateSummary();
+            updateBlockedSlots();
         });
         return slot;
     }
@@ -1056,70 +1222,101 @@ document.addEventListener('DOMContentLoaded', function() {
     function attachServiceListeners() {
         document.querySelectorAll('.service-card').forEach(card => {
             card.addEventListener('click', () => {
+                // Deseleccionar todas las tarjetas primero
                 document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                selectedService = {
-                    id: card.dataset.id,
-                    nombre: card.querySelector('.service-name-card').textContent,
-                    precio: card.querySelector('.service-price').textContent.replace('$','').replace(/\./g,''),
-                    duracion: 60 // valor fijo, puedes traerlo de la BD
-                };
+
+                const serviceId = card.dataset.id;
+                const isAlreadySelected = selectedServices.length > 0 && selectedServices[0].id === serviceId;
+
+                if (isAlreadySelected) {
+                    // Si se hace clic en el mismo, se deselecciona
+                    selectedServices = [];
+                    card.classList.remove('selected');
+                } else {
+                    // Seleccionar el nuevo servicio
+                    card.classList.add('selected');
+                    const isCombo = card.closest('#combos') !== null;
+                    const serviceData = { id: serviceId, nombre: card.querySelector('.service-name-card').textContent, precio: parseFloat(card.querySelector('.service-price').textContent.replace('$', '').replace(/\./g, '')), duracion: parseInt(card.dataset.duracion), is_combo: isCombo };
+                    selectedServices = [serviceData]; // Reemplazar con el nuevo servicio
+                }
+
                 updateSummary();
+                updateBlockedSlots();
             });
         });
     }
 
     // Actualizar resumen
-    function updateSummary() {
-const resumenServicioEl = document.getElementById('resumen-servicio');
+function updateSummary() {
+    const resumenServicioEl = document.getElementById('resumen-servicio');
     const resumenFechaEl = document.getElementById('resumen-fecha');
     const resumenHoraEl = document.getElementById('resumen-hora');
     const resumenTotalEl = document.getElementById('resumen-total');
 
-    // Verificar si es un servicio o un combo y mostrar el nombre correspondiente
-    if (selectedService) {
-        // Obtener el contenedor padre para verificar si es un combo
-        const serviceCard = document.querySelector(`.service-card[data-id="${selectedService.id}"]`);
-        const isCombo = serviceCard.closest('#combos') !== null;
+    if (selectedServices.length > 0) {
+        const service = selectedServices[0];
+        resumenServicioEl.innerHTML = service.nombre;
 
-        resumenServicioEl.textContent = isCombo ? 
-            `Combo: ${selectedService.nombre}` : 
-            selectedService.nombre;
-
-        resumenTotalEl.textContent = `$${selectedService.precio}`;
+        let totalPrice = service.precio;
+        resumenTotalEl.textContent = `$${totalPrice.toLocaleString('es-CL')}`;
     } else {
         resumenServicioEl.textContent = "-";
         resumenTotalEl.textContent = "$0";
     }
 
-    // Actualizar fecha y hora
-    resumenFechaEl.textContent = selectedDate ? 
-        selectedDate.toLocaleDateString('es-ES', {
+    resumenFechaEl.textContent = selectedDate ? selectedDate.toLocaleDateString('es-ES', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         }) : "-";
 
-    resumenHoraEl.textContent = selectedTime ? 
-        `${selectedTime}:00` : "-";
-    }
+    resumenHoraEl.textContent = selectedTime ? `${selectedTime}:00` : "-";
+}
 
     // Mostrar modal
 function showConfirmationModal() {
-    const serviceCard = document.querySelector(`.service-card[data-id="${selectedService.id}"]`);
-    const isCombo = serviceCard.closest('#combos') !== null;
-    
-    document.getElementById('modal-servicio').textContent = isCombo ? 
-        `Combo: ${selectedService.nombre}` : 
-        selectedService.nombre;
-        
-    document.getElementById('modal-duracion').textContent = `${selectedService.duracion} min`;
+    if (selectedServices.length === 0) return;
+
+    const service = selectedServices[0];
+    const serviceName = service.is_combo ? `Combo: ${service.nombre}` : service.nombre;
+    const duration = service.duracion;
+    const totalPrice = service.precio;
+
+    let horaTexto = `${selectedTime}:00`;
+    if (duration > 60) {
+        horaTexto += ` a ${selectedTime + Math.ceil(duration / 60)}:00`;
+    }
+
+    document.getElementById('modal-servicio').innerHTML = serviceName;
+    document.getElementById('modal-duracion').textContent = `${duration} min`;
     document.getElementById('modal-fecha').textContent = document.getElementById('resumen-fecha').textContent;
-    document.getElementById('modal-hora').textContent = document.getElementById('resumen-hora').textContent;
-    document.getElementById('modal-total').textContent = document.getElementById('resumen-total').textContent;
+    document.getElementById('modal-hora').textContent = horaTexto;
+    document.getElementById('modal-total').textContent = `$${totalPrice.toLocaleString('es-CL')}`;
     modalOverlay.classList.add('active');
 }
+
+    // Bloquear el siguiente turno si es un combo
+    function updateBlockedSlots() {
+        // 1. Limpiar bloqueos automáticos previos
+        document.querySelectorAll('.time-slot.auto-disabled').forEach(slot => {
+            slot.classList.remove('auto-disabled', 'unavailable');
+        });
+
+        // 2. Verificar si se debe bloquear
+        if (selectedServices.length > 0 && selectedTime !== null) {
+            const service = selectedServices[0];
+            // Si la duración es mayor a 60 min (ej. 105 min para combos)
+            if (service.duracion > 60) {
+                const nextHour = selectedTime + 1;
+                const nextSlot = Array.from(document.querySelectorAll('.time-slot')).find(slot => slot.textContent === `${nextHour}:00`);
+                
+                if (nextSlot) {
+                    nextSlot.classList.add('auto-disabled', 'unavailable');
+                }
+            }
+        }
+    }
 
     function closeConfirmationModal() { modalOverlay.classList.remove('active'); }
 
@@ -1134,75 +1331,81 @@ function showConfirmationModal() {
     });
 
     confirmBtn.addEventListener('click', () => {
-        if (!selectedService) { alert("Selecciona un tratamiento"); return; }
+        if (selectedServices.length === 0) { alert("Selecciona al menos un tratamiento o combo"); return; }
         if (!selectedDate) { alert("Selecciona una fecha"); return; }
         if (!selectedTime) { alert("Selecciona un horario"); return; }
         showConfirmationModal();
     });
 
-modalConfirmBtn.addEventListener('click', () => {
-    const fechaFormateada = selectedDate.toISOString().split('T')[0];
-    const horaFormateada = `${selectedTime}:00`;
-    
-    const datos = {
-        fecha: fechaFormateada,
-        hora: horaFormateada,
-        servicio_id: parseInt(selectedService.id),
-        usuario_id: <?php echo $_SESSION['usuario_id']; ?>,
-        id_negocio: 1 // ID para Kore
-    };
+    modalConfirmBtn.addEventListener('click', () => {
+        if (selectedServices.length === 0 || !selectedDate || selectedTime === null) {
+            alert("⚠️ Faltan datos para confirmar la reserva.");
+        return;
+    }
 
-    // Realizar la llamada AJAX para guardar la reserva
-    fetch('guardar_historial.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(datos)
-    })
-    .then(async response => {
-        const text = await response.text();
-        console.log('Respuesta del servidor:', text);
-        
-        try {
-             const data = JSON.parse(text);
-        if (data.success) {
-            alert('Reserva guardada exitosamente');
-            closeConfirmationModal();
+  const fechaFormateada = selectedDate.toISOString().split('T')[0];
+  const horaFormateada = `${selectedTime}:00`;
+  const servicio = selectedServices[0]; // solo uno permitido
+  const datos = {
+    fecha: fechaFormateada,
+    hora: horaFormateada,
+    // El backend espera un array de servicios
+    servicios: [servicio],
+    id_negocio: 1
+  };
 
-            // Eliminar el horario seleccionado del DOM
-            if (selectedTime !== null) {
-                document.querySelectorAll('.time-slot').forEach(slot => {
-                    if (slot.textContent === `${selectedTime}:00`) {
-                        slot.remove();
-                    }
-                });
-                selectedTime = null; // Limpiar selección
-            }
+  fetch('guardar_historial.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify(datos)
+  })
+  .then(async response => {
+    const text = await response.text();
+    console.log('Respuesta del servidor:', text);
 
-            updateSummary(); // Opcional: actualiza el resumen
-            } else {
-                // Mostrar mensaje específico si el horario está ocupado
-                if (data.message.includes('Ya existe una reserva')) {
-                    alert(data.message);
-                    // Regenerar horarios disponibles
-                    generateTimeSlots();
-                } else {
-                    alert('Error al guardar la reserva: ' + data.message);
-                }
-            }
-        } catch (e) {
-            throw new Error('Respuesta no válida del servidor: ' + text);
+    try {
+      const data = JSON.parse(text);
+      if (data.success) {
+        alert('✅ Reserva guardada exitosamente');
+        closeConfirmationModal();
+
+        // Añadir el nuevo turno a la lista de reservados para que se deshabilite al instante
+        const fechaClave = selectedDate.toISOString().split('T')[0];
+        if (!reservedSlots[fechaClave]) reservedSlots[fechaClave] = [];
+        reservedSlots[fechaClave].push(selectedTime);
+
+        // Eliminar el horario seleccionado del DOM
+        document.querySelectorAll('.time-slot').forEach(slot => {
+          if (slot.textContent === `${selectedTime}:00`) slot.remove();
+        });
+
+        // Limpiar selección
+        selectedServices = [];
+        selectedTime = null;
+        document.querySelectorAll('.service-card.selected').forEach(c => c.classList.remove('selected'));
+        updateSummary();
+      } else {
+        alert('❌ Error al guardar la reserva: ' + data.message);
+        if (data.message.includes('Ya existe una reserva')) {
+          generateTimeSlots(); // regenerar horarios
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al procesar la solicitud: ' + error.message);
-    });
+      }
+    } catch (e) {
+      throw new Error('Respuesta no válida del servidor: ' + text);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('❌ Error al procesar la solicitud: ' + error.message);
+  });
 });
+
     modalModifyBtn.addEventListener('click', closeConfirmationModal);
     modalCloseBtn.addEventListener('click', closeConfirmationModal);
+    modalCancelBtn.addEventListener('click', closeConfirmationModal);
     prevMonthBtn.addEventListener('click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth,currentYear); });
     nextMonthBtn.addEventListener('click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth,currentYear); });
 
@@ -1212,4 +1415,4 @@ modalConfirmBtn.addEventListener('click', () => {
 });
 </script>
 </body>
-</html>
+</html> 

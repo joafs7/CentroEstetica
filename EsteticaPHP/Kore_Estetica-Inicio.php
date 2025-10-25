@@ -9,11 +9,6 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Guardar el nombre en una variable
 $nombreUsuario = $_SESSION['usuario'];
-
-// Definir si es admin
-$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
-    && $_SESSION['tipo'] == 'admin' 
-    && $_SESSION['id_negocio_admin'] == 1;
 ?>
 
 
@@ -507,14 +502,6 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
                             </button>
                         </div>
                         <div class="col-12">
-                              <?php if ($esAdmin): ?>
-                            <button type="button" class="btn w-100" style="background-color: var(--primary-color); color: white;" onclick="mostrarHistorial()">
-                                <a href="config.php" class="text-white"><i class="fas fa-history"></i> Configuracion
-                                </a>
-                            <?php endif; ?>
-                            </button>
-                        </div>
-                        <div class="col-12">
                             <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
                         </div>
                         <div class="col-12">
@@ -563,7 +550,6 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
                 <button class="treatment-tab active" data-category="corporales">Tratamientos Corporales</button>
                 <button class="treatment-tab" data-category="faciales">Tratamientos Faciales</button>
                 <button class="treatment-tab" data-category="masajes">Masajes</button>
-                <button class="treatment-tab" data-category="combos">Combos Especiales</button>
             </div>
 
 <?php 
@@ -581,8 +567,7 @@ $resultado = mysqli_query($conexion, $query_corporales);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
+                        <i class="fas fa-spa fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -608,8 +593,7 @@ $resultado = mysqli_query($conexion, $query_faciales);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
+                        <i class="fas fa-smile fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -636,8 +620,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
+                        <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -651,85 +634,58 @@ $resultado = mysqli_query($conexion, $query_masajes);
         <?php } ?>
     </div>
 </div>
-<?php 
-// Consulta para obtener los tratamientos corporales
-$query_combos = "SELECT nombre, precio, descripcion FROM combos";
-$resultado = mysqli_query($conexion, $query_combos);
-?>
-            <!-- Contenido de combos especiales -->
-<div id="combos" class="treatment-content">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <?php while ($row = mysqli_fetch_assoc($resultado)) { ?>
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
-                    </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
-                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
-                        <br>
-                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
-                    </div>
-                </div>
-            </div>
-        <?php } ?>
-    </div>
-</div>
 </section>
 
         <!-- Promociones -->
         <section id="promos" class="py-5">
             <h2 class="section-title">Promociones Especiales</h2>
-            
+            <?php
+            // Función para asignar un ícono basado en el nombre del tratamiento
+            function obtenerIconoParaTratamiento($tratamiento) {
+                $tratamiento = strtolower(trim($tratamiento));
+                if (strpos($tratamiento, 'electrodo') !== false) return 'fas fa-bolt';
+                if (strpos($tratamiento, 'radiofrecuencia') !== false) return 'fas fa-wave-square';
+                if (strpos($tratamiento, 'presoterapia') !== false) return 'fas fa-wind';
+                if (strpos($tratamiento, 'masaje') !== false) return 'fas fa-spa';
+                if (strpos($tratamiento, 'doble aparatología') !== false) return 'fas fa-cogs';
+                // Ícono por defecto si no se encuentra una coincidencia
+                return 'fas fa-star';
+            }
+            ?>
+            <?php 
+            // Consulta para obtener los combos/promociones
+            $query_combos = "SELECT nombre, precio, descripcion, 105 AS duracion_minutos FROM combos WHERE id_negocio = 1";
+            $resultado_combos = mysqli_query($conexion, $query_combos);
+            ?>
             <div class="row g-4 justify-content-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card promo-card h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title pink-text">Combo Reductor</h5>
-                            <p class="card-text">
-                                <i class="fas fa-spa pink-text me-2"></i> Masaje Reductores<br>
-                                <i class="fas fa-bolt pink-text me-2"></i> Electrodos<br>
-                                <i class="fas fa-wave-square pink-text me-2"></i> Radiofrecuencia
-                            </p>
-                            <p class="text-muted">Sesión de una hora y media</p>
-                            <h4 class="promo-price">$4500</h4>
-                            <a href="reservas-kore.html" class="btn btn-pink mt-3">Reservar ahora</a>
+                <?php while ($row = mysqli_fetch_assoc($resultado_combos)) { ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card promo-card h-100">
+                            <div class="card-img-top d-flex align-items-center justify-content-center pt-4">
+                                <i class="fas fa-gift fa-3x pink-text"></i>
+                            </div>
+                            <div class="card-body text-center d-flex flex-column">
+                                <h5 class="card-title pink-text"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <div class="card-text flex-grow-1 text-start px-3">
+                                    <ul class="list-unstyled">
+                                    <?php
+                                    $tratamientos = explode(',', $row['descripcion']);
+                                    foreach ($tratamientos as $tratamiento) {
+                                        $icono = obtenerIconoParaTratamiento($tratamiento);
+                                        echo '<li><i class="' . $icono . ' pink-text me-2"></i>' . htmlspecialchars(trim($tratamiento)) . '</li>';
+                                    }
+                                    ?>
+                                    </ul>
+                                </div>
+                                <?php if (!empty($row['duracion_minutos'])) { ?>
+                                    <p class="text-muted">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</p>
+                                <?php } ?>
+                                <h4 class="promo-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></h4>
+                                <a href="reservas-kore.php" class="btn btn-pink mt-3">Reservar ahora</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="card promo-card h-100 selected-item">
-                        <div class="card-body text-center">
-                            <h5 class="card-title pink-text">Combo Piernas</h5>
-                            <p class="card-text">
-                                <i class="fas fa-wind pink-text me-2"></i> Presoterapia<br>
-                                <i class="fas fa-hands pink-text me-2"></i> Masajes<br>
-                                <i class="fas fa-wave-square pink-text me-2"></i> Radiofrecuencia
-                            </p>
-                            <p class="text-muted">Sesión de una hora y media</p>
-                            <h4 class="promo-price">$4500</h4>
-                            <a href="reservas-kore.html" class="btn btn-pink mt-3">Reservar ahora</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="card promo-card h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title pink-text">Doble Aparatología</h5>
-                            <p class="card-text">
-                                Combinación de dos aparatologías según tu necesidad
-                            </p>
-                            <p class="text-muted">En la misma zona o diferentes</p>
-                            <h4 class="promo-price">$3800</h4>
-                            <a href="reservas-kore.html" class="btn btn-pink mt-3">Reservar ahora</a>
-                        </div>
-                    </div>
-                </div>
+                <?php } ?>
             </div>
         </section>
 
@@ -768,33 +724,82 @@ $resultado = mysqli_query($conexion, $query_combos);
         </footer>
     </div>
 
+    <!-- Modal Historial de Citas -->
+    <div class="modal fade" id="historialModal" tabindex="-1" aria-labelledby="historialModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header pink-gradient text-white">
+                    <h5 class="modal-title" id="historialModalLabel"><i class="fas fa-history me-2"></i>Historial de Citas (Último Mes)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="periodoHistorial" class="form-label fw-bold">Mostrar citas de:</label>
+                        <select class="form-select" id="periodoHistorial">
+                            <option value="semana" selected>Última semana</option>
+                            <option value="mes">Último mes</option>
+                            <option value="tres_meses">Últimos 3 meses</option>
+                            <option value="todos">Ver todo el historial</option>
+                        </select>
+                    </div>
+                    <p>Aquí se muestran tus reservas para el período seleccionado.</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Fecha y Hora</th>
+                                    <th scope="col">Servicio/Combo</th>
+                                    <th scope="col">Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historialTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function mostrarHistorial() {
-            const modal = new bootstrap.Modal(document.getElementById('historialModal'));
-            
+        // Mover la lógica de carga a su propia función para poder reutilizarla
+        function cargarHistorial(periodo) {
+            const tbody = document.getElementById('historialTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center">Cargando historial...</td></tr>'; // Mensaje de carga
+
             // Hacer la petición AJAX para obtener el historial
-            fetch('obtener_historial.php')
+            fetch(`obtener_historial.php?periodo=${periodo}`)
                 .then(response => response.json())
                 .then(data => {
-                    const tbody = document.getElementById('historialTableBody');
                     tbody.innerHTML = ''; // Limpiar contenido anterior
                     
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center">No tienes citas en este período.</td></tr>';
+                        return;
+                    }
+
                     data.forEach(cita => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${formatearFecha(cita.fecha_realizacion)}</td>
                             <td>${cita.nombre}</td>
                             <td>$${formatearPrecio(cita.precio)}</td>
-                            <td><span class="badge bg-success">Completada</span></td>
                         `;
                         tbody.appendChild(tr);
                     });
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error al cargar el historial');
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error al cargar el historial.</td></tr>';
                 });
-            
+        }
+
+        function mostrarHistorial() {
+            const modal = new bootstrap.Modal(document.getElementById('historialModal'));
+            const periodoSelect = document.getElementById('periodoHistorial');
+
+            // Cargar el historial con el valor por defecto (última semana)
+            cargarHistorial(periodoSelect.value);
+
             modal.show();
         }
 
@@ -813,6 +818,12 @@ $resultado = mysqli_query($conexion, $query_combos);
         }
         // Manejar la selección de elementos
         document.addEventListener('DOMContentLoaded', function() {
+            // Evento para cambiar el período del historial
+            const periodoSelect = document.getElementById('periodoHistorial');
+            periodoSelect.addEventListener('change', function() {
+                cargarHistorial(this.value);
+            });
+
             // Manejar selección en la barra de navegación
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => {
