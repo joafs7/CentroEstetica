@@ -481,7 +481,7 @@ $nombreUsuario = $_SESSION['usuario'];
                                 <i class="fas fa-cog me-2"></i> Configuración
                             </a>
                         </div>
-                        <?php endinf; ?>
+                        <?php endif; ?>
                         <div class="col-12">
                             <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
                         </div>
