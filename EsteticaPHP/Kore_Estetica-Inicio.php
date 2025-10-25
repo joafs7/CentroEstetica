@@ -397,9 +397,6 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
                         <a href="#servicio" class="nav-btn">Servicios</a>
                         <a href="#promos" class="nav-btn">Combos</a>
                         <a href="#contacto" class="nav-btn">Contacto</a>
-                        <?php if ($esAdmin): ?>
-                        <a href="config.php" class="btn btn-warning" style="margin-left:20px;">Configuración</a>
-                        <?php endif; ?>
                         <!-- Botón para abrir sidebar de usuario -->
                         <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
                             <i class="fas fa-user-circle"></i> Mi cuenta
@@ -507,6 +504,14 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
                         <div class="col-12">
                             <button type="button" class="btn w-100" style="background-color: var(--primary-color); color: white;" onclick="mostrarHistorial()">
                                 <i class="fas fa-history"></i> Ver Historial de Citas
+                            </button>
+                        </div>
+                        <div class="col-12">
+                              <?php if ($esAdmin): ?>
+                            <button type="button" class="btn w-100" style="background-color: var(--primary-color); color: white;" onclick="mostrarHistorial()">
+                                <a href="config.php" class="text-white"><i class="fas fa-history"></i> Configuracion
+                                </a>
+                            <?php endif; ?>
                             </button>
                         </div>
                         <div class="col-12">
