@@ -190,7 +190,7 @@ footer {
           <td><?= htmlspecialchars($fila['servicio']) ?></td>
           <td><?= htmlspecialchars(date("Y-m-d", strtotime($fila['fecha']))) ?></td>
           <td><?= htmlspecialchars(date("H:i", strtotime($fila['hora']))) ?></td>
-          <td>$<?= htmlspecialchars($fila['precio']) ?></td>
+          <td>$<?= htmlspecialchars(number_format($fila['precio'], 0, ',', '.')) ?></td>
         </tr>
         <?php endwhile; ?>
       </tbody>
@@ -201,28 +201,37 @@ footer {
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Añadir listeners para filtrar en tiempo real
+    document.getElementById("filtro-nombre").addEventListener("keyup", filtrar);
+    document.getElementById("filtro-servicio").addEventListener("keyup", filtrar);
+    document.getElementById("filtro-fecha").addEventListener("change", filtrar);
+});
+
 function filtrar() {
   const nombre = document.getElementById("filtro-nombre").value.toLowerCase();
   const servicio = document.getElementById("filtro-servicio").value.toLowerCase();
   const fecha = document.getElementById("filtro-fecha").value;
   const filas = document.querySelectorAll("#tabla tbody tr");
 
-  filas.forEach(fila => {
-    const colNombre = fila.children[0].textContent.toLowerCase();
-    const colServicio = fila.children[1].textContent.toLowerCase();
-    const colFecha = fila.children[2].textContent;
+    filas.forEach(fila => {
+        const colNombre = fila.children[0].textContent.toLowerCase();
+        const colServicio = fila.children[1].textContent.toLowerCase();
+        const colFecha = fila.children[2].textContent;
 
-    if (
-      (nombre === "" || colNombre.includes(nombre)) &&
-      (servicio === "" || colServicio.includes(servicio)) &&
-      (fecha === "" || colFecha === fecha)
-    ) {
-      fila.style.display = "";
-    } else {
-      fila.style.display = "none";
-    }
-  });
+        // Comprobación de visibilidad
+        const visibleNombre = nombre === "" || colNombre.includes(nombre);
+        const visibleServicio = servicio === "" || colServicio.includes(servicio);
+        const visibleFecha = fecha === "" || colFecha === fecha;
+
+        if (visibleNombre && visibleServicio && visibleFecha) {
+            fila.style.display = ""; // Muestra la fila
+        } else {
+            fila.style.display = "none"; // Oculta la fila
+        }
+    });
 }
+
 </script>
 
 </body>
