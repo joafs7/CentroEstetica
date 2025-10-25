@@ -74,7 +74,7 @@ try {
     $conexion->begin_transaction();
 
     // Preparar la consulta de inserción
-    $query = "INSERT INTO historial (
+    $query_insert = "INSERT INTO historial (
         id_usuario,
         nombre,
         apellido,
@@ -83,14 +83,16 @@ try {
         id_combo,
         id_negocio,
         id_cita,
+        id_venta,
         precio,
         fecha_realizacion,
         created_at,
         updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    $stmt = $conexion->prepare($query);
-     if (!$stmt) {
+
+    $stmt = $conexion->prepare($query_insert);
+    if (!$stmt) {
          throw new Exception('Error preparando consulta de inserción: ' . $conexion->error);
      }
 
@@ -98,80 +100,95 @@ try {
         throw new Exception('La lista de servicios es inválida.');
     }
 
-    foreach ($datos['servicios'] as $servicio_item) {
-        $servicio_id = $servicio_item['id'];
-        $is_combo = $servicio_item['is_combo'];
+    // Como ahora solo se permite un servicio, tomamos el primero del array
+    $servicio_item = $datos['servicios'][0];
+    $servicio_id = $servicio_item['id'];
+    $is_combo = $servicio_item['is_combo'];
+    $duracion = $servicio_item['duracion']; // Obtenemos la duración
 
-        $id_servicio = null;
-        $id_combo = null;
-        $id_categoria = null;
-        $precio = null;
-        $id_negocio = 1; // ID fijo para Kore
+    $id_servicio = null;
+    $id_combo = null;
+    $id_categoria = null;
+    $precio = null;
+    $nombre_servicio_guardar = '';
+    $id_negocio = 1; // ID fijo para Kore
 
-        if ($is_combo) {
-            // Es un combo
-            $stmt_combo = $conexion->prepare("SELECT precio FROM combos WHERE id = ?");
-            if (!$stmt_combo) throw new Exception('Error preparando consulta de combo: ' . $conexion->error);
-            $stmt_combo->bind_param('i', $servicio_id);
-            $stmt_combo->execute();
-            $result_combo = $stmt_combo->get_result();
-            $combo = $result_combo->fetch_assoc();
-            $stmt_combo->close();
+    if ($is_combo) {
+        // Es un combo
+        $stmt_combo = $conexion->prepare("SELECT nombre, precio FROM combos WHERE id = ?");
+        if (!$stmt_combo) throw new Exception('Error preparando consulta de combo: ' . $conexion->error);
+        $stmt_combo->bind_param('i', $servicio_id);
+        $stmt_combo->execute();
+        $result_combo = $stmt_combo->get_result();
+        $combo = $result_combo->fetch_assoc();
+        $stmt_combo->close();
 
-            if (!$combo) {
-                throw new Exception('Combo no encontrado con ID: ' . htmlspecialchars($servicio_id));
-            }
-
-            $id_servicio = null;
-            $id_combo = $servicio_id;
-            $id_categoria = 14; // ID de la categoría "Combos"
-            $precio = $combo['precio'];
-        } else {
-            // Es un servicio regular
-            $stmt_servicio = $conexion->prepare("SELECT precio, categoria_id FROM servicios WHERE id = ?");
-            if (!$stmt_servicio) throw new Exception('Error preparando consulta de servicio: ' . $conexion->error);
-            $stmt_servicio->bind_param('i', $servicio_id);
-            $stmt_servicio->execute();
-            $result = $stmt_servicio->get_result();
-            $servicio = $result->fetch_assoc();
-            $stmt_servicio->close();
-
-            if (!$servicio) {
-                throw new Exception('Servicio no encontrado con ID: ' . htmlspecialchars($servicio_id));
-            }
-
-            $id_servicio = $servicio_id;
-            $id_combo = null;
-            $id_categoria = $servicio['categoria_id'];
-            $precio = $servicio['precio'];
+        if (!$combo) {
+            throw new Exception('Combo no encontrado con ID: ' . htmlspecialchars($servicio_id));
         }
 
-        $created_at = date('Y-m-d H:i:s');
-        $updated_at = $created_at;
-        $id_cita = null; // No se está usando por ahora
+        $id_servicio = null;
+        $id_combo = $servicio_id;
+        $id_categoria = 14; // ID de la categoría "Combos"
+        $precio = $combo['precio'];
+        $nombre_servicio_guardar = $combo['nombre'];
+    } else {
+        // Es un servicio regular
+        $stmt_servicio = $conexion->prepare("SELECT nombre, precio, categoria_id FROM servicios WHERE id = ?");
+        if (!$stmt_servicio) throw new Exception('Error preparando consulta de servicio: ' . $conexion->error);
+        $stmt_servicio->bind_param('i', $servicio_id);
+        $stmt_servicio->execute();
+        $result = $stmt_servicio->get_result();
+        $servicio = $result->fetch_assoc();
+        $stmt_servicio->close();
 
-        // Tipos: i (id_usuario), s (nombre), s (apellido),
-        // i (id_categoria), i (id_servicio), i (id_combo), i (id_negocio), i (id_cita),
-        // d (precio), s (fecha_realizacion), s (created_at), s (updated_at)
-        $stmt->bind_param(
-            'issiiiidssss', // El tipo para id_cita debe ser 'i' si es int o 's' si es string. Asumo 'i' (integer)
-            $_SESSION['usuario_id'],
-            $_SESSION['nombre'],
-            $_SESSION['apellido'],
-            $id_categoria,
-            $id_servicio,
-            $id_combo,
-            $id_negocio,
-            $id_cita,
-            $precio,
-            $fecha_realizacion,
-            $created_at,
-            $updated_at,
-            $id_cita // Aunque es null, debe estar para el bind_param si la columna existe
-        );
+        if (!$servicio) {
+            throw new Exception('Servicio no encontrado con ID: ' . htmlspecialchars($servicio_id));
+        }
 
+        $id_servicio = $servicio_id;
+        $id_combo = null;
+        $id_categoria = $servicio['categoria_id'];
+        $precio = $servicio['precio'];
+        $nombre_servicio_guardar = $servicio['nombre'];
+    }
+
+    $created_at = date('Y-m-d H:i:s');
+    $updated_at = $created_at;
+    $id_cita = null; // No se está usando por ahora
+
+    $stmt->bind_param(
+        'issiiiiidssss',
+        $_SESSION['usuario_id'],
+        $_SESSION['nombre'],
+        $_SESSION['apellido'],
+        $id_categoria,
+        $id_servicio,
+        $id_combo,
+        $id_negocio,
+        $id_cita,
+        $id_cita, // Placeholder para id_venta, asumiendo que es null
+        $precio,
+        $fecha_realizacion,
+        $created_at,
+        $updated_at
+    );
+
+    if (!$stmt->execute()) {
+        throw new Exception('Error al ejecutar la inserción para el servicio/combo ID ' . htmlspecialchars($servicio_id) . ': ' . $stmt->error);
+    }
+
+    // Si la duración es mayor a 60 minutos, guarda un bloqueo para el siguiente turno
+    if ($duracion > 60) {
+        $fecha_bloqueo = new DateTime($fecha_realizacion);
+        $fecha_bloqueo->modify('+1 hour');
+        $fecha_bloqueo_str = $fecha_bloqueo->format('Y-m-d H:i:s');
+        $nombre_bloqueo = "Bloqueo por combo";
+        $precio_bloqueo = 0;
+        
+        $stmt->bind_param('issiiiiidssss', $_SESSION['usuario_id'], $_SESSION['nombre'], $_SESSION['apellido'], $id_categoria, $id_servicio, $id_combo, $id_negocio, $id_cita, $id_cita, $precio_bloqueo, $fecha_bloqueo_str, $created_at, $updated_at);
         if (!$stmt->execute()) {
-            throw new Exception('Error al ejecutar la inserción para el servicio/combo ID ' . htmlspecialchars($servicio_id) . ': ' . $stmt->error);
+            throw new Exception('Error al guardar el bloqueo del turno siguiente: ' . $stmt->error);
         }
     }
 
