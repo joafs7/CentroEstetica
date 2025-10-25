@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'conexEstetica.php'; // Archivo de conexión a la base de datos
+include 'conexEstetica.php';
 $conex = conectarDB();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -13,17 +13,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $resultado = $stmt->get_result();
-
-        if ($resultado->num_rows > 0) {
-            $usuario = $resultado->fetch_assoc();
-
-            // Verificar la contraseña
+        
+        if ($usuario = $resultado->fetch_assoc()) {
             if (password_verify($contrasena, $usuario['contrasena'])) {
-                // Contraseña correcta, iniciar sesión
-                $_SESSION['usuario'] = $usuario['nombre']; // Guarda el nombre del usuario en la sesión
-                $_SESSION['usuario_id'] = $usuario['id']; // Guarda el ID del usuario en la sesión
-                $_SESSION['apellido'] = $usuario['apellido']; // Guarda el apellido del usuario en la sesión
-                header("Location: index.php"); // Redirige al inicio
+                $_SESSION['usuario_id'] = $usuario['id'];
+                $_SESSION['usuario'] = $usuario['nombre'];
+                $_SESSION['nombre'] = $usuario['nombre']; // AGREGAR ESTA LÍNEA
+                $_SESSION['apellido'] = $usuario['apellido']; // AGREGAR ESTA LÍNEA
+                $_SESSION['email'] = $usuario['email']; // AGREGAR ESTA LÍNEA
+                $_SESSION['tipo'] = $usuario['tipo'];
+                $_SESSION['id_negocio_admin'] = $usuario['id_negocio_admin'];
+                header("Location: index.php");
                 exit();
             } else {
                 echo "<script>alert('Contraseña incorrecta.');</script>";
@@ -31,13 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             echo "<script>alert('Usuario no encontrado.');</script>";
         }
-
         $stmt->close();
     } else {
         echo "<script>alert('Por favor, complete todos los campos.');</script>";
     }
 }
-
 $conex->close();
 ?>
 

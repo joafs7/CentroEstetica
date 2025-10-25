@@ -1436,10 +1436,19 @@ nextMonthBtn.addEventListener('click', () => {
         
         try {
             const data = JSON.parse(text);
-            if (data.success) {
-                alert('Reserva guardada exitosamente');
-                closeConfirmationModal();
-                window.location.reload();
+        if (data.success) {
+            alert('Reserva guardada exitosamente');
+            closeConfirmationModal();
+
+            // Eliminar el horario seleccionado del DOM
+            if (selectedTime !== null) {
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    if (slot.textContent === `${selectedTime}:00`) {
+                        slot.remove();
+                    }
+                });
+                selectedTime = null; // Limpiar selección
+            }
             } else {
                 // Mostrar mensaje específico si el horario está ocupado
                 if (data.message.includes('Ya existe una reserva')) {
