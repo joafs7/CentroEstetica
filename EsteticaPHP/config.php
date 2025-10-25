@@ -1,3 +1,26 @@
+<?php
+session_start();
+include_once 'conexEstetica.php';
+
+// Usar el id de negocio de la sesión
+$id_negocio = isset($_SESSION['id_negocio']) ? intval($_SESSION['id_negocio']) : 1;
+
+// Procesar el guardado de precios
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
+    $conexion = conectarDB();
+    $nuevos_precios = $_POST['nuevo_precio'] ?? [];
+    foreach ($nuevos_precios as $id_servicio => $nuevo_precio) {
+        if ($nuevo_precio !== "" && is_numeric($nuevo_precio)) {
+            $stmt = $conexion->prepare("UPDATE servicios SET precio = ? WHERE id = ? AND id_negocio = ?");
+            $stmt->bind_param('iii', $nuevo_precio, $id_servicio, $id_negocio);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+    $conexion->close();
+    echo "<script>alert('Precios actualizados correctamente.');window.location='config.php#seccion-servicios';</script>";
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,11 +267,13 @@
             </thead>
             <tbody>
                 <?php
-                include_once 'conexEstetica.php';
                 $conexion = conectarDB();
-                $query = "SELECT id, nombre, precio FROM servicios WHERE id_negocio = 1";
-                $result = mysqli_query($conexion, $query);
-                while ($row = mysqli_fetch_assoc($result)) {
+                $query = "SELECT id, nombre, precio FROM servicios WHERE id_negocio = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param('i', $id_negocio);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
                     echo '<tr>
                         <td>' . htmlspecialchars($row['nombre']) . '</td>
                         <td>$<span>' . number_format($row['precio'], 0, ',', '.') . '</span></td>
@@ -257,7 +282,8 @@
                         </td>
                     </tr>';
                 }
-                mysqli_free_result($result);
+                $stmt->close();
+                $conexion->close();
                 ?>
             </tbody>
         </table>
