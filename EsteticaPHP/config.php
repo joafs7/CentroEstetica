@@ -229,7 +229,7 @@
                 <button class="btn-editar">EDITAR</button>
             </div>
 
-<?php
+
 <!-- Servicios -->
 <div id="seccion-servicios" class="seccion">
     <h2><strong>Servicios y Precios</strong></h2>
@@ -253,7 +253,7 @@
                         <td>' . htmlspecialchars($row['nombre']) . '</td>
                         <td>$<span>' . number_format($row['precio'], 0, ',', '.') . '</span></td>
                         <td>
-                            <input type="number" class="form-control text-center" name="nuevo_precio[' . $row['id'] . ']" min="0" placeholder="Nuevo precio">
+                            <input type="text" class="form-control text-center" name="nuevo_precio[' . $row['id'] . ']" placeholder="Nuevo precio">
                         </td>
                     </tr>';
                 }
