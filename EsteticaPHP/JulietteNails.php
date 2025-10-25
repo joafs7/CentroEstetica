@@ -183,7 +183,6 @@ footer {
       <a href="#servicios">Servicios</a>
       <a href="#galeria">Galería</a>
       <a href="#contacto">Contacto</a>
-      <a href="verReservas.php">Ver Reservas</a>
     </div>
   </header>
 
