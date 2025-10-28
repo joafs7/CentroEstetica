@@ -9,6 +9,13 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Guardar el nombre en una variable
 $nombreUsuario = $_SESSION['usuario'];
+// Definir si es admin
+// Definir si es admin SOLO si es admin de Kore (id_negocio_admin = 1)
+$id_negocio = 1;
+$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
+    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['id_negocio_admin'] == $id_negocio;
+
 ?>
 
 
@@ -475,13 +482,13 @@ $nombreUsuario = $_SESSION['usuario'];
                                 <i class="fas fa-history"></i> Ver Historial de Citas
                             </button>
                         </div>
-                        <?php if($esAdmin): ?>
                         <div class="col-12">
-                            <a href="config.php" class="btn w-100 btn-pink" style="background-color: var(--primary-color); color: white;">
-                                <i class="fas fa-cog me-2"></i> Configuración
-                            </a>
+                         <?php if ($esAdmin): ?>
+                        <a href="config.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
+                        <i class="fas fa-cog"></i> Configuración
+                        </a>
+                         <?php endif; ?>
                         </div>
-                        <?php endif; ?>
                         <div class="col-12">
                             <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
                         </div>

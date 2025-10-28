@@ -2,9 +2,13 @@
 session_start();
 include_once 'conexEstetica.php';
 
+
 // Usar el id de negocio de la sesión
 $id_negocio = isset($_SESSION['id_negocio']) ? intval($_SESSION['id_negocio']) : 1;
-
+$id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : (isset($_SESSION['id_negocio']) ? intval($_SESSION['id_negocio']) : 1);
+$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
+    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['id_negocio_admin'] == $id_negocio;
 // Procesar el guardado de precios
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
     $conexion = conectarDB();
@@ -19,6 +23,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
     }
     $conexion->close();
     echo "<script>alert('Precios actualizados correctamente.');window.location='config.php#seccion-servicios';</script>";
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST['usuario_id'])) {
+    $conexion = conectarDB();
+    $usuario_id = intval($_POST['usuario_id']);
+    // Cambia el tipo y el id_negocio_admin solo para el negocio actual
+    $stmt = $conexion->prepare("UPDATE usuarios SET tipo = 'admin', id_negocio_admin = ? WHERE id = ?");
+    $stmt->bind_param('ii', $id_negocio, $usuario_id);
+    $stmt->execute();
+    $stmt->close();
+    $conexion->close();
+    echo "<script>alert('Rol de administrador asignado correctamente.');window.location='config.php?id_negocio=$id_negocio#seccion-usuarios';</script>";
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -227,9 +244,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
         <!-- Sidebar -->
         <aside class="sidebar">
             <ul>
-                <li onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
+                <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
-                <li class="activo" onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-image"></i> Galería</li>
+                <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-image"></i> Galería</li>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
                 <li onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</li>
             </ul>
@@ -238,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
         <!-- Contenido principal -->
         <div class="contenido">
             <!-- Galería -->
-            <div id="seccion-galeria" class="seccion" style="display: block;">
+            <div id="seccion-galeria" class="seccion" >
                 <h2>Galería</h2>
                 <button class="btn-agregar">+ Agregar imagen</button>
                 <div class="imagenes-grid">
@@ -254,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
 
 
 <!-- Servicios -->
-<div id="seccion-servicios" class="seccion">
+<div id="seccion-servicios" class="seccion" style="display:block">
     <h2><strong>Servicios y Precios</strong></h2>
     <form id="form-precios" method="post" action="config.php">
         <table class="table table-bordered text-center mt-4">
@@ -293,21 +310,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
     </form>
 </div>
 
-            <!-- Usuarios -->
-            <div id="seccion-usuarios" class="seccion">
-                <div class="usuarios-container">
-                    <h2 class="text-center">Usuarios</h2>
-                    <button class="btn-agregar">+ Agregar Usuario</button>
-                    <div class="usuario-item">
-                        <img src="https://via.placeholder.com/40" alt="Usuario" class="usuario-foto">
-                        <div class="usuario-info">
-                            <strong>Usuario1</strong>
-                            <span>usuarioejemplo@gmail.com</span>
-                        </div>
-                        <button class="btn-editar-usuario">Editar</button>
-                    </div>
+<!-- Usuarios -->
+<div id="seccion-usuarios" class="seccion">
+    <div class="usuarios-container">
+        <h2 class="text-center">Usuarios</h2>
+        <button class="btn-agregar">+ Agregar Usuario</button>
+        <?php
+        $conexion = conectarDB();
+        $query = "SELECT id, nombre, email, tipo FROM usuarios WHERE id_negocio = ?";
+        $stmt = $conexion->prepare($query);
+        $stmt->bind_param('i', $id_negocio);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            echo '<div class="usuario-item">
+                <img src="https://via.placeholder.com/40" alt="Usuario" class="usuario-foto">
+                <div class="usuario-info">
+                    <strong>' . htmlspecialchars($row['nombre']) . '</strong>
+                    <span>' . htmlspecialchars($row['email']) . '</span>
+                    <span style="font-size:12px;color:#d81b60;">' . ($row['tipo'] == 'admin' ? 'Administrador' : 'Cliente') . '</span>
                 </div>
-            </div>
+                <form method="post" style="display:inline;">
+                    <input type="hidden" name="usuario_id" value="' . $row['id'] . '">
+                    <button type="submit" name="hacer_admin" class="btn-editar-usuario" ' . ($row['tipo'] == 'admin' ? 'disabled' : '') . '>Hacer admin</button>
+                </form>
+                <button class="btn-editar-usuario">Editar</button>
+            </div>';
+        }
+        $stmt->close();
+        $conexion->close();
+        ?>
+    </div>
+</div>
             
             <!-- Promociones Configuración -->
             <div id="seccion-promociones" class="seccion">
@@ -338,23 +372,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
         </div>
     </div>
 
-    <!-- Sección Pública de Promociones -->
-    <section id="promociones" class="promociones-section">
-        <h2>Promociones Especiales</h2>
-        <div id="promosContainer" class="promos-grid"></div>
-    </section>
 
     <!-- Scripts -->
     <script>
-        function mostrarSeccion(id){
-            document.querySelectorAll('.seccion').forEach(sec => sec.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-            document.querySelectorAll('.sidebar li').forEach(item => item.classList.remove('activo'));
-            const items = document.querySelectorAll('.sidebar li');
-            items.forEach(item => {
-                if(item.getAttribute('onclick').includes(id)) item.classList.add('activo');
-            });
-        }
+function mostrarSeccion(id){
+    document.querySelectorAll('.seccion').forEach(sec => sec.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    document.querySelectorAll('.sidebar li').forEach(item => item.classList.remove('activo'));
+    const items = document.querySelectorAll('.sidebar li');
+    items.forEach(item => {
+        if(item.getAttribute('onclick').includes(id)) item.classList.add('activo');
+    });
+}
+
+// Mostrar la sección de servicios por defecto al cargar
+window.addEventListener("DOMContentLoaded", () => {
+    mostrarSeccion('seccion-servicios');
+});
         function cerrarSesion(){ alert("Sesión cerrada correctamente."); }
 
         // Servicios
