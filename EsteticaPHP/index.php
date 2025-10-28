@@ -264,7 +264,7 @@ h3 {
             </div>
 
             <div class="text-end mt-2">
-                <a href="#" class="text-decoration-none text-dark">¿Olvidaste tu contraseña?</a>
+                <a href="RecuperarContrasena.php" class="text-decoration-none text-dark">¿Olvidaste tu contraseña?</a>
             </div>
         </form>
     </div>
