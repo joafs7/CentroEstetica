@@ -265,13 +265,11 @@ footer {
                                 <i class="fas fa-history"></i> Ver Historial de Citas
                             </button>
                         </div>
-                        <?php if($esAdmin): ?>
-                        <div class="col-12">
-                            <a href="config.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
-                            <i class="fas fa-cog"></i> Configuración
-                            </a>
-                        </div>
-                        <?php endif; ?>
+                        <?php if ($esAdmin): ?>
+                        <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
+                        <i class="fas fa-cog"></i> Configuración
+                        </a>
+                         <?php endif; ?>
                         <div class="col-12">
                             <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
                         </div>

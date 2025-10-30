@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>alert('Rol de administrador asignado correctamente.');window.location='config.php?id_negocio=$id_negocio#seccion-usuarios';</script>";
+    echo "<script>alert('Rol de administrador asignado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-usuarios';</script>";
     exit;
 }
 ?>
@@ -246,31 +246,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
             <ul>
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
-                <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-image"></i> Galería</li>
+                <!-- <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-image"></i> Galería</li> -->
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
-                <li onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</li>
+                
             </ul>
         </aside>
 
         <!-- Contenido principal -->
-        <div class="contenido">
+        <div class="contenido"> 
             <!-- Galería -->
-            <div id="seccion-galeria" class="seccion" >
-                <h2>Galería</h2>
-                <button class="btn-agregar">+ Agregar imagen</button>
-                <div class="imagenes-grid">
-                    <div class="imagen-item"><i class="fas fa-image"></i></div>
-                    <div class="imagen-item"><i class="fas fa-image"></i></div>
-                    <div class="imagen-item"><i class="fas fa-image"></i></div>
-                    <div class="imagen-item"><i class="fas fa-image"></i></div>
-                    <div class="imagen-item"><i class="fas fa-image"></i></div>
-                    <div class="imagen-item"><i class="fas fa-image"></i></div>
-                </div>
-                <button class="btn-editar">EDITAR</button>
-            </div>
+               <!--  <div id="seccion-galeria" class="seccion" style="display: block;">
+                    <h2>Galería</h2>
+                    <button class="btn-agregar">+ Agregar imagen</button>
+                    <div class="imagenes-grid">
+                        <div class="imagen-item"><i class="fas fa-image"></i></div>
+                        <div class="imagen-item"><i class="fas fa-image"></i></div>
+                        <div class="imagen-item"><i class="fas fa-image"></i></div>
+                        <div class="imagen-item"><i class="fas fa-image"></i></div>
+                        <div class="imagen-item"><i class="fas fa-image"></i></div>
+                        <div class="imagen-item"><i class="fas fa-image"></i></div>
+                    </div>
+                    <button class="btn-editar">EDITAR</button>
+                </div> -->
 
-
-<!-- Servicios -->
+            <!-- Servicios -->
 <div id="seccion-servicios" class="seccion" style="display:block">
     <h2><strong>Servicios y Precios</strong></h2>
     <form id="form-precios" method="post" action="config.php">
@@ -309,22 +308,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
         </div>
     </form>
 </div>
-
-<!-- Usuarios -->
-<div id="seccion-usuarios" class="seccion">
+            <!-- Usuarios -->
+<div id="seccion-usuarios" class="seccion" style="display:block">
     <div class="usuarios-container">
         <h2 class="text-center">Usuarios</h2>
-        <button class="btn-agregar">+ Agregar Usuario</button>
+        
         <?php
         $conexion = conectarDB();
-        $query = "SELECT id, nombre, email, tipo FROM usuarios WHERE id_negocio = ?";
+       $query = "SELECT id, nombre, email, tipo, id_negocio_admin FROM usuarios";
         $stmt = $conexion->prepare($query);
-        $stmt->bind_param('i', $id_negocio);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
             echo '<div class="usuario-item">
-                <img src="https://via.placeholder.com/40" alt="Usuario" class="usuario-foto">
+                
                 <div class="usuario-info">
                     <strong>' . htmlspecialchars($row['nombre']) . '</strong>
                     <span>' . htmlspecialchars($row['email']) . '</span>
@@ -334,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
                     <input type="hidden" name="usuario_id" value="' . $row['id'] . '">
                     <button type="submit" name="hacer_admin" class="btn-editar-usuario" ' . ($row['tipo'] == 'admin' ? 'disabled' : '') . '>Hacer admin</button>
                 </form>
-                <button class="btn-editar-usuario">Editar</button>
+               
             </div>';
         }
         $stmt->close();
@@ -375,21 +372,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
 
     <!-- Scripts -->
     <script>
-function mostrarSeccion(id){
-    document.querySelectorAll('.seccion').forEach(sec => sec.style.display = 'none');
-    document.getElementById(id).style.display = 'block';
-    document.querySelectorAll('.sidebar li').forEach(item => item.classList.remove('activo'));
-    const items = document.querySelectorAll('.sidebar li');
-    items.forEach(item => {
-        if(item.getAttribute('onclick').includes(id)) item.classList.add('activo');
-    });
-}
-
-// Mostrar la sección de servicios por defecto al cargar
-window.addEventListener("DOMContentLoaded", () => {
-    mostrarSeccion('seccion-servicios');
-});
-        function cerrarSesion(){ alert("Sesión cerrada correctamente."); }
+        function mostrarSeccion(id){
+            document.querySelectorAll('.seccion').forEach(sec => sec.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.sidebar li').forEach(item => item.classList.remove('activo'));
+            const items = document.querySelectorAll('.sidebar li');
+            items.forEach(item => {
+                if(item.getAttribute('onclick').includes(id)) item.classList.add('activo');
+            });
+        }
 
         // Servicios
         const servicios = [

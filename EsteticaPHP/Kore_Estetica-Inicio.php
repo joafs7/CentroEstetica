@@ -484,7 +484,7 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
                         </div>
                         <div class="col-12">
                          <?php if ($esAdmin): ?>
-                        <a href="config.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
+                        <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
                         <i class="fas fa-cog"></i> Configuración
                         </a>
                          <?php endif; ?>
