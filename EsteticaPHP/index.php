@@ -290,7 +290,7 @@ h3 {
             </div>
           <div class="mb-3">
             <label>Celular</label>
-            <input type="tel" id="celular" name="celular" required>
+            <input type="tel" id="celular" name="celular" required placeholder="Sin el 0 ni el 15">
             </div>
           <div class="mb-3">
             <label>Contraseña</label>
