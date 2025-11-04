@@ -402,32 +402,6 @@ $nombreUsuario = $_SESSION['usuario'];
             </div>
         </nav>
 
-        <!-- Menú offcanvas -->
-        <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="staticBackdropLabel">Menú KORE</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-home me-3 pink-text"></i> Inicio
-                    </li>
-                    <li class="list-group-item d-flex align-items-center selected-item">
-                        <i class="fas fa-spa me-3 pink-text"></i> Servicios
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-images me-3 pink-text"></i> Galería
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-tags me-3 pink-text"></i> Promociones
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-phone me-3 pink-text"></i> Contacto
-                    </li>
-                </ul>
-            </div>
-        </div>
 
         <!-- Offcanvas lateral: Perfil de usuario -->
         <div class="offcanvas offcanvas-end" tabindex="-1" id="userSidebar" aria-labelledby="userSidebarLabel">
@@ -501,6 +475,13 @@ $nombreUsuario = $_SESSION['usuario'];
                                 <i class="fas fa-history"></i> Ver Historial de Citas
                             </button>
                         </div>
+                        <?php if($esAdmin): ?>
+                        <div class="col-12">
+                            <a href="config.php" class="btn w-100 btn-pink" style="background-color: var(--primary-color); color: white;">
+                                <i class="fas fa-cog me-2"></i> Configuración
+                            </a>
+                        </div>
+                        <?php endif; ?>
                         <div class="col-12">
                             <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
                         </div>
