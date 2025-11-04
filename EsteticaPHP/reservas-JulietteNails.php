@@ -897,7 +897,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-palette fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -922,7 +922,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-gem fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -949,7 +949,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -975,7 +975,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-shield-alt fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
