@@ -38,6 +38,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
     exit;
 }
 ?>
+
+<?php
+// Procesar agregar combo
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_combo'])) {
+    $conexion = conectarDB();
+    $nombre = trim($_POST['combo_nombre']);
+    $descripcion = trim($_POST['combo_descripcion']);
+    $precio = floatval($_POST['combo_precio']);
+    $id_negocio = $id_negocio; // Ya definido arriba
+
+    $stmt = $conexion->prepare("INSERT INTO combos (nombre, descripcion, precio, id_negocio) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param('ssdi', $nombre, $descripcion, $precio, $id_negocio);
+    $stmt->execute();
+    $stmt->close();
+    $conexion->close();
+    echo "<script>alert('Combo agregado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    exit;
+}
+
+// Procesar eliminar combo
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_combo'], $_POST['combo_id'])) {
+    $conexion = conectarDB();
+    $combo_id = intval($_POST['combo_id']);
+    $stmt = $conexion->prepare("DELETE FROM combos WHERE id = ? AND id_negocio = ?");
+    $stmt->bind_param('ii', $combo_id, $id_negocio);
+    $stmt->execute();
+    $stmt->close();
+    $conexion->close();
+    echo "<script>alert('Combo eliminado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    exit;
+}
+
+// Procesar modificar combo
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combo'], $_POST['combo_id'])) {
+    $conexion = conectarDB();
+    $combo_id = intval($_POST['combo_id']);
+    $nombre = trim($_POST['combo_nombre']);
+    $descripcion = trim($_POST['combo_descripcion']);
+    $precio = floatval($_POST['combo_precio']);
+    $stmt = $conexion->prepare("UPDATE combos SET nombre = ?, descripcion = ?, precio = ? WHERE id = ? AND id_negocio = ?");
+    $stmt->bind_param('ssdii', $nombre, $descripcion, $precio, $combo_id, $id_negocio);
+    $stmt->execute();
+    $stmt->close();
+    $conexion->close();
+    echo "<script>alert('Combo modificado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -340,32 +388,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
     </div>
 </div>
             
-            <!-- Promociones Configuración -->
-            <div id="seccion-promociones" class="seccion">
-                <h2>Administrar Promociones</h2>
-                <div class="config-promo">
-                    <div class="mb-3">
-                        <label for="promoTitulo" class="form-label">Título</label>
-                        <input type="text" id="promoTitulo" class="form-control" placeholder="Ej: Combo Reductor">
-                    </div>
-                    <div class="mb-3">
-                        <label for="promoDetalles" class="form-label">Detalles (separados por coma)</label>
-                        <input type="text" id="promoDetalles" class="form-control" placeholder="Ej: Masaje, Electrodos, Radiofrecuencia">
-                    </div>
-                    <div class="mb-3">
-                        <label for="promoDescripcion" class="form-label">Descripción</label>
-                        <input type="text" id="promoDescripcion" class="form-control" placeholder="Ej: Sesión de una hora y media">
-                    </div>
-                    <div class="mb-3">
-                        <label for="promoPrecio" class="form-label">Precio</label>
-                        <input type="number" id="promoPrecio" class="form-control" placeholder="Ej: 4500">
-                    </div>
-                    <button class="btn btn-primary" onclick="guardarPromo()">Guardar Promoción</button>
-                </div>
-
-                <h3 class="mt-4">Promociones actuales</h3>
-                <ul id="listaPromos" class="list-group mt-2"></ul>
+<!-- Promociones Configuración -->
+<div id="seccion-promociones" class="seccion">
+    <h2>Administrar Combos</h2>
+    <!-- Formulario para agregar combo -->
+    <div class="config-promo mb-4">
+        <form method="post">
+            <div class="mb-3">
+                <label for="combo_nombre" class="form-label">Título</label>
+                <input type="text" id="combo_nombre" name="combo_nombre" class="form-control" required>
             </div>
+            <div class="mb-3">
+                <label for="combo_descripcion" class="form-label">Descripción</label>
+                <input type="text" id="combo_descripcion" name="combo_descripcion" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="combo_precio" class="form-label">Precio</label>
+                <input type="number" id="combo_precio" name="combo_precio" class="form-control" required>
+            </div>
+            <button type="submit" name="agregar_combo" class="btn btn-primary">Agregar Combo</button>
+        </form>
+    </div>
+
+    <h3 class="mt-4">Combos actuales</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered text-center">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $conexion = conectarDB();
+                $query = "SELECT id, nombre, descripcion, precio FROM combos WHERE id_negocio = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param('i', $id_negocio);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
+                    echo '<tr>
+                        <form method="post">
+                            <td><input type="text" name="combo_nombre" value="' . htmlspecialchars($row['nombre']) . '" class="form-control" required></td>
+                            <td><input type="text" name="combo_descripcion" value="' . htmlspecialchars($row['descripcion']) . '" class="form-control" required></td>
+                            <td><input type="number" name="combo_precio" value="' . htmlspecialchars($row['precio']) . '" class="form-control" required></td>
+                            <td>
+                                <input type="hidden" name="combo_id" value="' . $row['id'] . '">
+                                <button type="submit" name="modificar_combo" class="btn btn-success btn-sm me-2">Modificar</button>
+                                <button type="submit" name="eliminar_combo" class="btn btn-danger btn-sm" onclick="return confirm(\'¿Seguro que deseas eliminar este combo?\')">Eliminar</button>
+                            </td>
+                        </form>
+                    </tr>';
+                }
+                $stmt->close();
+                $conexion->close();
+                ?>
+            </tbody>
+        </table>
+    </div>
+</div>
         </div>
     </div>
 
