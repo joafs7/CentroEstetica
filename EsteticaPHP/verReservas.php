@@ -168,7 +168,6 @@ footer {
     <input type="text" id="filtro-nombre" placeholder="Buscar por nombre...">
     <input type="text" id="filtro-servicio" placeholder="Buscar por servicio...">
     <input type="date" id="filtro-fecha">
-    <button class="btn-filtrar" onclick="filtrar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
   </div>
 
   <!-- TABLA DE RESERVAS -->
