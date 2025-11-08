@@ -840,6 +840,7 @@ $conexion = conectarDB();
 </head>
 <body>
 <div class="container">
+    
     <header>
         <div class="logo">
             <i class="fas fa-spa"></i>

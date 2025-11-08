@@ -55,6 +55,7 @@ $conex->close();
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
     .login-box {
       background: white;
@@ -86,6 +87,18 @@ $conex->close();
       margin-bottom: 15px;
       text-align: center;
     }
+    @media (max-width: 480px) {
+      .login-box {
+        padding: 20px 10px;
+        max-width: 98vw;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
+      .form-label {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -104,12 +117,32 @@ $conex->close();
 
       <div class="mb-3">
         <label for="contrasena" class="form-label">Contraseña</label>
-        <input type="password" name="contrasena" id="contrasena" class="form-control" required>
+        <div class="input-group">
+          <input type="password" name="contrasena" id="contrasena" class="form-control" required>
+          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('contrasena', this)">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary w-100">Ingresar</button>
     </form>
   </div>
+  <script>
+    function togglePassword(inputId, button) {
+      const input = document.getElementById(inputId);
+      const icon = button.querySelector('i');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+  </script>
 </body>
 </html>
 

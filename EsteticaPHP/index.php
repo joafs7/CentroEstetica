@@ -148,40 +148,49 @@ h3 {
 
 /* Modales */
 .login-overlay {
- position: sticky;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(214, 51, 132, 0.15); /* Fondo rosado transparente */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(214, 51, 132, 0.15);
   backdrop-filter: blur(6px);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 999;
+  overflow-y: auto;
+}
+
+.login-overlay.active {
+  display: flex;
 }
 
 .login-box {
   background: white;
-  padding: 40px 32px 32px 32px; /* más padding abajo */
+  padding: 40px 32px 32px 32px;
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 420px;
+  max-height: 95vh;
+  overflow-y: auto;
   animation: fadeIn 0.6s ease-in-out;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
 .login-box h1 {
   font-size: 28px;
   color: #d63384;
   margin-bottom: 25px;
   font-weight: 600;
   text-align: center;
+  margin-top: 30px; /* Asegura espacio debajo del botón cerrar */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .form-label {
