@@ -79,7 +79,26 @@ header a:hover, header a.active {
   background:var(--primary-color);
   color:white;
 }
-
+@media (max-width: 768px) {
+  .glass-white {
+    padding: 10px 8px;
+    border-radius: 18px;
+  }
+  header img {
+    height: 38px;
+  }
+  .card img {
+    width: 80%;
+    max-width: 80px;
+  }
+  h1, h2 {
+    font-size: 1.4rem;
+  }
+  .contacto {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 /* ----- SERVICIOS ----- */
 .card {
   border:none;
@@ -180,18 +199,18 @@ footer {
 <div class="container">
 
   <!-- HEADER -->
-  <header class="glass-white">
-    <img src="Imagenes/LogoJuliettenails.png" alt="Juliette Nails">
-    <div>
-      <a href="#inicio" class="active">Inicio</a>
-      <a href="#servicios">Servicios</a>
-      <a href="#galeria">Galería</a>
-      <a href="#contacto">Contacto</a>
-      <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
-        <i class="fas fa-user-circle"></i> Mi cuenta
-      </a>
-    </div>
-  </header>
+<header class="glass-white d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
+  <img src="Imagenes/LogoJuliettenails.png" alt="Juliette Nails" class="mb-3 mb-md-0">
+  <div class="d-flex flex-wrap justify-content-center">
+    <a href="#inicio" class="active">Inicio</a>
+    <a href="#servicios">Servicios</a>
+    <a href="#galeria">Galería</a>
+    <a href="#contacto">Contacto</a>
+    <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
+      <i class="fas fa-user-circle"></i> Mi cuenta
+    </a>
+  </div>
+</header>
       <!-- Offcanvas lateral: Perfil de usuario -->
   <!-- Offcanvas lateral: Perfil de usuario -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="userSidebar" aria-labelledby="userSidebarLabel">
@@ -343,9 +362,9 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
     <h2>Galería</h2>
     <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">
-        <div class="carousel-item active"><img src="Imagenes/Uñas1.jpeg" class="d-block" alt="Foto 1"></div>
-        <div class="carousel-item"><img src="Imagenes/Uñas2.jpeg" class="d-block" alt="Foto 2"></div>
-        <div class="carousel-item"><img src="Imagenes/Uñas1.jpeg" class="d-block" alt="Foto 3"></div>
+        <div class="carousel-item active"><img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Foto 1" style="max-width:400px;margin:auto;"></div>
+        <div class="carousel-item"><img src="Imagenes/Uñas2.jpeg" class="d-block w-100" alt="Foto 2"></div>
+        <div class="carousel-item"><img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Foto 3"></div>
       </div>
       <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
         <span class="carousel-control-prev-icon"></span><span class="visually-hidden">Anterior</span>

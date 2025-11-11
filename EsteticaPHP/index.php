@@ -148,40 +148,49 @@ h3 {
 
 /* Modales */
 .login-overlay {
- position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(214, 51, 132, 0.15); /* Fondo rosado transparente */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(214, 51, 132, 0.15);
   backdrop-filter: blur(6px);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 999;
+  overflow-y: auto;
+}
+
+.login-overlay.active {
+  display: flex;
 }
 
 .login-box {
   background: white;
-  padding: 40px;
+  padding: 40px 32px 32px 32px;
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 420px;
+  max-height: 95vh;
+  overflow-y: auto;
   animation: fadeIn 0.6s ease-in-out;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
 .login-box h1 {
   font-size: 28px;
   color: #d63384;
   margin-bottom: 25px;
   font-weight: 600;
   text-align: center;
+  margin-top: 30px; /* Asegura espacio debajo del botón cerrar */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .form-label {
@@ -202,7 +211,7 @@ h3 {
 }
 
 .btnForm {
-  background-color: #d63384;
+ background-color: #d63384;
   color: white;
   padding: 12px;
   border: none;
@@ -211,12 +220,28 @@ h3 {
   width: 100%;
   font-weight: bold;
   font-size: 16px;
+  margin-top: 20px;      /* Espacio arriba */
+  margin-bottom: 10px;   /* Espacio abajo */
   transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(214, 51, 132, 0.08);
 }
 
 .btnForm:hover {
   background-color: #b02a6f;
   transform: translateY(-2px);
+}
+<style>
+.btn-close-pink {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    color: #d63384;
+    opacity: 0.8;
+    transition: color 0.2s, opacity 0.2s;
+}
+.btn-close-pink:hover {
+    color: #b02a6f;
+    opacity: 1;
 }
 </style>
 
@@ -239,7 +264,9 @@ h3 {
 
 <!-- Modal Login -->
 <div class="login-overlay" id="loginOverlay">
-    <div class="login-box">
+    <div class="login-box position-relative">
+        <!-- Botón cerrar -->
+        <button type="button" class="btn-close btn-close-pink" aria-label="Cerrar" onclick="cerrar('loginOverlay')" style="position:absolute;top:18px;right:18px;z-index:10;"></button>
         <form id="login" method="POST" action="Login.php">
             <h1 class="text-center">Iniciar Sesión</h1>
 
@@ -272,46 +299,47 @@ h3 {
 
 <!-- Modal Registro -->
 <div class="login-overlay" id="registroOverlay">
-    <div class="login-box">
-        <h1 class="text-center">Registrarse</h1>
-
+    <div class="login-box position-relative">
+        <!-- Botón cerrar -->
+        <button type="button" class="btn-close btn-close-pink" aria-label="Cerrar" onclick="cerrar('registroOverlay')" style="position:absolute;top:18px;right:18px;z-index:10;"></button>
+        <h1 class="text-center mb-4">Registrarse</h1>
         <form action="" method="POST">
-          <div class="mb-3">
-            <label>Nombre</label>
-            <input type="text" id="nombre" name="nombre" required>
-          </div>
-          <div class="mb-3">
-            <label>Apellido</label>
-            <input type="text" id="apellido" name="apellido" required>
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" id="nombre" name="nombre" class="form-control" required>
             </div>
-          <div class="mb-3">
-            <label>Email</label>
-            <input type="email" id="email" name="email" required>
+            <div class="mb-3">
+                <label for="apellido" class="form-label">Apellido</label>
+                <input type="text" id="apellido" name="apellido" class="form-control" required>
             </div>
-          <div class="mb-3">
-            <label>Celular</label>
-            <input type="tel" id="celular" name="celular" required placeholder="Sin el 0 ni el 15">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
             </div>
-          <div class="mb-3">
-            <label>Contraseña</label>
-            <div class="input-group">
-                <input type="password" id="registroContrasena" name="contrasena" class="form-control" required>
-                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registroContrasena', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
+            <div class="mb-3">
+                <label for="celular" class="form-label">Celular</label>
+                <input type="tel" id="celular" name="celular" class="form-control" required placeholder="Sin el 0 ni el 15">
             </div>
-          </div>
-          <div class="mb-3">
-            <label>Confirmar contraseña</label>
-            <div class="input-group">
-                <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" required>
-                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmarContrasena', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
+            <div class="mb-3">
+                <label for="registroContrasena" class="form-label">Contraseña</label>
+                <div class="input-group">
+                    <input type="password" id="registroContrasena" name="contrasena" class="form-control" required>
+                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registroContrasena', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
-          </div>
-            <div style="margin-top:10px;">
-              <button type="submit" class="btnForm">Registrarse</button>
+            <div class="mb-3">
+                <label for="confirmarContrasena" class="form-label">Confirmar contraseña</label>
+                <div class="input-group">
+                    <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" required>
+                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmarContrasena', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="d-grid mt-4">
+                <button type="submit" class="btnForm">Registrarse</button>
             </div>
         </form>
     </div>
@@ -328,14 +356,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $contrasena = mysqli_real_escape_string($conex, $_POST['contrasena']);
 
     // Validar formato del email
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "<script>alert('El correo electrónico no es válido.');</script>";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strpos($email, '@') === false || strpos($email, '.com') === false) {
+        echo "<script>alert('El correo electrónico debe contener @ y terminar en .com');</script>";
         exit();
     }
-
-    // Validar que las contraseñas coincidan
-    if ($_POST['contrasena'] !== $_POST['confirmar_contrasena']) {
-        echo "<script>alert('Las contraseñas no coinciden.');</script>";
+    // Validar celular (no debe contener 0 ni 15)
+    if (preg_match('/(^0|15)/', $celular) || strpos($celular, '0') !== false || strpos($celular, '15') !== false) {
+        echo "<script>alert('El celular no debe contener el 0 ni el 15. Ejemplo: 3564827188');</script>";
         exit();
     }
 
@@ -345,6 +372,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 
+    // Validar que las contraseñas coincidan
+    if ($_POST['contrasena'] !== $_POST['confirmar_contrasena']) {
+        echo "<script>alert('Las contraseñas no coinciden.');</script>";
+        exit();
+    }
+
+    $query_check = "SELECT id FROM usuarios WHERE email = '$email' LIMIT 1";
+    $result_check = mysqli_query($conex, $query_check);
+    if (mysqli_num_rows($result_check) > 0) {
+        echo "<script>alert('El correo electrónico ya se encuentra registrado.');</script>";
+        mysqli_close($conex);
+        exit();
+    }
     // Encriptar la contraseña antes de almacenarla
     $contrasena_hash = password_hash($contrasena, PASSWORD_BCRYPT);
 
@@ -390,6 +430,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </a>
     </div>
 </div>
+<script>
+document.querySelector('#registroOverlay form').addEventListener('submit', function(e) {
+    const email = document.getElementById('email').value.trim();
+    const celular = document.getElementById('celular').value.trim();
+    const contrasena = document.getElementById('registroContrasena').value;
+    const confirmar = document.getElementById('confirmarContrasena').value;
 
+    if (!email.includes('@') || !email.endsWith('.com')) {
+        alert('El correo electrónico debe contener @ y terminar en .com');
+        e.preventDefault();
+        return;
+    }
+    if (celular.includes('0') || celular.includes('15')) {
+        alert('El celular no debe contener el 0 ni el 15. Ejemplo: 3564827188');
+        e.preventDefault();
+        return;
+    }
+    if (contrasena.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        e.preventDefault();
+        return;
+    }
+    if (contrasena !== confirmar) {
+        alert('Las contraseñas no coinciden.');
+        e.preventDefault();
+        return;
+    }
+});
+</script>
 </body>
 </html>

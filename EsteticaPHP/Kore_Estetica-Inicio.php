@@ -386,28 +386,29 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
 <body>
     <div class="container">
         <!-- Barra de navegación moderna -->
-        <nav class="navbar navbar-expand-lg">
-            <div class="container-fluid">
-                <div class="logo-placeholder">KORE</div>
-                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
-                    <span class="navbar-toggler-icon"></span>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <div class="logo-placeholder">KORE</div>
+        <!-- Botón hamburguesa para móviles -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Menú colapsable -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav ms-auto">
+                <a href="#inicio" class="nav-btn active">Inicio</a>
+                <a href="#servicio" class="nav-btn">Servicios</a>
+                <a href="#promos" class="nav-btn">Combos</a>
+                <a href="#contacto" class="nav-btn">Contacto</a>
+                <!-- Botón para abrir sidebar de usuario -->
+                <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
+                    <i class="fas fa-user-circle"></i> Mi cuenta
                 </button>
-                
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <div class="navbar-nav ms-auto">
-                        <a href="#inicio" class="nav-btn active">Inicio</a>
-                        <a href="#servicio" class="nav-btn">Servicios</a>
-                        <a href="#promos" class="nav-btn">Combos</a>
-                        <a href="#contacto" class="nav-btn">Contacto</a>
-                        <!-- Botón para abrir sidebar de usuario -->
-                        <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
-                            <i class="fas fa-user-circle"></i> Mi cuenta
-                        </button>
-                       
-                    </div>
-                </div>
             </div>
-        </nav>
+        </div>
+    </div>
+</nav>
 
 
         <!-- Offcanvas lateral: Perfil de usuario -->

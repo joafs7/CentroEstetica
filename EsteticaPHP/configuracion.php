@@ -22,7 +22,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_precios'])) {
         }
     }
     $conexion->close();
-    echo "<script>alert('Precios actualizados correctamente.');window.location='config.php#seccion-servicios';</script>";
+    echo "<script>alert('Precios actualizados correctamente.');window.location='configuracion.php#seccion-servicios';</script>";
+// Procesar agregar servicio
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_servicio'])) {
+    $conexion = conectarDB();
+    $nombre = trim($_POST['servicio_nombre']);
+    $precio = floatval($_POST['servicio_precio']);
+    // Puedes agregar más campos si lo necesitas (ej: categoria_id)
+    $stmt = $conexion->prepare("INSERT INTO servicios (nombre, precio, id_negocio) VALUES (?, ?, ?)");
+    $stmt->bind_param('sdi', $nombre, $precio, $id_negocio);
+    $stmt->execute();
+    $stmt->close();
+    $conexion->close();
+    echo "<script>alert('Servicio agregado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-servicios';</script>";
+    exit;
+}
+
+// Procesar eliminar servicio
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_servicio'], $_POST['servicio_id'])) {
+    $conexion = conectarDB();
+    $servicio_id = intval($_POST['servicio_id']);
+    $stmt = $conexion->prepare("DELETE FROM servicios WHERE id = ? AND id_negocio = ?");
+    $stmt->bind_param('ii', $servicio_id, $id_negocio);
+    $stmt->execute();
+    $stmt->close();
+    $conexion->close();
+    echo "<script>alert('Servicio eliminado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-servicios';</script>";
+    exit;
+}
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST['usuario_id'])) {
@@ -320,13 +347,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combo'], $_
             <!-- Servicios -->
 <div id="seccion-servicios" class="seccion" style="display:block">
     <h2><strong>Servicios y Precios</strong></h2>
-    <form id="form-precios" method="post" action="config.php">
+    <!-- Formulario para agregar servicio -->
+    <div class="mb-4">
+        <form method="post" class="row g-2 align-items-end justify-content-center">
+            <div class="col-md-4">
+                <input type="text" name="servicio_nombre" class="form-control" placeholder="Nombre del servicio" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="servicio_precio" class="form-control" placeholder="Precio" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" name="agregar_servicio" class="btn btn-success w-100">Agregar Servicio</button>
+            </div>
+        </form>
+    </div>
+    <form id="form-precios" method="post" action="configuracion.php">
         <table class="table table-bordered text-center mt-4">
             <thead>
                 <tr>
                     <th>Servicio</th>
                     <th>Precio Actual</th>
                     <th>Precio Nuevo</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -343,6 +385,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combo'], $_
                         <td>$<span>' . number_format($row['precio'], 0, ',', '.') . '</span></td>
                         <td>
                             <input type="text" class="form-control text-center" name="nuevo_precio[' . $row['id'] . ']" placeholder="Nuevo precio">
+                        </td>
+                        <td>
+                            <form method="post" style="display:inline;">
+                                <input type="hidden" name="servicio_id" value="' . $row['id'] . '">
+                                <button type="submit" name="eliminar_servicio" class="btn btn-danger btn-sm" onclick="return confirm(\'¿Seguro que deseas eliminar este servicio?\')">Eliminar</button>
+                            </form>
                         </td>
                     </tr>';
                 }
