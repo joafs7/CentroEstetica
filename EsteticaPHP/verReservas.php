@@ -1,13 +1,19 @@
 <?php
 session_start();
 
-// Solo el administrador puede acceder
+// Cualquier usuario logueado puede acceder
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: Login.php");
     exit();
 }
 
 $nombreUsuario = $_SESSION['usuario'];
+$usuario_id = $_SESSION['usuario_id'];
+$id_negocio = 2; // Juliette Nails
+
+$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
+    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['id_negocio_admin'] == $id_negocio;
 
 // Conexión con la base de datos
 $conexion = new mysqli("localhost", "root", "", "esteticadb");
@@ -15,21 +21,34 @@ if ($conexion->connect_error) {
     die("Error de conexión: " . $conexion->connect_error);
 }
 
-// Consulta para traer los datos del historial
-$query = "
+// Consulta base para traer los datos del historial
+$query_base = "
     SELECT 
         CONCAT(u.nombre, ' ', u.apellido) AS cliente,
-        s.nombre AS servicio,
-        s.precio AS precio,
+        COALESCE(s.nombre, c.nombre) AS servicio,
+        h.precio AS precio,
         h.fecha_realizacion AS fecha,
         TIME(h.fecha_realizacion) AS hora
     FROM historial h
     LEFT JOIN usuarios u ON h.id_usuario = u.id
     LEFT JOIN servicios s ON h.id_servicio = s.id
-    WHERE s.id_negocio = 2
-    ORDER BY h.fecha_realizacion DESC
+    LEFT JOIN combos c ON h.id_combo = c.id
 ";
-$resultado = $conexion->query($query);
+
+if ($esAdmin) {
+    // El admin ve todas las reservas del negocio
+    $query_final = $query_base . " WHERE h.id_negocio = ? ORDER BY h.fecha_realizacion DESC";
+    $stmt = $conexion->prepare($query_final);
+    $stmt->bind_param("i", $id_negocio);
+} else {
+    // El usuario solo ve sus propias reservas
+    $query_final = $query_base . " WHERE h.id_usuario = ? AND h.id_negocio = ? ORDER BY h.fecha_realizacion DESC";
+    $stmt = $conexion->prepare($query_final);
+    $stmt->bind_param("ii", $usuario_id, $id_negocio);
+}
+
+$stmt->execute();
+$resultado = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -236,4 +255,4 @@ function filtrar() {
 </body>
 </html>
 
-<?php $conexion->close(); ?>
+<?php $stmt->close(); $conexion->close(); ?>

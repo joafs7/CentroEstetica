@@ -278,11 +278,12 @@ footer {
                         </div>
                     </div>
                     <input type="hidden" name="usuario_id" value="<?php echo htmlspecialchars($usuarioId); ?>">
+                    <input type="hidden" name="source" value="juliette">
                     <div class="row g-2 mb-2">
                         <div class="col-12">
-                            <button type="button" class="btn w-100" style="background-color: var(--primary-color); color: white;" onclick="mostrarHistorial()">
+                            <a href="verReservas.php" class="btn w-100" style="background-color: var(--primary-color); color: white;">
                                 <i class="fas fa-history"></i> Ver Historial de Citas
-                            </button>
+                            </a>
                         </div>
                         <?php if ($esAdmin): ?>
                         <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
