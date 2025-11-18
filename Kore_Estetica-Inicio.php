@@ -9,6 +9,29 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Guardar el nombre en una variable
 $nombreUsuario = $_SESSION['usuario'];
+// Definir si es admin
+// Definir si es admin SOLO si es admin de Kore (id_negocio_admin = 1)
+$id_negocio = 1;
+$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
+    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['id_negocio_admin'] == $id_negocio;
+
+// --- INICIO: Obtener notificaciones para el admin ---
+$notificaciones_no_leidas = 0;
+$lista_notificaciones = [];
+if ($esAdmin) {
+    include_once 'conexEstetica.php';
+    $conexion_notif = conectarDB();
+    $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
+    $stmt_notif = $conexion_notif->prepare($query_notif);
+    $stmt_notif->bind_param('ii', $_SESSION['usuario_id'], $id_negocio);
+    $stmt_notif->execute();
+    $resultado_notif = $stmt_notif->get_result();
+    $notificaciones_no_leidas = $resultado_notif->num_rows;
+    while($fila = $resultado_notif->fetch_assoc()) $lista_notificaciones[] = $fila;
+}
+// --- FIN: Obtener notificaciones para el admin ---
+
 ?>
 
 
@@ -90,6 +113,32 @@ $nombreUsuario = $_SESSION['usuario'];
             height: 3px;
             background-color: var(--dark-pink);
             border-radius: 3px;
+        }
+
+        /* Estilos súper mejorados para el dropdown de notificaciones */
+        .dropdown-menu-notifications {
+            border-radius: 0.75rem !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        .dropdown-menu-notifications .dropdown-item {
+            transition: background-color 0.2s ease-in-out;
+            border-bottom: 1px solid #f8f9fa;
+            padding: 1rem 1.25rem; /* Más espaciado */
+        }
+        .dropdown-menu-notifications .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-menu-notifications .dropdown-item:hover, .dropdown-menu-notifications .dropdown-item:focus {
+            background-color: var(--light-pink) !important;
+            color: var(--dark-pink) !important;
+        }
+        .dropdown-menu-notifications .dropdown-header {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            color: white;
+            border-top-left-radius: calc(0.75rem - 1px);
+            border-top-right-radius: calc(0.75rem - 1px);
+            padding: 1rem 1.25rem;
         }
         
         .offcanvas-header {
@@ -371,6 +420,106 @@ $nombreUsuario = $_SESSION['usuario'];
             font-weight: 600;
             margin-top: 10px;
         }
+            .service-thumb {
+                width: 100%;
+                max-width: 180px;
+                height: 140px;
+                object-fit: cover;
+                border-radius: 10px;
+                box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            }
+            @media (max-width:768px){ .service-thumb{ max-width:120px; height:100px; } }
+                /* Estilos Copiados de Juliette Nails para Historial */
+                .filtros {
+                    background:white;
+                    border-radius:12px;
+                    padding:12px;
+                    display:flex;
+                    flex-wrap:wrap;
+                    gap:10px;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:12px;
+                }
+                .filtros input, .filtros .form-select {
+                    border:1px solid var(--primary-color);
+                    border-radius:10px;
+                    padding:8px 12px;
+                    outline:none;
+                }
+                .filtros input:focus, .filtros .form-select:focus {
+                    border-color: var(--dark-pink);
+                    box-shadow: 0 0 4px var(--dark-pink);
+                }
+                .btn-filtrar {
+                    background:var(--primary-color);
+                    border:none;
+                    color:white;
+                    padding:8px 20px;
+                    border-radius:20px;
+                }
+                .tabla-reservas {
+                    background:white;
+                    border-radius:12px;
+                    overflow:hidden;
+                    padding:0;
+                    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+                }
+                .tabla-reservas th {
+                    background-color: var(--primary-color);
+                    color:white;
+                    text-align:center;
+                    padding:10px;
+                }
+                .tabla-reservas td {
+                    text-align:center;
+                    padding:10px;
+                    border-bottom:1px solid #eee;
+                }
+                /* Estilos para el calendario del historial */
+                .historial-calendar-container {
+                    background: #fff5f5;
+                    border-radius: 12px;
+                    padding: 15px;
+                    border: 1px solid var(--light-pink);
+                }
+                .historial-calendar-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+                .historial-calendar-nav-btn {
+                    background: var(--primary-color);
+                    color: white;
+                    border: none;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                }
+                .historial-calendar-grid {
+                    display: grid;
+                    grid-template-columns: repeat(7, 1fr);
+                    gap: 5px;
+                }
+                .historial-calendar-day, .historial-calendar-day-name {
+                    text-align: center;
+                    padding: 5px;
+                    border-radius: 5px;
+                    font-size: 0.8rem;
+                }
+                .historial-calendar-day-name { font-weight: bold; }
+                .historial-calendar-day.has-events {
+                    background-color: var(--dark-pink);
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .historial-calendar-day.selected {
+                    box-shadow: 0 0 0 2px var(--dark-pink);
+                }
+                .tabla-reservas tr:hover { background-color: #fff5f5; }
         html {
             scroll-behavior: smooth;
             }
@@ -379,55 +528,61 @@ $nombreUsuario = $_SESSION['usuario'];
 <body>
     <div class="container">
         <!-- Barra de navegación moderna -->
-        <nav class="navbar navbar-expand-lg">
-            <div class="container-fluid">
-                <div class="logo-placeholder">KORE</div>
-                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
-                    <span class="navbar-toggler-icon"></span>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <div class="logo-placeholder">KORE</div>
+        <!-- Botón hamburguesa para móviles -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Menú colapsable -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav ms-auto">
+                <a href="#inicio" class="nav-btn active">Inicio</a>
+                <a href="#servicio" class="nav-btn">Servicios</a>
+                <a href="#promos" class="nav-btn">Combos</a>
+                <a href="#contacto" class="nav-btn">Contacto</a>
+                <!-- Botón para abrir sidebar de usuario -->
+                <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
+                    <i class="fas fa-user-circle"></i> Mi cuenta
                 </button>
-                
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <div class="navbar-nav ms-auto">
-                        <a href="#inicio" class="nav-btn active">Inicio</a>
-                        <a href="#servicio" class="nav-btn">Servicios</a>
-                        <a href="#promos" class="nav-btn">Combos</a>
-                        <a href="#contacto" class="nav-btn">Contacto</a>
-                        <!-- Botón para abrir sidebar de usuario -->
-                        <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
-                            <i class="fas fa-user-circle"></i> Mi cuenta
-                        </button>
-                       
-                    </div>
+                <?php if ($esAdmin): ?>
+                <div class="dropdown">
+                    <button class="nav-btn position-relative" type="button" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <?php if ($notificaciones_no_leidas > 0): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <?php echo $notificaciones_no_leidas; ?>
+                        </span>
+                        <?php endif; ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-notifications shadow-lg" aria-labelledby="dropdownNotificaciones" style="width: 380px; max-height: 450px; overflow-y: auto;">
+                        <li class="dropdown-header fw-bold">Notificaciones</li>
+                        <?php if (!empty($lista_notificaciones)): ?>
+                            <?php foreach($lista_notificaciones as $notif): ?>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-start notification-item" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
+                                    <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
+                                    <div>
+                                        <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
+                                        <p class="mb-0 small lh-sm fw-normal text-wrap notification-message"><?php echo htmlspecialchars($notif['mensaje']); ?></p>
+                                    </div>
+                                </a>
+                            </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
+                        <?php endif; ?>
+                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="#" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
+                    </ul>
                 </div>
-            </div>
-        </nav>
-
-        <!-- Menú offcanvas -->
-        <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="staticBackdropLabel">Menú KORE</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-home me-3 pink-text"></i> Inicio
-                    </li>
-                    <li class="list-group-item d-flex align-items-center selected-item">
-                        <i class="fas fa-spa me-3 pink-text"></i> Servicios
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-images me-3 pink-text"></i> Galería
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-tags me-3 pink-text"></i> Promociones
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-phone me-3 pink-text"></i> Contacto
-                    </li>
-                </ul>
+                <?php endif; ?>
             </div>
         </div>
+    </div>
+</nav>
+
 
         <!-- Offcanvas lateral: Perfil de usuario -->
         <div class="offcanvas offcanvas-end" tabindex="-1" id="userSidebar" aria-labelledby="userSidebarLabel">
@@ -502,6 +657,13 @@ $nombreUsuario = $_SESSION['usuario'];
                             </button>
                         </div>
                         <div class="col-12">
+                         <?php if ($esAdmin): ?>
+                        <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
+                        <i class="fas fa-cog"></i> Configuración
+                        </a>
+                         <?php endif; ?>
+                        </div>
+                        <div class="col-12">
                             <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
                         </div>
                         <div class="col-12">
@@ -557,7 +719,7 @@ include_once 'conexEstetica.php';
 $conexion = conectarDB();
 
 // Consulta para obtener los tratamientos corporales
-$query_corporales = "SELECT nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '10'";
+$query_corporales = "SELECT nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '10'";
 $resultado = mysqli_query($conexion, $query_corporales);
 ?>
 <!--- Contenido de tratamientos corporales -->
@@ -567,7 +729,11 @@ $resultado = mysqli_query($conexion, $query_corporales);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <i class="fas fa-spa fa-3x pink-text"></i>
+                        <?php if (!empty($row['imagen_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="service-thumb">
+                        <?php else: ?>
+                            <i class="fas fa-spa fa-3x pink-text"></i>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -583,7 +749,7 @@ $resultado = mysqli_query($conexion, $query_corporales);
 </div>
 <?php 
 // Consulta para obtener los tratamientos corporales
-$query_faciales = "SELECT nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '11'";
+$query_faciales = "SELECT nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '11'";
 $resultado = mysqli_query($conexion, $query_faciales);
 ?>
             <!-- Contenido de tratamientos faciales -->
@@ -593,7 +759,11 @@ $resultado = mysqli_query($conexion, $query_faciales);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <i class="fas fa-smile fa-3x pink-text"></i>
+                        <?php if (!empty($row['imagen_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="service-thumb">
+                        <?php else: ?>
+                            <i class="fas fa-smile fa-3x pink-text"></i>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -610,7 +780,7 @@ $resultado = mysqli_query($conexion, $query_faciales);
 
 <?php 
 // Consulta para obtener los tratamientos corporales
-$query_masajes = "SELECT nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '12'";
+$query_masajes = "SELECT nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '12'";
 $resultado = mysqli_query($conexion, $query_masajes);
 ?>
             <!-- Contenido de masajes -->
@@ -620,7 +790,11 @@ $resultado = mysqli_query($conexion, $query_masajes);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
+                        <?php if (!empty($row['imagen_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="service-thumb">
+                        <?php else: ?>
+                            <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -651,18 +825,23 @@ $resultado = mysqli_query($conexion, $query_masajes);
                 // Ícono por defecto si no se encuentra una coincidencia
                 return 'fas fa-star';
             }
-            ?>
-            <?php 
+            
             // Consulta para obtener los combos/promociones
-            $query_combos = "SELECT nombre, precio, descripcion, 105 AS duracion_minutos FROM combos WHERE id_negocio = 1";
+            $query_combos = "SELECT nombre, precio, descripcion, duracion_minutos, imagen_url FROM combos WHERE id_negocio = 1";
             $resultado_combos = mysqli_query($conexion, $query_combos);
             ?>
             <div class="row g-4 justify-content-center">
                 <?php while ($row = mysqli_fetch_assoc($resultado_combos)) { ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="card promo-card h-100">
-                            <div class="card-img-top d-flex align-items-center justify-content-center pt-4">
-                                <i class="fas fa-gift fa-3x pink-text"></i>
+                            <div class="card-img-top d-flex align-items-center justify-content-center">
+                                <?php if (!empty($row['imagen_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="service-thumb">
+                                <?php else: ?>
+                                    <div class="pt-4">
+                                        <i class="fas fa-gift fa-3x pink-text"></i>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body text-center d-flex flex-column">
                                 <h5 class="card-title pink-text"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -724,64 +903,159 @@ $resultado = mysqli_query($conexion, $query_masajes);
         </footer>
     </div>
 
+    <!-- Modal para ver Notificación -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header pink-gradient text-white">
+            <h5 class="modal-title" id="notificationModalLabel"><i class="fas fa-bell me-2"></i>Detalle de la Notificación</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted small" id="notificationDate"></p>
+            <p id="notificationMessage"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Historial de Citas -->
     <div class="modal fade" id="historialModal" tabindex="-1" aria-labelledby="historialModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header pink-gradient text-white">
                     <h5 class="modal-title" id="historialModalLabel"><i class="fas fa-history me-2"></i>Historial de Citas (Último Mes)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="periodoHistorial" class="form-label fw-bold">Mostrar citas de:</label>
-                        <select class="form-select" id="periodoHistorial">
-                            <option value="semana" selected>Última semana</option>
-                            <option value="mes">Último mes</option>
-                            <option value="tres_meses">Últimos 3 meses</option>
-                            <option value="todos">Ver todo el historial</option>
-                        </select>
-                    </div>
-                    <p>Aquí se muestran tus reservas para el período seleccionado.</p>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col">Fecha y Hora</th>
-                                    <th scope="col">Servicio/Combo</th>
-                                    <th scope="col">Precio</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historialTableBody"></tbody>
-                        </table>
+                    <div class="row">
+                        <!-- Columna del Calendario -->
+                        <div class="col-md-4">
+                            <h5>Calendario de Citas</h5>
+                            <div class="historial-calendar-container mb-3">
+                                <div class="historial-calendar-header">
+                                    <button class="historial-calendar-nav-btn" id="historial-prev-month">&lt;</button>
+                                    <span id="historial-current-month" class="fw-bold"></span>
+                                    <button class="historial-calendar-nav-btn" id="historial-next-month">&gt;</button>
+                                </div>
+                                <div class="historial-calendar-grid" id="historial-calendar-grid"></div>
+                            </div>
+                            <div class="filtros">
+                                <select class="form-select" id="periodoHistorial" style="width:100%;">
+                                    <option value="semana" selected>Última semana</option>
+                                    <option value="mes">Último mes</option>
+                                    <option value="tres_meses">Últimos 3 meses</option>
+                                    <option value="todos">Ver todo el historial</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Columna de la Tabla -->
+                        <div class="col-md-8">
+                            <div class="filtros">
+                                <input type="text" id="filtro-nombre" placeholder="Buscar por cliente..." class="form-control" style="flex:1; min-width:140px;">
+                                <input type="text" id="filtro-servicio" placeholder="Buscar por servicio..." class="form-control" style="flex:1; min-width:140px;">
+                                <input type="date" id="filtro-fecha" class="form-control" style="width:160px;">
+                            </div>
+                            <div class="tabla-reservas">
+                                <div class="table-responsive">
+                                    <table id="historialTabla" class="table">
+                                        <thead>
+                                            <tr>
+                                            <th>Cliente</th>
+                                            <th>Servicio</th>
+                                            <th>Categoría</th>
+                                            <th>Fecha</th>
+                                            <th>Hora</th>
+                                            <th>Precio</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="historialTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    
+
     <script>
         // Mover la lógica de carga a su propia función para poder reutilizarla
         function cargarHistorial(periodo) {
-            const tbody = document.getElementById('historialTableBody');
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center">Cargando historial...</td></tr>'; // Mensaje de carga
+                const tbody = document.getElementById('historialTableBody');
+                // Limpiar la tabla INMEDIATAMENTE y mostrar el mensaje de carga.
+                // Esto asegura que no se vea contenido viejo en ningún momento.
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Cargando historial...</td></tr>'; // Mensaje de carga
 
             // Hacer la petición AJAX para obtener el historial
-            fetch(`obtener_historial.php?periodo=${periodo}`)
-                .then(response => response.json())
+            fetch(`obtener_historial.php?periodo=${periodo}&id_negocio=1&_=${new Date().getTime()}`, { 
+                method: 'GET',
+                cache: 'no-store', // No guardar en caché
+                headers: { 'Cache-Control': 'no-cache' }, // Instrucción adicional para proxies y CDNs
+                credentials: 'same-origin' 
+            })
+                .then(async response => {
+                    const text = await response.text();
+                    // Intentar parsear JSON sólo si es una respuesta con contenido JSON
+                    try {
+                        const data = text ? JSON.parse(text) : null;
+                        if (!response.ok) {
+                            const msg = (data && data.error) ? data.error : `Error del servidor (status ${response.status})`;
+                            throw new Error(msg);
+                        }
+                        return data;
+                    } catch (e) {
+                        // Si no es JSON válido, lanzar error con el texto
+                        throw new Error(text || e.message);
+                    }
+                })
                 .then(data => {
-                    tbody.innerHTML = ''; // Limpiar contenido anterior
-                    
-                    if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center">No tienes citas en este período.</td></tr>';
+                    // Limpiar tabla
+                    tbody.innerHTML = '';
+
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No tienes citas en este período.</td></tr>';
                         return;
                     }
 
+                    // Una vez cargados los datos, renderizar el calendario del historial
+                    renderHistorialCalendar(data);
+
+                    // Si la API devuelve un objeto con 'error' mostrarlo
+                    if (!Array.isArray(data) && data.error) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${data.error}</td></tr>`;
+                        return;
+                    }
+
+                    // Rellenar la tabla con los datos y añadir atributos data-* para filtrado robusto
                     data.forEach(cita => {
+                        const fechaObj = new Date(cita.fecha_realizacion);
+                        const fechaIso = fechaObj.toISOString().split('T')[0]; // YYYY-MM-DD
+                        const fechaStr = fechaObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const horaStr = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                        const categoria = cita.categoria_nombre || '';
+                        const cliente = cita.cliente || '';
+                        const servicio = cita.servicio || '';
+
                         const tr = document.createElement('tr');
+                        // Datos para filtrar fácilmente
+                        tr.dataset.fechaIso = fechaIso;
+                        tr.dataset.cliente = (cliente || '').toLowerCase();
+                        tr.dataset.servicio = (servicio || '').toLowerCase();
+                        tr.dataset.categoria = (categoria || '').toLowerCase();
+
                         tr.innerHTML = `
-                            <td>${formatearFecha(cita.fecha_realizacion)}</td>
-                            <td>${cita.nombre}</td>
+                            <td>${escapeHtml(cliente)}</td>
+                            <td>${escapeHtml(servicio)}</td>
+                            <td>${escapeHtml(categoria)}</td>
+                            <td>${fechaStr}</td>
+                            <td>${horaStr}</td>
                             <td>$${formatearPrecio(cita.precio)}</td>
                         `;
                         tbody.appendChild(tr);
@@ -789,9 +1063,74 @@ $resultado = mysqli_query($conexion, $query_masajes);
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error al cargar el historial.</td></tr>';
+                    const msg = (error && error.message) ? error.message : 'Error al cargar el historial.';
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${msg}</td></tr>`;
                 });
         }
+
+        // --- Lógica para el calendario del historial ---
+        let historialCurrentDate = new Date();
+
+        function renderHistorialCalendar(citas) {
+            const calendarGrid = document.getElementById('historial-calendar-grid');
+            const currentMonthEl = document.getElementById('historial-current-month');
+            if (!calendarGrid || !currentMonthEl) return;
+
+            calendarGrid.innerHTML = '';
+            const month = historialCurrentDate.getMonth();
+            const year = historialCurrentDate.getFullYear();
+
+            currentMonthEl.textContent = new Date(year, month).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const dayOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+            // Nombres de los días
+            ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(dayName => {
+                const dayNameEl = document.createElement('div');
+                dayNameEl.className = 'historial-calendar-day-name';
+                dayNameEl.textContent = dayName;
+                calendarGrid.appendChild(dayNameEl);
+            });
+
+            // Días vacíos al inicio
+            for (let i = 0; i < dayOffset; i++) {
+                calendarGrid.appendChild(document.createElement('div'));
+            }
+
+            // Fechas con eventos
+            const eventDates = citas.map(cita => new Date(cita.fecha_realizacion).toISOString().split('T')[0]);
+
+            // Días del mes
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'historial-calendar-day';
+                dayEl.textContent = day;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                if (eventDates.includes(dateStr)) {
+                    dayEl.classList.add('has-events');
+                    dayEl.addEventListener('click', () => {
+                        document.getElementById('filtro-fecha').value = dateStr;
+                        filtrarHistorial();
+                        document.querySelectorAll('.historial-calendar-day.selected').forEach(d => d.classList.remove('selected'));
+                        dayEl.classList.add('selected');
+                    });
+                }
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+
+        document.getElementById('historial-prev-month')?.addEventListener('click', () => {
+            historialCurrentDate.setMonth(historialCurrentDate.getMonth() - 1);
+            cargarHistorial(document.getElementById('periodoHistorial').value);
+        });
+
+        document.getElementById('historial-next-month')?.addEventListener('click', () => {
+            historialCurrentDate.setMonth(historialCurrentDate.getMonth() + 1);
+            cargarHistorial(document.getElementById('periodoHistorial').value);
+        });
 
         function mostrarHistorial() {
             const modal = new bootstrap.Modal(document.getElementById('historialModal'));
@@ -816,11 +1155,56 @@ $resultado = mysqli_query($conexion, $query_masajes);
         function formatearPrecio(precio) {
             return new Intl.NumberFormat('es-CL').format(precio);
         }
+        // Pequeña función para escapar HTML en texto recibido del servidor
+        function escapeHtml(unsafe) {
+            if (!unsafe && unsafe !== 0) return '';
+            return String(unsafe)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
         // Manejar la selección de elementos
         document.addEventListener('DOMContentLoaded', function() {
-            // Evento para cambiar el período del historial
+            // Añadir listeners para filtrar la tabla de historial (igual que Juliette)
+            const filtroNombre = document.getElementById('filtro-nombre');
+            const filtroServicio = document.getElementById('filtro-servicio');
+            const filtroFecha = document.getElementById('filtro-fecha');
+            
+            function filtrarHistorial() {
+                const nombre = (filtroNombre.value || '').toLowerCase().trim();
+                const servicio = (filtroServicio.value || '').toLowerCase().trim();
+                const fecha = (filtroFecha.value || '').trim(); // formato YYYY-MM-DD
+
+                // Si se borra la fecha del calendario, deseleccionar el día
+                if (fecha === '') {
+                    document.querySelectorAll('.historial-calendar-day.selected').forEach(d => d.classList.remove('selected'));
+                }
+                const filas = document.querySelectorAll('#historialTabla tbody tr');
+                filas.forEach(fila => {
+                    const rowCliente = (fila.dataset.cliente || '').toLowerCase();
+                    const rowServicio = (fila.dataset.servicio || '').toLowerCase();
+                    const rowCategoria = (fila.dataset.categoria || '').toLowerCase();
+                    const rowFechaIso = (fila.dataset.fechaIso || '').trim();
+
+                    const visibleNombre = nombre === '' || rowCliente.includes(nombre);
+                    const visibleServicio = servicio === '' || rowServicio.includes(servicio) || rowCategoria.includes(servicio);
+                    const visibleFecha = fecha === '' || rowFechaIso === fecha;
+
+                    fila.style.display = (visibleNombre && visibleServicio && visibleFecha) ? '' : 'none';
+                });
+            }
+
+            // Asignar eventos de 'input' para una respuesta inmediata al borrar
+            if (filtroNombre) filtroNombre.addEventListener('input', filtrarHistorial);
+            if (filtroServicio) filtroServicio.addEventListener('input', filtrarHistorial);
+            if (filtroFecha) filtroFecha.addEventListener('input', filtrarHistorial);
+
+            // Limpiar el filtro de fecha si se cambia el período general
             const periodoSelect = document.getElementById('periodoHistorial');
             periodoSelect.addEventListener('change', function() {
+                if(filtroFecha) filtroFecha.value = ''; // Limpiar filtro de fecha
                 cargarHistorial(this.value);
             });
 
@@ -863,6 +1247,51 @@ $resultado = mysqli_query($conexion, $query_masajes);
                     // Mostrar el contenido correspondiente
                     const category = this.getAttribute('data-category');
                     document.getElementById(category).classList.add('active');
+                });
+            });
+
+            // Manejar clic en notificaciones
+            const notificationItems = document.querySelectorAll('.notification-item');
+            notificationItems.forEach(item => {
+                item.addEventListener('click', function(event) {
+                    event.preventDefault();
+
+                    const notificationId = this.dataset.id;
+                    const date = this.querySelector('.notification-date').textContent;
+                    const message = this.querySelector('.notification-message').textContent;
+
+                    // Poblar el modal
+                    document.getElementById('notificationDate').textContent = date;
+                    document.getElementById('notificationMessage').textContent = message;
+
+                    // Marcar como leída vía AJAX
+                    fetch('marcar_notificacion_leida.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: notificationId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Eliminar el item de la lista
+                            this.closest('li').remove();
+
+                            // Actualizar el contador
+                            const badge = document.querySelector('#dropdownNotificaciones .badge');
+                            if (badge) {
+                                let count = parseInt(badge.textContent);
+                                count--;
+                                if (count > 0) {
+                                    badge.textContent = count;
+                                } else {
+                                    badge.remove(); // Ocultar el contador si llega a cero
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error al marcar la notificación:', error));
                 });
             });
         });

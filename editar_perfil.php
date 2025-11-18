@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['usuario_id'])) {
     header('Location: Kore_Estetica-Inicio.php');
     exit();
 }
@@ -11,6 +11,7 @@ $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
 $apellido = isset($_POST['apellido']) ? trim($_POST['apellido']) : '';
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $celular = isset($_POST['celular']) ? trim($_POST['celular']) : '';
+$source = isset($_POST['source']) ? $_POST['source'] : 'kore'; // 'kore' por defecto
 
 // Validar que el usuario que edita es el que está en la sesión
 if ($usuarioId === '' || $nombre === '' || !isset($_SESSION['usuario_id']) || $usuarioId != $_SESSION['usuario_id']) {
@@ -41,5 +42,9 @@ if (file_exists('conexEstetica.php')) {
 }
 
 // Redirigir de vuelta a la página principal con indicador
-header('Location: Kore_Estetica-Inicio.php?updated=1');
+if ($source === 'juliette') {
+    header('Location: JulietteNails.php?updated=1');
+} else {
+    header('Location: Kore_Estetica-Inicio.php?updated=1');
+}
 exit();

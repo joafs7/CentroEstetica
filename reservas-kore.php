@@ -776,6 +776,14 @@ $conexion = conectarDB();
             transform: rotate(90deg);
         }
         
+        /* Estilo para la imagen en la tarjeta de reserva */
+        .service-card .card-img-top img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
         /* ----- MEDIA QUERIES (RESPONSIVE) ----- */
         @media (max-width: 768px) {
             .main-content {
@@ -840,6 +848,7 @@ $conexion = conectarDB();
 </head>
 <body>
 <div class="container">
+    
     <header>
         <div class="logo">
             <i class="fas fa-spa"></i>
@@ -865,13 +874,17 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '10' AND id_negocio = '1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '10' AND id_negocio = '1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-spa fa-3x pink-text"></i>
+                                <?php if (!empty($row['imagen_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>">
+                                <?php else: ?>
+                                    <i class="fas fa-spa fa-3x pink-text"></i>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -891,13 +904,17 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '11' AND id_negocio = '1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '11' AND id_negocio = '1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-smile fa-3x pink-text"></i>
+                                <?php if (!empty($row['imagen_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>">
+                                <?php else: ?>
+                                    <i class="fas fa-smile fa-3x pink-text"></i>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -917,13 +934,17 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos FROM servicios WHERE categoria_id = '12' AND id_negocio = '1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '12' AND id_negocio = '1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
+                                <?php if (!empty($row['imagen_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>">
+                                <?php else: ?>
+                                    <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -955,13 +976,17 @@ $conexion = conectarDB();
             ?>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, 105 AS duracion_minutos FROM combos WHERE id_negocio='1'";
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM combos WHERE id_negocio='1'";
                 $result = mysqli_query($conexion, $query);
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
-                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="105">
+                        <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                             <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                                <i class="fas fa-gift fa-3x pink-text"></i>
+                                <?php if (!empty($row['imagen_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>">
+                                <?php else: ?>
+                                    <i class="fas fa-gift fa-3x pink-text"></i>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body text-center d-flex flex-column">
                                 <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>

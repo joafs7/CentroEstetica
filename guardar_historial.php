@@ -178,6 +178,9 @@ try {
         throw new Exception('Error al ejecutar la inserción para el servicio/combo ID ' . htmlspecialchars($servicio_id) . ': ' . $stmt->error);
     }
 
+    // Guardar el id de la inserción principal para relacionar bloqueos
+    $parent_insert_id = $conexion->insert_id;
+
     // Si la duración es mayor a 60 minutos, guarda un bloqueo para el siguiente turno
     if ($duracion > 60) {
         $fecha_bloqueo = new DateTime($fecha_realizacion);
@@ -185,16 +188,87 @@ try {
         $fecha_bloqueo_str = $fecha_bloqueo->format('Y-m-d H:i:s');
         $nombre_bloqueo = "Bloqueo por combo";
         $precio_bloqueo = 0;
-        
-        $stmt->bind_param('issiiiiidssss', $_SESSION['usuario_id'], $_SESSION['nombre'], $_SESSION['apellido'], $id_categoria, $id_servicio, $id_combo, $id_negocio, $id_cita, $id_cita, $precio_bloqueo, $fecha_bloqueo_str, $created_at, $updated_at);
-        if (!$stmt->execute()) {
-            throw new Exception('Error al guardar el bloqueo del turno siguiente: ' . $stmt->error);
+
+        // Verificar si la columna id_reserva_padre existe en la tabla `historial`
+        $colCheck = mysqli_query($conexion, "SHOW COLUMNS FROM historial LIKE 'id_reserva_padre'");
+        $has_parent_col = ($colCheck && mysqli_num_rows($colCheck) > 0);
+
+        if ($has_parent_col) {
+            // Insertar bloqueo relacionándolo con la reserva padre (no aparecerá en historial si se filtra por id_reserva_padre IS NULL)
+            $query_bloqueo = "INSERT INTO historial (
+                id_usuario, nombre, apellido, id_categoria, id_servicio, id_combo, id_negocio, id_cita, id_venta, precio, fecha_realizacion, created_at, updated_at, id_reserva_padre
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            $stmt_b = $conexion->prepare($query_bloqueo);
+            if (!$stmt_b) {
+                throw new Exception('Error preparando consulta de bloqueo: ' . $conexion->error);
+            }
+
+            $id_reserva_padre_val = $parent_insert_id;
+            $stmt_b->bind_param(
+                'issiiiiidssssi',
+                $_SESSION['usuario_id'],
+                $_SESSION['nombre'],
+                $_SESSION['apellido'],
+                $id_categoria,
+                $id_servicio,
+                $id_combo,
+                $id_negocio,
+                $id_cita,
+                $id_cita,
+                $precio_bloqueo,
+                $fecha_bloqueo_str,
+                $created_at,
+                $updated_at,
+                $id_reserva_padre_val
+            );
+
+            if (!$stmt_b->execute()) {
+                $stmt_b->close();
+                throw new Exception('Error al guardar el bloqueo del turno siguiente: ' . $stmt_b->error);
+            }
+
+            $stmt_b->close();
+        } else {
+            // Si la columna no existe en la tabla, no insertamos el bloqueo porque generaría
+            // una fila adicional visible en el historial (precio $0). En su lugar, confiar en el
+            // bloqueo a nivel de aplicación o considerar crear una tabla específica para bloqueos.
+            error_log('guardar_historial: la columna id_reserva_padre no existe; no se insertó bloqueo.');
         }
     }
 
     $stmt->close();
     $conexion->commit(); // Confirmar la transacción
     $conexion->close();
+
+    // --- INICIO: Lógica para crear notificación al admin ---
+    try {
+        $conexion_notif = conectarDB();
+        // 1. Encontrar a los admins del negocio (id_negocio = 1 para Kore)
+        $query_admins = "SELECT id FROM usuarios WHERE tipo = 'admin' AND id_negocio_admin = ?";
+        $stmt_admins = $conexion_notif->prepare($query_admins);
+        $stmt_admins->bind_param('i', $id_negocio);
+        $stmt_admins->execute();
+        $result_admins = $stmt_admins->get_result();
+
+        // 2. Crear el mensaje de la notificación
+        $nombre_cliente = $_SESSION['nombre'] . ' ' . $_SESSION['apellido'];
+        $fecha_reserva_obj = new DateTime($fecha_realizacion);
+        $mensaje = "Nueva reserva de {$nombre_cliente} para '{$nombre_servicio_guardar}' el " . $fecha_reserva_obj->format('d/m/Y \a \l\a\s H:i');
+
+        // 3. Insertar una notificación para cada admin
+        $query_insert_notif = "INSERT INTO notificaciones (id_usuario_destino, id_negocio, mensaje) VALUES (?, ?, ?)";
+        while ($admin = $result_admins->fetch_assoc()) {
+            $stmt_notif = $conexion_notif->prepare($query_insert_notif);
+            $stmt_notif->bind_param('iis', $admin['id'], $id_negocio, $mensaje);
+            $stmt_notif->execute();
+        }
+        $conexion_notif->close();
+    } catch (Exception $e) {
+        // Si falla la notificación, no detenemos el proceso principal. Solo lo registramos.
+        error_log("Error al crear notificación: " . $e->getMessage());
+    }
+    // --- FIN: Lógica para crear notificación ---
 
     echo json_encode([
         'success' => true,
