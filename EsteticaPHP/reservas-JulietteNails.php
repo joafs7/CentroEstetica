@@ -897,7 +897,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-palette fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -922,7 +922,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-gem fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -949,7 +949,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -975,7 +975,7 @@ $conexion = conectarDB();
             <div class="col-12 col-md-4">
                 <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-paint-brush fa-3x pink-text"></i>
+                        <i class="fas fa-shield-alt fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="service-name-card"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -1075,6 +1075,7 @@ $conexion = conectarDB();
     let selectedTime = null;
     let isRetiradoSelected = false;
     const retiradoPrice = 3000;
+    let reservedSlots = {};
 
         
    document.addEventListener('DOMContentLoaded', function() {
@@ -1340,31 +1341,41 @@ nextMonthBtn.addEventListener('click', () => {
          function selectDate(date) {
         selectedDate = date;
         selectedTime = null;
-        console.log('Fecha seleccionada:', selectedDate);
-        
         renderCalendar(currentMonth, currentYear);
-        generateTimeSlots();
+        fetchReservedSlots(currentYear, currentMonth); // <-- Llama aquí
         updateResumen();
-    }
-        
+        }
+
+        function fetchReservedSlots(year, month) {
+        fetch(`obtener_reservas.php?year=${year}&month=${month + 1}`)
+        .then(response => response.json())
+        .then(data => {
+            reservedSlots = data;
+            generateTimeSlots();
+        });
+}
         // Generar horarios disponibles
         function generateTimeSlots() {
-            timeSlotsEl.innerHTML = '';
-            
-            if (!selectedDate) return;
-            
+        timeSlotsEl.innerHTML = '';
+        if (!selectedDate) return;
+
+            const fechaFormateada = selectedDate.toISOString().split('T')[0];
+            const reservedForDay = reservedSlots[fechaFormateada] || [];
+
             const isToday = selectedDate.toDateString() === today.toDateString();
             const currentHour = new Date().getHours();
-            
+
             // Horarios de mañana
             for (let hour = 8; hour <= 11; hour++) {
                 if (isToday && hour < currentHour) continue;
+                if (reservedForDay.includes(hour)) continue; // Oculta si está reservado
                 createTimeSlot(hour);
             }
-            
+
             // Horarios de tarde
             for (let hour = 16; hour <= 19; hour++) {
                 if (isToday && hour < currentHour) continue;
+                if (reservedForDay.includes(hour)) continue; // Oculta si está reservado
                 createTimeSlot(hour);
             }
         }
@@ -1436,10 +1447,19 @@ nextMonthBtn.addEventListener('click', () => {
         
         try {
             const data = JSON.parse(text);
-            if (data.success) {
-                alert('Reserva guardada exitosamente');
-                closeConfirmationModal();
-                window.location.reload();
+        if (data.success) {
+            alert('Reserva guardada exitosamente');
+            closeConfirmationModal();
+
+            // Eliminar el horario seleccionado del DOM
+            if (selectedTime !== null) {
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    if (slot.textContent === `${selectedTime}:00`) {
+                        slot.remove();
+                    }
+                });
+                selectedTime = null; // Limpiar selección
+            }
             } else {
                 // Mostrar mensaje específico si el horario está ocupado
                 if (data.message.includes('Ya existe una reserva')) {

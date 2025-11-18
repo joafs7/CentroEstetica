@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'conexEstetica.php'; // Archivo de conexión a la base de datos
+include 'conexEstetica.php';
 $conex = conectarDB();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -13,17 +13,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $resultado = $stmt->get_result();
-
-        if ($resultado->num_rows > 0) {
-            $usuario = $resultado->fetch_assoc();
-
-            // Verificar la contraseña
+        
+        if ($usuario = $resultado->fetch_assoc()) {
             if (password_verify($contrasena, $usuario['contrasena'])) {
-                // Contraseña correcta, iniciar sesión
-                $_SESSION['usuario'] = $usuario['nombre']; // Guarda el nombre del usuario en la sesión
-                $_SESSION['usuario_id'] = $usuario['id']; // Guarda el ID del usuario en la sesión
-                $_SESSION['apellido'] = $usuario['apellido']; // Guarda el apellido del usuario en la sesión
-                header("Location: index.php"); // Redirige al inicio
+                $_SESSION['usuario_id'] = $usuario['id'];
+                $_SESSION['usuario'] = $usuario['nombre'];
+                $_SESSION['nombre'] = $usuario['nombre']; // AGREGAR ESTA LÍNEA
+                $_SESSION['apellido'] = $usuario['apellido']; // AGREGAR ESTA LÍNEA
+                $_SESSION['email'] = $usuario['email']; // AGREGAR ESTA LÍNEA
+                $_SESSION['tipo'] = $usuario['tipo'];
+                $_SESSION['id_negocio_admin'] = $usuario['id_negocio_admin'];
+                header("Location: index.php");
                 exit();
             } else {
                 echo "<script>alert('Contraseña incorrecta.');</script>";
@@ -31,13 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             echo "<script>alert('Usuario no encontrado.');</script>";
         }
-
         $stmt->close();
     } else {
         echo "<script>alert('Por favor, complete todos los campos.');</script>";
     }
 }
-
 $conex->close();
 ?>
 
@@ -57,6 +55,7 @@ $conex->close();
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
     .login-box {
       background: white;
@@ -88,6 +87,18 @@ $conex->close();
       margin-bottom: 15px;
       text-align: center;
     }
+    @media (max-width: 480px) {
+      .login-box {
+        padding: 20px 10px;
+        max-width: 98vw;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
+      .form-label {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -106,12 +117,32 @@ $conex->close();
 
       <div class="mb-3">
         <label for="contrasena" class="form-label">Contraseña</label>
-        <input type="password" name="contrasena" id="contrasena" class="form-control" required>
+        <div class="input-group">
+          <input type="password" name="contrasena" id="contrasena" class="form-control" required>
+          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('contrasena', this)">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary w-100">Ingresar</button>
     </form>
   </div>
+  <script>
+    function togglePassword(inputId, button) {
+      const input = document.getElementById(inputId);
+      const icon = button.querySelector('i');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+  </script>
 </body>
 </html>
 

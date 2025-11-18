@@ -9,6 +9,13 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Guardar el nombre en una variable
 $nombreUsuario = $_SESSION['usuario'];
+// Definir si es admin
+// Definir si es admin SOLO si es admin de Kore (id_negocio_admin = 1)
+$id_negocio = 1;
+$esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
+    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['id_negocio_admin'] == $id_negocio;
+
 ?>
 
 
@@ -237,6 +244,7 @@ $nombreUsuario = $_SESSION['usuario'];
             transition: all 0.3s;
         }
         
+        
         .social-icon:hover {
             transform: translateY(-5px);
             background-color: var(--dark-pink);
@@ -378,58 +386,128 @@ $nombreUsuario = $_SESSION['usuario'];
 <body>
     <div class="container">
         <!-- Barra de navegación moderna -->
-        <nav class="navbar navbar-expand-lg">
-            <div class="container-fluid">
-                <div class="logo-placeholder">KORE</div>
-                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
-                    <span class="navbar-toggler-icon"></span>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <div class="logo-placeholder">KORE</div>
+        <!-- Botón hamburguesa para móviles -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Menú colapsable -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav ms-auto">
+                <a href="#inicio" class="nav-btn active">Inicio</a>
+                <a href="#servicio" class="nav-btn">Servicios</a>
+                <a href="#promos" class="nav-btn">Combos</a>
+                <a href="#contacto" class="nav-btn">Contacto</a>
+                <!-- Botón para abrir sidebar de usuario -->
+                <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
+                    <i class="fas fa-user-circle"></i> Mi cuenta
                 </button>
-                
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <div class="navbar-nav ms-auto">
-                        <a href="#inicio" class="nav-btn active">Inicio</a>
-                        <a href="#servicio" class="nav-btn">Servicios</a>
-                        <a href="#promos" class="nav-btn">Combos</a>
-                        <a href="#contacto" class="nav-btn">Contacto</a>
-                       
-                    </div>
-                </div>
             </div>
-        </nav>
-
-
-<!-- Menú offcanvas -->
-    <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="staticBackdropLabel">Menú KORE</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
     </div>
-    <div class="offcanvas-body">
-        <ul class="list-group">
-            <li class="list-group-item d-flex align-items-center">
-                <i class="fas fa-home me-3 pink-text"></i> Inicio
-            </li>
-            <li class="list-group-item d-flex align-items-center selected-item">
-                <i class="fas fa-spa me-3 pink-text"></i> Servicios
-            </li>
-            <li class="list-group-item d-flex align-items-center">
-                <i class="fas fa-images me-3 pink-text"></i> Galería
-            </li>
-            <li class="list-group-item d-flex align-items-center">
-                <i class="fas fa-tags me-3 pink-text"></i> Promociones
-            </li>
-            <li class="list-group-item d-flex align-items-center">
-                <i class="fas fa-shopping-bag me-3 pink-text"></i> Productos
-            </li>
-            <li class="list-group-item d-flex align-items-center">
-                <i class="fas fa-phone me-3 pink-text"></i> Contacto
-            </li>
-        </ul>
-    </div>
-</div>
+</nav>
 
+
+        <!-- Offcanvas lateral: Perfil de usuario -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="userSidebar" aria-labelledby="userSidebarLabel">
+            <div class="offcanvas-header pink-gradient text-white">
+                <h5 class="offcanvas-title" id="userSidebarLabel">Mi cuenta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <?php
+                // Mostrar datos básicos de la sesión
+                $usuarioId = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : '';
+                $usuarioNombre = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '';
+                $usuarioApellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : '';
+                $usuarioEmail = isset($_SESSION['email']) ? $_SESSION['email'] : '';
+                $usuarioCelular = isset($_SESSION['celular']) ? $_SESSION['celular'] : '';
+
+                // Si falta algún dato en la sesión, intentar obtenerlo desde la BD
+                if ($usuarioId && (empty($usuarioApellido) || empty($usuarioEmail) || empty($usuarioCelular))) {
+                    if (file_exists('conexEstetica.php')) {
+                        include_once 'conexEstetica.php';
+                        $conexionTmp = conectarDB();
+                        if ($conexionTmp) {
+                            $stmt = mysqli_prepare($conexionTmp, "SELECT nombre, apellido, email, celular FROM usuarios WHERE id = ? LIMIT 1");
+                            if ($stmt) {
+                                mysqli_stmt_bind_param($stmt, 'i', $usuarioId);
+                                mysqli_stmt_execute($stmt);
+                                mysqli_stmt_bind_result($stmt, $dbNombre, $dbApellido, $dbEmail, $dbCelular);
+                                if (mysqli_stmt_fetch($stmt)) {
+                                    if (empty($usuarioNombre)) $usuarioNombre = $dbNombre;
+                                    if (empty($usuarioApellido)) $usuarioApellido = $dbApellido;
+                                    if (empty($usuarioEmail)) $usuarioEmail = $dbEmail;
+                                    if (empty($usuarioCelular)) $usuarioCelular = $dbCelular;
+                                }
+                                mysqli_stmt_close($stmt);
+                            }
+                            mysqli_close($conexionTmp);
+                        }
+                    }
+                }
+                ?>
+
+                <div class="mb-4 text-center">
+                    <div style="font-size:72px;color:var(--dark-pink)"><i class="fas fa-user-circle"></i></div>
+                    <h5 class="mt-2"><?php echo htmlspecialchars($usuarioNombre . ' ' . $usuarioApellido); ?></h5>
+                </div>
+
+                <!-- Formulario para editar datos del usuario -->
+                <form action="editar_perfil.php" method="post">
+                    <div class="row">
+                        <div class="col-12 mb-2">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo htmlspecialchars($usuarioNombre); ?>" required>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" value="<?php echo htmlspecialchars($usuarioApellido); ?>">
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($usuarioEmail); ?>">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="celular" class="form-label">Celular</label>
+                            <input type="text" class="form-control" id="celular" name="celular" value="<?php echo htmlspecialchars($usuarioCelular); ?>">
+                        </div>
+                    </div>
+                    <input type="hidden" name="usuario_id" value="<?php echo htmlspecialchars($usuarioId); ?>">
+                    <div class="row g-2 mb-2">
+                        <div class="col-12">
+                            <button type="button" class="btn w-100" style="background-color: var(--primary-color); color: white;" onclick="mostrarHistorial()">
+                                <i class="fas fa-history"></i> Ver Historial de Citas
+                            </button>
+                        </div>
+                        <div class="col-12">
+                         <?php if ($esAdmin): ?>
+                        <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
+                        <i class="fas fa-cog"></i> Configuración
+                        </a>
+                         <?php endif; ?>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
+                        </div>
+                        <div class="col-12">
+                            <a href="logout.php" class="btn btn-outline-secondary w-100">Cerrar sesión</a>
+                        </div>
+                    </div>
+                </form>
+
+                <?php if (isset($_GET['updated']) && $_GET['updated'] == '1') { ?>
+                    <div class="alert alert-success mt-3">Perfil actualizado correctamente.</div>
+                <?php } ?>
+            </div>
+        </div>
 
         <!-- Sección Hero -->
+
+
 <section class="hero-section">
     <div class="container">
         <h1 class="display-4 fw-bold">Te damos la bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Kore Estética Corporal</h1>
@@ -461,11 +539,10 @@ $nombreUsuario = $_SESSION['usuario'];
                 <button class="treatment-tab active" data-category="corporales">Tratamientos Corporales</button>
                 <button class="treatment-tab" data-category="faciales">Tratamientos Faciales</button>
                 <button class="treatment-tab" data-category="masajes">Masajes</button>
-                <button class="treatment-tab" data-category="combos">Combos Especiales</button>
             </div>
 
 <?php 
-include 'conexEstetica.php';
+include_once 'conexEstetica.php';
 $conexion = conectarDB();
 
 // Consulta para obtener los tratamientos corporales
@@ -479,8 +556,7 @@ $resultado = mysqli_query($conexion, $query_corporales);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
+                        <i class="fas fa-spa fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -506,8 +582,7 @@ $resultado = mysqli_query($conexion, $query_faciales);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
+                        <i class="fas fa-smile fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -534,8 +609,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
             <div class="col">
                 <div class="card h-100">
                     <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
+                        <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
@@ -549,144 +623,63 @@ $resultado = mysqli_query($conexion, $query_masajes);
         <?php } ?>
     </div>
 </div>
-<?php 
-// Consulta para obtener los tratamientos corporales
-$query_combos = "SELECT nombre, precio, descripcion FROM combos";
-$resultado = mysqli_query($conexion, $query_combos);
-?>
-            <!-- Contenido de combos especiales -->
-<div id="combos" class="treatment-content">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <?php while ($row = mysqli_fetch_assoc($resultado)) { ?>
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-img-top d-flex align-items-center justify-content-center">
-                        <!-- Por ahora pongo un icono fijo, luego se puede sacar de la BD -->
-                        <i class="fas fa-wind fa-3x pink-text"></i>
-                    </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
-                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
-                        <br>
-                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
-                    </div>
-                </div>
-            </div>
-        <?php } ?>
-    </div>
-</div>
 </section>
 
-<!-- Promociones -->
-<section id="promos" class="py-5">
-    <h2 class="section-title">Promociones Especiales</h2>
-    
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <?php 
-        // Consulta para obtener los combos/promociones
-        $query_combos = "SELECT nombre, precio, descripcion FROM combos";
-        $resultado = mysqli_query($conexion, $query_combos);
-        
-        while ($row = mysqli_fetch_assoc($resultado)) { ?>
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
-                        <i class="fas fa-gift fa-3x pink-text"></i>
+        <!-- Promociones -->
+        <section id="promos" class="py-5">
+            <h2 class="section-title">Promociones Especiales</h2>
+            <?php
+            // Función para asignar un ícono basado en el nombre del tratamiento
+            function obtenerIconoParaTratamiento($tratamiento) {
+                $tratamiento = strtolower(trim($tratamiento));
+                if (strpos($tratamiento, 'electrodo') !== false) return 'fas fa-bolt';
+                if (strpos($tratamiento, 'radiofrecuencia') !== false) return 'fas fa-wave-square';
+                if (strpos($tratamiento, 'presoterapia') !== false) return 'fas fa-wind';
+                if (strpos($tratamiento, 'masaje') !== false) return 'fas fa-spa';
+                if (strpos($tratamiento, 'doble aparatología') !== false) return 'fas fa-cogs';
+                // Ícono por defecto si no se encuentra una coincidencia
+                return 'fas fa-star';
+            }
+            ?>
+            <?php 
+            // Consulta para obtener los combos/promociones
+            $query_combos = "SELECT nombre, precio, descripcion, 105 AS duracion_minutos FROM combos WHERE id_negocio = 1";
+            $resultado_combos = mysqli_query($conexion, $query_combos);
+            ?>
+            <div class="row g-4 justify-content-center">
+                <?php while ($row = mysqli_fetch_assoc($resultado_combos)) { ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card promo-card h-100">
+                            <div class="card-img-top d-flex align-items-center justify-content-center pt-4">
+                                <i class="fas fa-gift fa-3x pink-text"></i>
+                            </div>
+                            <div class="card-body text-center d-flex flex-column">
+                                <h5 class="card-title pink-text"><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                                <div class="card-text flex-grow-1 text-start px-3">
+                                    <ul class="list-unstyled">
+                                    <?php
+                                    $tratamientos = explode(',', $row['descripcion']);
+                                    foreach ($tratamientos as $tratamiento) {
+                                        $icono = obtenerIconoParaTratamiento($tratamiento);
+                                        echo '<li><i class="' . $icono . ' pink-text me-2"></i>' . htmlspecialchars(trim($tratamiento)) . '</li>';
+                                    }
+                                    ?>
+                                    </ul>
+                                </div>
+                                <?php if (!empty($row['duracion_minutos'])) { ?>
+                                    <p class="text-muted">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</p>
+                                <?php } ?>
+                                <h4 class="promo-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></h4>
+                                <a href="reservas-kore.php" class="btn btn-pink mt-3">Reservar ahora</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['nombre']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
-                        <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
-                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" 
-                           class="btn btn-pink mt-3">
-                            Reservar ahora
-                        </a>
-                    </div>
-                </div>
-            </div>
-        <?php } ?>
-    </div>
-</section>
-        <!-- Productos Corporales -->
-        <section class="py-5">
-            <h2 class="section-title">Productos Corporales</h2>
-            
-            <div class="light-pink-bg p-4 rounded-4">
-                <table class="product-table">
-                    <tr class="selected-item">
-                        <td style="width: 100px">
-                            <div class="product-img-container">
-                                <img src="img/2.jpg" alt="Cellugel" class="product-img">
-                            </div>
-                        </td>
-                        <td>Cellugel - Gel para celulitis 150ml</td>
-                        <td class="pink-text fw-bold">$2400</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-img-container">
-                                <img src="img/7.jpg" alt="Prodermic" class="product-img">
-                            </div>
-                        </td>
-                        <td>Prodermic - Lipo Hot cream 150ml</td>
-                        <td class="pink-text fw-bold">$2100</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-img-container">
-                                <img src="img/5.jpg" alt="Super Fresh Body" class="product-img">
-                            </div>
-                        </td>
-                        <td>Super Fresh Body - Gel frío tonificante 150ml</td>
-                        <td class="pink-text fw-bold">$1900</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-img-container">
-                                <img src="img/3.jpg" alt="Hot Body Home" class="product-img">
-                            </div>
-                        </td>
-                        <td>Hot Body Home - Gel de esculpido corporal 150ml</td>
-                        <td class="pink-text fw-bold">$2500</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-img-container">
-                                <img src="img/1.jpg" alt="Legs Calm" class="product-img">
-                            </div>
-                        </td>
-                        <td>Legs Calm - Crema relajante de piernas 250 g</td>
-                        <td class="pink-text fw-bold">$2700</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-img-container">
-                                <img src="img/4.jpg" alt="Hot body intense" class="product-img">
-                            </div>
-                        </td>
-                        <td>Hot body intense - Gel termoactivo para Gym 150 ml</td>
-                        <td class="pink-text fw-bold">$2300</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="product-img-container">
-                                <img src="img/6.jpg" alt="Firmo cream" class="product-img">
-                            </div>
-                        </td>
-                        <td>Firmo cream - Crema anti glicación para flacidez 150 ml</td>
-                        <td class="pink-text fw-bold">$2900</td>
-                        <td><button class="btn btn-pink">Comprar</button></td>
-                    </tr>
-                </table>
+                <?php } ?>
             </div>
         </section>
+
+        <!-- Productos Corporales -->
+        
 
         <!-- Contacto -->
         <section id="contacto" class="contact-section">
@@ -720,9 +713,106 @@ $resultado = mysqli_query($conexion, $query_combos);
         </footer>
     </div>
 
+    <!-- Modal Historial de Citas -->
+    <div class="modal fade" id="historialModal" tabindex="-1" aria-labelledby="historialModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header pink-gradient text-white">
+                    <h5 class="modal-title" id="historialModalLabel"><i class="fas fa-history me-2"></i>Historial de Citas (Último Mes)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="periodoHistorial" class="form-label fw-bold">Mostrar citas de:</label>
+                        <select class="form-select" id="periodoHistorial">
+                            <option value="semana" selected>Última semana</option>
+                            <option value="mes">Último mes</option>
+                            <option value="tres_meses">Últimos 3 meses</option>
+                            <option value="todos">Ver todo el historial</option>
+                        </select>
+                    </div>
+                    <p>Aquí se muestran tus reservas para el período seleccionado.</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Fecha y Hora</th>
+                                    <th scope="col">Servicio/Combo</th>
+                                    <th scope="col">Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historialTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Mover la lógica de carga a su propia función para poder reutilizarla
+        function cargarHistorial(periodo) {
+            const tbody = document.getElementById('historialTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center">Cargando historial...</td></tr>'; // Mensaje de carga
+
+            // Hacer la petición AJAX para obtener el historial
+            fetch(`obtener_historial.php?periodo=${periodo}`)
+                .then(response => response.json())
+                .then(data => {
+                    tbody.innerHTML = ''; // Limpiar contenido anterior
+                    
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center">No tienes citas en este período.</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(cita => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${formatearFecha(cita.fecha_realizacion)}</td>
+                            <td>${cita.nombre}</td>
+                            <td>$${formatearPrecio(cita.precio)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error al cargar el historial.</td></tr>';
+                });
+        }
+
+        function mostrarHistorial() {
+            const modal = new bootstrap.Modal(document.getElementById('historialModal'));
+            const periodoSelect = document.getElementById('periodoHistorial');
+
+            // Cargar el historial con el valor por defecto (última semana)
+            cargarHistorial(periodoSelect.value);
+
+            modal.show();
+        }
+
+        function formatearFecha(fecha) {
+            return new Date(fecha).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatearPrecio(precio) {
+            return new Intl.NumberFormat('es-CL').format(precio);
+        }
         // Manejar la selección de elementos
         document.addEventListener('DOMContentLoaded', function() {
+            // Evento para cambiar el período del historial
+            const periodoSelect = document.getElementById('periodoHistorial');
+            periodoSelect.addEventListener('change', function() {
+                cargarHistorial(this.value);
+            });
+
             // Manejar selección en la barra de navegación
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => {
@@ -741,14 +831,7 @@ $resultado = mysqli_query($conexion, $query_combos);
                 });
             });
             
-            // Manejar selección en la tabla de productos
-            const tableRows = document.querySelectorAll('.product-table tr');
-            tableRows.forEach(row => {
-                row.addEventListener('click', function() {
-                    tableRows.forEach(r => r.classList.remove('selected-item'));
-                    this.classList.add('selected-item');
-                });
-            });
+
             
             // Manejar las pestañas de tratamientos
             const treatmentTabs = document.querySelectorAll('.treatment-tab');
