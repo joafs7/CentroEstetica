@@ -29,6 +29,8 @@ if ($esAdmin) {
     $resultado_notif = $stmt_notif->get_result();
     $notificaciones_no_leidas = $resultado_notif->num_rows;
     while($fila = $resultado_notif->fetch_assoc()) $lista_notificaciones[] = $fila;
+    $stmt_notif->close();
+    $conexion_notif->close();
 }
 // --- FIN: Obtener notificaciones para el admin ---
 
@@ -574,7 +576,7 @@ if ($esAdmin) {
                         <?php else: ?>
                             <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
                         <?php endif; ?>
-                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="#" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
+                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="historial_notificaciones_admin.php" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
                     </ul>
                 </div>
                 <?php endif; ?>
@@ -898,7 +900,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
             <div class="container">
                 <div class="logo-placeholder">KORE</div>
                 <p class="mt-3">Beauty Kore Estética y Bienestar - Tu espacio de belleza y relajación</p>
-                <p>© 2023 Kore Estética Corporal. Todos los derechos reservados.</p>
+                <p>© 2025 Kore Estética Corporal. Todos los derechos reservados.</p>
             </div>
         </footer>
     </div>
@@ -950,6 +952,12 @@ $resultado = mysqli_query($conexion, $query_masajes);
                                     <option value="tres_meses">Últimos 3 meses</option>
                                     <option value="todos">Ver todo el historial</option>
                                 </select>
+                            </div>
+                            <!-- Botones de Acción para Admin -->
+                            <div class="mt-3 text-center" id="historial-acciones-admin">
+                                <p class="small text-muted">Selecciona una cita de la tabla para gestionarla.</p>
+                                <button class="btn btn-primary btn-sm" id="btn-modificar-cita" disabled><i class="fas fa-edit me-1"></i> Modificar Cita</button>
+                                <button class="btn btn-danger btn-sm" id="btn-cancelar-cita" disabled><i class="fas fa-trash-alt me-1"></i> Cancelar Cita</button>
                             </div>
                         </div>
                         <!-- Columna de la Tabla -->
@@ -1045,6 +1053,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
 
                         const tr = document.createElement('tr');
                         // Datos para filtrar fácilmente
+                        tr.dataset.id = cita.id; // Guardamos el ID de la cita
                         tr.dataset.fechaIso = fechaIso;
                         tr.dataset.cliente = (cliente || '').toLowerCase();
                         tr.dataset.servicio = (servicio || '').toLowerCase();
@@ -1060,6 +1069,14 @@ $resultado = mysqli_query($conexion, $query_masajes);
                         `;
                         tbody.appendChild(tr);
                     });
+
+                    // Una vez que las filas están en la tabla, añadimos los listeners de clic
+                    if (<?php echo $esAdmin ? 'true' : 'false'; ?>) {
+                        document.querySelectorAll('#historialTableBody tr').forEach(row => {
+                            row.style.cursor = 'pointer';
+                            row.addEventListener('click', () => seleccionarFilaHistorial(row));
+                        });
+                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -1172,6 +1189,69 @@ $resultado = mysqli_query($conexion, $query_masajes);
             const filtroServicio = document.getElementById('filtro-servicio');
             const filtroFecha = document.getElementById('filtro-fecha');
             
+            // --- Lógica para Administrador: Cancelar y Modificar ---
+            let filaSeleccionada = null;
+            const btnModificar = document.getElementById('btn-modificar-cita');
+            const btnCancelar = document.getElementById('btn-cancelar-cita');
+
+            // Función para manejar la selección de una fila
+            window.seleccionarFilaHistorial = function(row) {
+                // Deseleccionar la fila anterior si existe
+                if (filaSeleccionada) {
+                    filaSeleccionada.classList.remove('table-primary');
+                }
+
+                // Si se hace clic en la misma fila, se deselecciona
+                if (filaSeleccionada === row) {
+                    filaSeleccionada = null;
+                    btnModificar.disabled = true;
+                    btnCancelar.disabled = true;
+                } else {
+                    // Seleccionar la nueva fila
+                    filaSeleccionada = row;
+                    filaSeleccionada.classList.add('table-primary');
+                    btnModificar.disabled = false;
+                    btnCancelar.disabled = false;
+                }
+            }
+
+            // Evento para el botón de cancelar
+            if (btnCancelar) {
+                btnCancelar.addEventListener('click', function() {
+                    if (!filaSeleccionada) return;
+
+                    const citaId = filaSeleccionada.dataset.id;
+                    const cliente = filaSeleccionada.cells[0].textContent;
+                    const fecha = filaSeleccionada.cells[3].textContent;
+
+                    if (confirm(`¿Estás seguro de que deseas cancelar la cita de "${cliente}" del ${fecha}?`)) {
+                        // Aquí iría la llamada fetch a un script PHP para cancelar la cita
+                        console.log(`Cancelando cita con ID: ${citaId}`);
+                        
+                        // Simulación de éxito:
+                        // fetch('cancelar_cita.php', { method: 'POST', body: JSON.stringify({id: citaId}) })
+                        // .then(res => res.json())
+                        // .then(data => {
+                        //      if(data.success) {
+                                    filaSeleccionada.remove(); // Eliminar la fila de la tabla
+                                    filaSeleccionada = null;
+                                    btnModificar.disabled = true;
+                                    btnCancelar.disabled = true;
+                                    alert('Cita cancelada correctamente.');
+                        //      } else { alert('Error al cancelar la cita.'); }
+                        // });
+                    }
+                });
+            }
+
+            // Evento para el botón de modificar (sugerencia: redirigir)
+            if (btnModificar) {
+                btnModificar.addEventListener('click', function() {
+                    if (!filaSeleccionada) return;
+                    alert('Funcionalidad de modificar en desarrollo. Redirigiría a la página de reservas con los datos cargados.');
+                });
+            }
+
             function filtrarHistorial() {
                 const nombre = (filtroNombre.value || '').toLowerCase().trim();
                 const servicio = (filtroServicio.value || '').toLowerCase().trim();

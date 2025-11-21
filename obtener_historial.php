@@ -13,18 +13,14 @@ if (!isset($_SESSION['usuario_id'])) {
 $conexion = conectarDB();
 $usuario_id = $_SESSION['usuario_id'];
 
-<<<<<<< HEAD:obtener_historial.php
 // Identificar el negocio. Asumimos Kore (id=1) por defecto si no se especifica.
 // La página de Juliette Nails debería pasar id_negocio=2
 $id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : 1;
 
 // Verificar si el usuario es admin de este negocio
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
-    && $_SESSION['tipo'] == 'admin' 
+    && $_SESSION['tipo'] == 'admin'
     && $_SESSION['id_negocio_admin'] == $id_negocio;
-
-=======
->>>>>>> master:EsteticaPHP/obtener_historial.php
 // Determinar el intervalo de tiempo basado en el parámetro GET
 $periodo = isset($_GET['periodo']) ? $_GET['periodo'] : 'semana'; // Por defecto 'semana'
 $clausula_fecha = "";
@@ -45,9 +41,8 @@ switch ($periodo) {
         break;
 }
 
-<<<<<<< HEAD:obtener_historial.php
 // Construir la consulta dinámicamente
-$query = "SELECT h.fecha_realizacion, h.precio, 
+$query = "SELECT h.id, h.fecha_realizacion, h.precio, 
           COALESCE(s.nombre, c.nombre) as servicio_nombre,
           CONCAT(u.nombre, ' ', u.apellido) AS cliente_nombre,
           COALESCE(h.id_categoria, s.categoria_id, NULL) AS categoria_id
@@ -89,23 +84,11 @@ if ($esAdmin) {
 } else {
     mysqli_stmt_bind_param($stmt, "ii", $id_negocio, $usuario_id);
 }
-=======
-$query = "SELECT h.fecha_realizacion, h.precio, COALESCE(s.nombre, c.nombre) as nombre
-          FROM historial h
-          LEFT JOIN servicios s ON h.id_servicio = s.id
-          LEFT JOIN combos c ON h.id_combo = c.id
-          WHERE h.id_usuario = ? AND COALESCE(s.nombre, c.nombre) IS NOT NULL {$clausula_fecha}
-          ORDER BY h.fecha_realizacion DESC";
-
-$stmt = mysqli_prepare($conexion, $query);
-mysqli_stmt_bind_param($stmt, "i", $usuario_id);
->>>>>>> master:EsteticaPHP/obtener_historial.php
 mysqli_stmt_execute($stmt);
 $resultado = mysqli_stmt_get_result($stmt);
 
 $historial = [];
 while ($row = mysqli_fetch_assoc($resultado)) {
-<<<<<<< HEAD:obtener_historial.php
     // Mapear id de categoría a nombre legible (ajusta según tu esquema)
     $categoryNames = [
         6 => 'Capping',
@@ -122,18 +105,13 @@ while ($row = mysqli_fetch_assoc($resultado)) {
     $categoria_nombre = $categoria_id && isset($categoryNames[$categoria_id]) ? $categoryNames[$categoria_id] : ($categoria_id ? 'Categoría ' . $categoria_id : 'General');
 
     $historial[] = [
+        'id' => $row['id'], // <-- ID de la cita
         'fecha_realizacion' => $row['fecha_realizacion'],
         'servicio' => $row['servicio_nombre'] ?? 'Servicio no especificado',
         'cliente' => $row['cliente_nombre'] ?? '',
         'precio' => $row['precio'],
         'categoria_id' => $categoria_id,
         'categoria_nombre' => $categoria_nombre
-=======
-    $historial[] = [
-        'fecha_realizacion' => $row['fecha_realizacion'],
-        'nombre' => $row['nombre'] ?? 'Servicio no especificado',
-        'precio' => $row['precio']
->>>>>>> master:EsteticaPHP/obtener_historial.php
     ];
 }
 
