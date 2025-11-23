@@ -436,11 +436,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-list-alt"></i></span>
                         <select name="servicio_categoria" class="form-select" required>
-                            <option value="">Seleccionar categoría...</option>
-                            <option value="10">Corporales</option>
-                            <option value="11">Faciales</option>
-                            <option value="12">Masajes</option>
-                        </select>
+    <option value="">Seleccionar categoría...</option>
+    <?php if ($id_negocio == 1): // Categorías para Kore Estética ?>
+        <option value="10">Corporales</option>
+        <option value="11">Faciales</option>
+        <option value="12">Masajes</option>
+    <?php elseif ($id_negocio == 2): // Categorías para Juliette Nails ?>
+        <option value="6">Capping</option>
+        <option value="7">Capping Poly Gel</option>
+        <option value="8">Esmaltado</option>
+        <option value="9">Soft Gel</option>
+    <?php else: ?>
+        <option value="" disabled>No hay categorías para este negocio</option>
+    <?php endif; ?>
+</select>
+
                     </div>
                 </div>
                 <div class="col-md-12">
@@ -518,8 +528,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     
                     <?php
                     $conexion = conectarDB();
-                   $query = "SELECT id, nombre, apellido, email, tipo, id_negocio_admin FROM usuarios ORDER BY nombre ASC";
+                    // Modificación: La consulta ahora une usuarios con su historial para obtener solo los del negocio actual,
+                    // o aquellos que son administradores de este negocio.
+                    $query = "SELECT DISTINCT u.id, u.nombre, u.apellido, u.email, u.tipo, u.id_negocio_admin
+                              FROM usuarios u
+                              LEFT JOIN historial h ON u.id = h.id_usuario
+                              WHERE h.id_negocio = ? OR u.id_negocio_admin = ?
+                              ORDER BY u.nombre ASC";
                     $stmt = $conexion->prepare($query);
+                    // Se bindean los dos parámetros con el mismo id_negocio
+                    $stmt->bind_param('ii', $id_negocio, $id_negocio);
                     $stmt->execute();
                     $result = $stmt->get_result();
                     while ($row = $result->fetch_assoc()) {
