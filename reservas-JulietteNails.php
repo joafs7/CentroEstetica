@@ -865,7 +865,7 @@ $conexion = conectarDB();
             <div class="logo-container">
                 <div class="logo">
                     <!-- Logo de muestra - reemplazar con tu logo -->
-						<img src="C:\Users\Usuario\Desktop\Proyecto Estética 2025\img\Juliette\logo_juliette.jpg" alt="Juliette Nails Logo"></div>
+						<img src="Imagenes/LogoJuliettenails.png" alt="Juliette Nails"></div>
                 <div class="logo-text">Juliette Nails</div>
                 <p>Tu belleza es nuestra pasión</p>
             </div>
