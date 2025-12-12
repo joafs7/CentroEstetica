@@ -1,16 +1,10 @@
 <?php
 session_start();
 
-// Si no hay sesión, redirige al login
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: Login.php");
-    exit();
-}
-
-// Guardar el nombre en una variable
-$nombreUsuario = $_SESSION['usuario'];
-// Definir si es admin
-// Definir si es admin SOLO si es admin de Kore (id_negocio_admin = 1)
+// Permitir acceso sin sesión - solo proteger las acciones de reserva
+// Variables de sesión (pueden no estar definidas si el usuario no está logueado)
+$nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
+$usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
 $id_negocio = 1;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
@@ -883,10 +877,9 @@ $resultado = mysqli_query($conexion, $query_masajes);
                     <div class="col-md-6 text-center text-md-end">
                         <h3>Síguenos en redes</h3>
                         <div class="mt-4">
-                            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
-                            <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                            <a href="https://www.instagram.com/kore.esteticabienestar/" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+                            <a href="https://www.facebook.com/people/Kore-Est%C3%A9tica-Bienestar/100090615667527/" target="_blank" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                            <a href="https://wa.me/543564618278" target="_blank" class="social-icon"><i class="fab fa-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
@@ -1293,6 +1286,36 @@ $resultado = mysqli_query($conexion, $query_masajes);
                     })
                     .catch(error => console.error('Error al marcar la notificación:', error));
                 });
+            });
+            // Proteger enlaces y botones de reserva - redirigir a login si no hay sesión
+            const usuarioLogueado = <?php echo isset($_SESSION['usuario_id']) ? 'true' : 'false'; ?>;
+            
+            // Proteger todos los enlaces que van a reservas-kore.php
+            document.querySelectorAll('a[href*="reservas-kore.php"]').forEach(enlace => {
+                if (!usuarioLogueado) {
+                    enlace.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('Debes iniciar sesión para hacer una reserva');
+                        window.location.href = 'Login.php';
+                        return false;
+                    });
+                }
+            });
+            
+            // Proteger botones que dicen "Reservar turno"
+            document.querySelectorAll('button').forEach(btn => {
+                if (btn.textContent.includes('Reservar') || btn.textContent.includes('Agendar')) {
+                    if (!usuarioLogueado) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Debes iniciar sesión para hacer una reserva');
+                            window.location.href = 'Login.php';
+                            return false;
+                        });
+                    }
+                }
             });
         });
     </script>
