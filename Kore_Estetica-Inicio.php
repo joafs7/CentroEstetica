@@ -1,6 +1,13 @@
 <?php
 session_start();
 
+// Headers agresivos para prevenir caché
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0, s-maxage=0");
+header("Pragma: no-cache");
+header("Expires: -1");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+header("ETag: " . md5(microtime()));
+
 // Permitir acceso sin sesión - solo proteger las acciones de reserva
 // Variables de sesión (pueden no estar definidas si el usuario no está logueado)
 $nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
