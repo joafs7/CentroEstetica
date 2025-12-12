@@ -13,6 +13,24 @@ $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin'])
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
 
+// --- INICIO: Obtener notificaciones para el admin ---
+$notificaciones_no_leidas = 0;
+$lista_notificaciones = [];
+if ($esAdmin) {
+    include_once 'conexEstetica.php';
+    $conexion_notif = conectarDB();
+    // La consulta ahora filtra por el id_negocio de Juliette Nails (2)
+    $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
+    $stmt_notif = $conexion_notif->prepare($query_notif);
+    $stmt_notif->bind_param('ii', $_SESSION['usuario_id'], $id_negocio);
+    $stmt_notif->execute();
+    $resultado_notif = $stmt_notif->get_result();
+    $notificaciones_no_leidas = $resultado_notif->num_rows;
+    while($fila = $resultado_notif->fetch_assoc()) {
+        $lista_notificaciones[] = $fila;
+    }
+}
+// --- FIN: Obtener notificaciones para el admin ---
 ?>
 
 <!DOCTYPE html>
@@ -201,7 +219,7 @@ footer {
   <!-- HEADER -->
 <header class="glass-white d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
   <img src="Imagenes/LogoJuliettenails.png" alt="Juliette Nails" class="mb-3 mb-md-0">
-  <div class="d-flex flex-wrap justify-content-center">
+  <div class="d-flex flex-wrap justify-content-center align-items-center">
     <a href="#inicio" class="active">Inicio</a>
     <a href="#servicios">Servicios</a>
     <a href="#galeria">Galería</a>
@@ -209,6 +227,36 @@ footer {
     <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
       <i class="fas fa-user-circle"></i> Mi cuenta
     </a>
+    <?php if ($esAdmin): ?>
+    <div class="dropdown">
+        <a href="#" class="nav-btn position-relative" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-bell"></i>
+            <?php if ($notificaciones_no_leidas > 0): ?>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                <?php echo $notificaciones_no_leidas; ?>
+            </span>
+            <?php endif; ?>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="dropdownNotificaciones" style="width: 380px; max-height: 450px; overflow-y: auto;">
+            <li class="dropdown-header fw-bold">Notificaciones</li>
+            <?php if (!empty($lista_notificaciones)): ?>
+                <?php foreach($lista_notificaciones as $notif): ?>
+                <li>
+                    <a class="dropdown-item d-flex align-items-start notification-item" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
+                        <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
+                        <div>
+                            <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
+                            <p class="mb-0 small lh-sm fw-normal text-wrap notification-message"><?php echo htmlspecialchars($notif['mensaje']); ?></p>
+                        </div>
+                    </a>
+                </li>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
+            <?php endif; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
   </div>
 </header>
       <!-- Offcanvas lateral: Perfil de usuario -->
@@ -398,7 +446,61 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
     © 2025 Juliette Nails - Todos los derechos reservados
   </footer>
 
+  <!-- Modal para ver Notificación -->
+  <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--primary-color); color:white;">
+          <h5 class="modal-title" id="notificationModalLabel"><i class="fas fa-bell me-2"></i>Detalle de la Notificación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small" id="notificationDate"></p>
+          <p id="notificationMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notificationItems = document.querySelectorAll('.notification-item');
+    notificationItems.forEach(item => {
+        item.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            const notificationId = this.dataset.id;
+            const date = this.querySelector('.notification-date').textContent;
+            const message = this.querySelector('.notification-message').textContent;
+
+            document.getElementById('notificationDate').textContent = date;
+            document.getElementById('notificationMessage').textContent = message;
+
+            fetch('marcar_notificacion_leida.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: notificationId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.closest('li').remove();
+                    const badge = document.querySelector('#dropdownNotificaciones .badge');
+                    if (badge) {
+                        let count = parseInt(badge.textContent) - 1;
+                        if (count > 0) badge.textContent = count;
+                        else badge.remove();
+                    }
+                }
+            }).catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
 </body>
 </html>

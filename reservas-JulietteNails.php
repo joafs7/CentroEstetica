@@ -455,9 +455,10 @@ $conexion = conectarDB();
         }
         
         .time-slot.unavailable {
-            background: #fdf2f8;
-            color: #f9a8d4;
+            background: #f472b6; /* Rosa más oscuro */
+            color: white;
             cursor: not-allowed;
+            border-color: #ec4899;
         }
         
         /* ----- SECCIÓN DE RESUMEN ----- */
@@ -1032,6 +1033,12 @@ $conexion = conectarDB();
                     <div class="time-slots" id="time-slots"></div>
                 </div>
             </div>
+
+            <!-- Botón de Confirmar Reserva (se mostrará con JS) -->
+            <div id="confirm-button-container" class="mt-4">
+                <!-- El botón se insertará aquí -->
+            </div>
+
         </div>
         
         <footer>
@@ -1040,6 +1047,7 @@ $conexion = conectarDB();
         </footer>
 </div>
 </div>
+<!-- Modal de Confirmación -->
 <div class="modal-container">
     <div class="modal-overlay" id="confirmation-modal">
         <div class="confirmation-modal">
@@ -1053,7 +1061,7 @@ $conexion = conectarDB();
             </h2>
             
             <div class="modal-content">
-                <!-- Contenido del modal -->
+                <!-- El resumen detallado de la reserva se insertará aquí -->
             </div>
             
             <div class="modal-buttons">
@@ -1067,7 +1075,6 @@ $conexion = conectarDB();
         </div>
     </div>
 </div>
-       
     <script>
         // Variables globales para fecha y hora
     let selectedService = null;
@@ -1109,10 +1116,12 @@ $conexion = conectarDB();
     
     // Referencias DOM adicionales
     const confirmBtn = document.createElement('button');
-    confirmBtn.className = 'btn-confirm';
-    confirmBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Reserva';
+    confirmBtn.className = 'btn-confirm d-none'; // Oculto por defecto
+    confirmBtn.innerHTML = '<i class="fas fa-calendar-check me-2"></i> Reservar Turno';
+    document.getElementById('confirm-button-container').appendChild(confirmBtn);
     
     // Configurar el botón de retirado
+    const resumenContent = document.querySelector('.resumen-section .resumen-content');
     const retiradoCard = document.getElementById('retirado-card');
     retiradoCard.addEventListener('click', function() {
         this.classList.toggle('selected');
@@ -1122,64 +1131,52 @@ $conexion = conectarDB();
 
     // Función para actualizar el resumen
     function updateResumen() {
-        let total = 0;
-        let resumenHtml = '';
-
-        if (selectedService) {
-            const precio = parseInt(selectedService.precio.replace(/[^0-9]/g, ''));
-            total += precio;
-            resumenHtml += `
-                <div class="modal-item">
-                    <span class="modal-label">Servicio:</span>
-                    <span class="modal-value">${selectedService.nombre}</span>
-                </div>
-                <div class="modal-item">
-                    <span class="modal-label">Precio:</span>
-                    <span class="modal-value">${selectedService.precio}</span>
-                </div>
-            `;
+        if (!selectedService) {
+            resumenContent.innerHTML = '<p class="text-center text-muted">Selecciona un servicio para ver el resumen.</p>';
+            confirmBtn.classList.add('d-none'); // Ocultar botón si no hay servicio
+            return;
         }
+
+        let total = 0;
+        let resumenHtml = `
+            <div class="resumen-item">
+                <span class="resumen-label">Servicio:</span>
+                <span class="resumen-value">${selectedService.nombre}</span>
+            </div>
+        `;
+
+        const precioServicio = parseInt(selectedService.precio.replace(/[^0-9]/g, ''));
+        total += precioServicio;
 
         if (isRetiradoSelected) {
             total += retiradoPrice;
             resumenHtml += `
-                <div class="modal-item">
-                    <span class="modal-label">Adicional:</span>
-                    <span class="modal-value">Retirado</span>
-                </div>
-                <div class="modal-item">
-                    <span class="modal-label">Precio adicional:</span>
-                    <span class="modal-value">$${retiradoPrice}</span>
-                </div>
-            `;
-        }
-
-        if (selectedDate) {
-            resumenHtml += `
-                <div class="modal-item">
-                    <span class="modal-label">Fecha:</span>
-                    <span class="modal-value">${selectedDate.toLocaleDateString()}</span>
-                </div>
-            `;
-        }
-
-        if (selectedTime) {
-            resumenHtml += `
-                <div class="modal-item">
-                    <span class="modal-label">Hora:</span>
-                    <span class="modal-value">${selectedTime}:00</span>
+                <div class="resumen-item">
+                    <span class="resumen-label">Adicional:</span>
+                    <span class="resumen-value">Retirado (+ $${retiradoPrice.toLocaleString()})</span>
                 </div>
             `;
         }
 
         resumenHtml += `
-            <div class="modal-total">
-                <span class="modal-label">Total:</span>
-                <span class="modal-value">$${total}</span>
+            <div class="resumen-item">
+                <span class="resumen-label">Fecha:</span>
+                <span class="resumen-value">${selectedDate ? selectedDate.toLocaleDateString('es-ES') : '-'}</span>
+            </div>
+            <div class="resumen-item">
+                <span class="resumen-label">Hora:</span>
+                <span class="resumen-value">${selectedTime ? selectedTime + ':00' : '-'}</span>
             </div>
         `;
 
-        document.querySelector('.modal-content').innerHTML = resumenHtml;
+        resumenHtml += `
+            <div class="resumen-total">
+                <span class="resumen-label">Total:</span>
+                <span class="resumen-value">$${total.toLocaleString()}</span>
+            </div>
+        `;
+        resumenContent.innerHTML = resumenHtml;
+        confirmBtn.classList.remove('d-none'); // Mostrar el botón
     }
 
     // Modificar la función setupServiceCards
@@ -1202,11 +1199,6 @@ $conexion = conectarDB();
 
                 // Actualizar título
                 document.querySelector('.service-name').textContent = selectedService.nombre;
-                
-                // Agregar botón confirmar si no existe
-                if (!document.querySelector('.btn-confirm')) {
-                    document.querySelector('.calendar-section').after(confirmBtn);
-                }
 
                 updateResumen();
             });
@@ -1233,8 +1225,29 @@ $conexion = conectarDB();
             alert('Por favor selecciona un horario');
             return;
         }
+        
+        // Poblar el modal con la información del resumen
+        let total = parseInt(selectedService.precio.replace(/[^0-9]/g, ''));
+        if (isRetiradoSelected) total += retiradoPrice;
+
+        let modalHtml = `
+            <div class="modal-item">
+                <span class="modal-label">Servicio:</span>
+                <span class="modal-value">${selectedService.nombre}</span>
+            </div>
+            ${isRetiradoSelected ? `<div class="modal-item"><span class="modal-label">Adicional:</span><span class="modal-value">Retirado</span></div>` : ''}
+            <div class="modal-item">
+                <span class="modal-label">Fecha:</span>
+                <span class="modal-value">${selectedDate.toLocaleDateString('es-ES')}</span>
+            </div>
+            <div class="modal-item">
+                <span class="modal-label">Hora:</span>
+                <span class="modal-value">${selectedTime}:00</span>
+            </div>
+            <div class="modal-total"><span class="modal-label">Total:</span><span class="modal-value">$${total.toLocaleString()}</span></div>
+        `;
+        document.querySelector('#confirmation-modal .modal-content').innerHTML = modalHtml;
         showConfirmationModal();
-        updateResumen();
     });
 
     setupServiceCards();
@@ -1282,17 +1295,25 @@ nextMonthBtn.addEventListener('click', () => {
         // Renderizar calendario
         function renderCalendar(month, year) {
                 const maxDate = new Date();
-    maxDate.setMonth(maxDate.getMonth() + 3);
+    			maxDate.setMonth(maxDate.getMonth() + 3);
     
-    if (new Date(year, month) > maxDate) {
-        currentMonth = maxDate.getMonth();
-        currentYear = maxDate.getFullYear();
-        month = currentMonth;
-        year = currentYear;
-    }
-            while (calendarGrid.children.length > 7) {
-                calendarGrid.removeChild(calendarGrid.lastChild);
-            }
+			if (new Date(year, month) > maxDate) {
+				currentMonth = maxDate.getMonth();
+				currentYear = maxDate.getFullYear();
+				month = currentMonth;
+				year = currentYear;
+			}
+
+			// Limpiar completamente el grid, incluyendo los nombres de los días si se regeneran
+			calendarGrid.innerHTML = '';
+
+			// Volver a añadir los nombres de los días
+			['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(dayName => {
+				const dayNameEl = document.createElement('div');
+				dayNameEl.className = 'day-name';
+				dayNameEl.textContent = dayName;
+				calendarGrid.appendChild(dayNameEl);
+			});
             
             const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
                                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -1318,15 +1339,16 @@ nextMonthBtn.addEventListener('click', () => {
                 dayElement.textContent = day;
                 
                 const dayOfWeek = date.getDay();
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    dayElement.classList.add('weekend', 'unavailable');
-                } else {
+                if (dayOfWeek !== 0) { // Todos los días excepto Domingo (0) son potencialmente disponibles
                     if (date < today && date.toDateString() !== today.toDateString()) {
                         dayElement.classList.add('unavailable');
                     } else {
                         dayElement.classList.add('available');
                         dayElement.addEventListener('click', () => selectDate(date));
                     }
+                }
+                else { // Domingo
+                    dayElement.classList.add('weekend', 'unavailable');
                 }
                 
                 if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
@@ -1341,7 +1363,7 @@ nextMonthBtn.addEventListener('click', () => {
          function selectDate(date) {
         selectedDate = date;
         selectedTime = null;
-        renderCalendar(currentMonth, currentYear);
+        renderCalendar(date.getMonth(), date.getFullYear());
         fetchReservedSlots(currentYear, currentMonth); // <-- Llama aquí
         updateResumen();
         }
@@ -1366,22 +1388,24 @@ nextMonthBtn.addEventListener('click', () => {
             const currentHour = new Date().getHours();
 
             // Horarios de mañana
-            for (let hour = 8; hour <= 11; hour++) {
-                if (isToday && hour < currentHour) continue;
-                if (reservedForDay.includes(hour)) continue; // Oculta si está reservado
-                createTimeSlot(hour);
-            }
+            const morningHours = [8, 9, 10, 11];
+            morningHours.forEach(hour => {
+                const isReserved = reservedForDay.includes(hour);
+                const isPast = isToday && hour < currentHour;
+                createTimeSlot(hour, isReserved || isPast);
+            });
 
             // Horarios de tarde
-            for (let hour = 16; hour <= 19; hour++) {
-                if (isToday && hour < currentHour) continue;
-                if (reservedForDay.includes(hour)) continue; // Oculta si está reservado
-                createTimeSlot(hour);
-            }
+            const afternoonHours = [16, 17, 18, 19];
+            afternoonHours.forEach(hour => {
+                const isReserved = reservedForDay.includes(hour);
+                const isPast = isToday && hour < currentHour;
+                createTimeSlot(hour, isReserved || isPast);
+            });
         }
         
         // Crear slot de horario
-        function createTimeSlot(hour) {
+        function createTimeSlot(hour, isUnavailable) {
             const timeSlot = document.createElement('div');
             timeSlot.classList.add('time-slot');
             timeSlot.textContent = `${hour}:00`;
@@ -1390,13 +1414,18 @@ nextMonthBtn.addEventListener('click', () => {
                 timeSlot.classList.add('selected');
             }
             
-            timeSlot.addEventListener('click', () => {
-                selectedTime = hour;
-                document.querySelectorAll('.time-slot').forEach(slot => {
-                    slot.classList.remove('selected');
+            if (isUnavailable) {
+                timeSlot.classList.add('unavailable');
+            } else {
+                timeSlot.addEventListener('click', () => {
+                    selectedTime = hour;
+                    document.querySelectorAll('.time-slot').forEach(slot => {
+                        slot.classList.remove('selected');
+                    });
+                    timeSlot.classList.add('selected');
+                    updateResumen(); // Actualizar resumen al seleccionar hora
                 });
-                timeSlot.classList.add('selected');
-            });
+            }
             
             timeSlotsEl.appendChild(timeSlot);
         }
@@ -1461,14 +1490,7 @@ nextMonthBtn.addEventListener('click', () => {
                 selectedTime = null; // Limpiar selección
             }
             } else {
-                // Mostrar mensaje específico si el horario está ocupado
-                if (data.message.includes('Ya existe una reserva')) {
-                    alert(data.message);
-                    // Regenerar horarios disponibles
-                    generateTimeSlots();
-                } else {
-                    alert('Error al guardar la reserva: ' + data.message);
-                }
+                alert('Error al guardar la reserva: ' + data.message);
             }
         } catch (e) {
             throw new Error('Respuesta no válida del servidor: ' + text);
