@@ -466,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
                 <?php
                     $pagina_inicio = ($id_negocio == 2) ? 'JulietteNails.php' : 'Kore_Estetica-Inicio.php';
                 ?>
-                <li onclick="mostrarSeccion('seccion-carousel')"><i class="fas fa-images"></i> Galería</li>
+                <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-images"></i> Galería</li>
                 <li onclick="window.location.href='<?php echo $pagina_inicio; ?>'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
         </aside>
@@ -666,55 +666,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
                         <button type="submit" name="agregar_combo" class="btn btn-agregar-servicio text-white w-100 mt-3 fw-bold"><i class="fas fa-plus me-2"></i>Agregar Combo</button>
                     </form>
                 </div>
-                <div id="seccion-galeria" class="seccion">
-<h2>Galería del Carousel</h2>
-    
-    <form method="post" action="configuracion.php?id_negocio=<?= $id_negocio ?>" enctype="multipart/form-data">
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Subir Imagen</th>
-                    <th>Texto Alt</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-          <tbody id="carousel-tbody">
-    <?php
-    $carousel_file = 'Imagenes/carousel.json';
-    if (file_exists($carousel_file)) {
-        $carousel_images = json_decode(file_get_contents($carousel_file), true) ?? [];
-        foreach ($carousel_images as $index => $img):
-    ?>
-    <tr>
-        <td>
-            <!-- Campo oculto para conservar la imagen existente -->
-            <input type="hidden" name="carousel_url[]" value="<?= htmlspecialchars($img['url']) ?>">
-            <img src="<?= htmlspecialchars($img['url']) ?>" alt="" style="max-width:80px;max-height:80px;">
-        </td>
-        <td>
-            <input type="text" name="carousel_alt[]" class="form-control"
-                   placeholder="Descripción de la imagen"
-                   value="<?= htmlspecialchars($img['alt']) ?>">
-        </td>
-        <td>
-            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();">
-                Eliminar
-            </button>
-        </td>
-    </tr>
-    <?php endforeach; }?>
-</tbody>
-        </table>
-    </div>
-    <button type="button" class="btn btn-secondary btn-sm" onclick="agregarFila();">
-        + Agregar imagen
-    </button>
-    <button type="submit" name="guardar_carousel" class="btn btn-primary mt-3">
-        Guardar Galería
-    </button>
-</form>
-</div>
+                
                 <h3 class="mt-5">Combos Actuales</h3>
                 <form id="form-combos" method="post" action="configuracion.php?id_negocio=<?php echo $id_negocio; ?>">
                     <div class="table-responsive">
@@ -764,6 +716,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
                 </form>
             </div>
             <?php endif; ?>
+                <div id="seccion-galeria" class="seccion">
+<h2>Galería del Carousel</h2>
+    
+    <form method="post" action="configuracion.php?id_negocio=<?= $id_negocio ?>" enctype="multipart/form-data">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Subir Imagen</th>
+                    <th>Texto Alt</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+          <tbody id="carousel-tbody">
+    <?php
+    $carousel_file = 'Imagenes/carousel.json';
+    if (file_exists($carousel_file)) {
+        $carousel_images = json_decode(file_get_contents($carousel_file), true) ?? [];
+        foreach ($carousel_images as $index => $img):
+    ?>
+    <tr>
+        <td>
+            <!-- Campo oculto para conservar la imagen existente -->
+            <input type="hidden" name="carousel_url[]" value="<?= htmlspecialchars($img['url']) ?>">
+            <img src="<?= htmlspecialchars($img['url']) ?>" alt="" style="max-width:80px;max-height:80px;">
+        </td>
+        <td>
+            <input type="text" name="carousel_alt[]" class="form-control"
+                   placeholder="Descripción de la imagen"
+                   value="<?= htmlspecialchars($img['alt']) ?>">
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();">
+                Eliminar
+            </button>
+        </td>
+    </tr>
+    <?php endforeach; }?>
+</tbody>
+        </table>
+    </div>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="agregarFila();">
+        + Agregar imagen
+    </button>
+    <button type="submit" name="guardar_carousel" class="btn btn-primary mt-3">
+        Guardar Galería
+    </button>
+</form>
+</div>
         </div>
         
 </div>
