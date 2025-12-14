@@ -404,7 +404,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             <ul>
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
+                <?php if ($id_negocio != 2): // Ocultar para Juliette Nails ?>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
+                <?php endif; ?>
                 <li onclick="window.location.href='index.php'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
         </aside>
@@ -570,6 +572,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 </div>
             </div>
             
+            <?php if ($id_negocio != 2): // Ocultar para Juliette Nails ?>
             <!-- Promociones Configuración -->
             <div id="seccion-promociones" class="seccion">
                 <h2>Administrar Combos</h2>
@@ -652,6 +655,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     </div>
                 </form>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 
