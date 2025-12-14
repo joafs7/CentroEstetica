@@ -757,12 +757,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
 </tbody>
         </table>
     </div>
-    <button type="button" class="btn btn-secondary btn-sm" onclick="agregarFila();">
-        + Agregar imagen
-    </button>
-    <button type="submit" name="guardar_carousel" class="btn btn-primary mt-3">
-        Guardar Galería
-    </button>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <button type="button" class="btn btn-secondary" onclick="agregarFila();">
+            <i class="fas fa-plus me-1"></i> Agregar imagen
+        </button>
+        <button type="submit" name="guardar_carousel" class="btn btn-primary">Guardar Galería</button>
+    </div>
 </form>
 </div>
         </div>
