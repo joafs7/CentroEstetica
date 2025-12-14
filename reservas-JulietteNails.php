@@ -118,6 +118,23 @@ $conexion = conectarDB();
             font-style: italic;
         }
         
+        /* Estilo para el botón de inicio */
+        .home-link {
+            position: absolute;
+            top: 25px;
+            left: 30px;
+            color: white;
+            font-size: 1.8rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 20; /* Asegura que esté sobre otros elementos del header */
+        }
+
+        .home-link:hover {
+            transform: scale(1.15) rotate(-10deg);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+        }
+
         /* ----- MENÚ CATEGORÍAS ----- */
         .categories-menu {
             display: flex;
@@ -863,6 +880,8 @@ $conexion = conectarDB();
 <div class="container">
 <div class="container">
         <header>
+            <!-- ICONO DE INICIO -->
+            <a href="JulietteNails.php" class="home-link" title="Ir al inicio"><i class="fas fa-home"></i></a>
             <div class="logo-container">
                 <div class="logo">
                     <!-- Logo de muestra - reemplazar con tu logo -->
