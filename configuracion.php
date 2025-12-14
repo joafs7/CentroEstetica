@@ -460,16 +460,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
             <ul>
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
-<<<<<<< HEAD
                 <?php if ($id_negocio != 2): // Ocultar para Juliette Nails ?>
-=======
-                <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-images"></i> Galería</li>
->>>>>>> rama-joa
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
                 <?php endif; ?>
                 <?php
                     $pagina_inicio = ($id_negocio == 2) ? 'JulietteNails.php' : 'Kore_Estetica-Inicio.php';
                 ?>
+                <li onclick="mostrarSeccion('seccion-carousel')"><i class="fas fa-images"></i> Galería</li>
                 <li onclick="window.location.href='<?php echo $pagina_inicio; ?>'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
         </aside>
@@ -634,12 +631,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
                     ?>
                 </div>
             </div>
-<<<<<<< HEAD
             
             <?php if ($id_negocio != 2): // Ocultar para Juliette Nails ?>
-=======
-            <div id="seccion-galeria" class="seccion">
-    <h2>Galería del Carousel</h2>
+            <!-- Promociones Configuración -->
+            <div id="seccion-promociones" class="seccion">
+                <h2>Administrar Combos</h2>
+                <!-- Formulario para agregar combo -->
+                <div class="form-agregar-servicio mb-5">
+                    <h3 class="text-center mb-4"><i class="fas fa-gift me-2"></i>Agregar Nuevo Combo</h3>
+                    <form method="post" action="configuracion.php?id_negocio=<?php echo $id_negocio; ?>">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                    <input type="text" name="combo_nombre" class="form-control" placeholder="Nombre del combo" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                    <input type="number" name="combo_precio" class="form-control" placeholder="Precio" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <textarea name="combo_descripcion" class="form-control" rows="2" placeholder="Descripción (servicios separados por coma)..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                    <input type="url" name="combo_imagen_url" class="form-control" placeholder="URL de la imagen (opcional)">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" name="agregar_combo" class="btn btn-agregar-servicio text-white w-100 mt-3 fw-bold"><i class="fas fa-plus me-2"></i>Agregar Combo</button>
+                    </form>
+                </div>
+                <div id="seccion-galeria" class="seccion">
+<h2>Galería del Carousel</h2>
     
     <form method="post" action="configuracion.php?id_negocio=<?= $id_negocio ?>" enctype="multipart/form-data">
     <div class="table-responsive">
@@ -651,7 +679,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="carousel-tbody">
+          <tbody id="carousel-tbody">
     <?php
     $carousel_file = 'Imagenes/carousel.json';
     if (file_exists($carousel_file)) {
@@ -687,41 +715,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) 
     </button>
 </form>
 </div>
->>>>>>> rama-joa
-            <!-- Promociones Configuración -->
-            <div id="seccion-promociones" class="seccion">
-                <h2>Administrar Combos</h2>
-                <!-- Formulario para agregar combo -->
-                <div class="form-agregar-servicio mb-5">
-                    <h3 class="text-center mb-4"><i class="fas fa-gift me-2"></i>Agregar Nuevo Combo</h3>
-                    <form method="post" action="configuracion.php?id_negocio=<?php echo $id_negocio; ?>">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                    <input type="text" name="combo_nombre" class="form-control" placeholder="Nombre del combo" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                                    <input type="number" name="combo_precio" class="form-control" placeholder="Precio" step="0.01" required>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <textarea name="combo_descripcion" class="form-control" rows="2" placeholder="Descripción (servicios separados por coma)..." required></textarea>
-                            </div>
-                            <div class="col-12">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-image"></i></span>
-                                    <input type="url" name="combo_imagen_url" class="form-control" placeholder="URL de la imagen (opcional)">
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" name="agregar_combo" class="btn btn-agregar-servicio text-white w-100 mt-3 fw-bold"><i class="fas fa-plus me-2"></i>Agregar Combo</button>
-                    </form>
-                </div>
-
                 <h3 class="mt-5">Combos Actuales</h3>
                 <form id="form-combos" method="post" action="configuracion.php?id_negocio=<?php echo $id_negocio; ?>">
                     <div class="table-responsive">
