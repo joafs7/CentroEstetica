@@ -428,7 +428,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
   <section id="contacto" class="contacto glass-white">
     <div class="contacto-info">
       <h3>Contacto</h3>
-      <p><i class="fa-solid fa-location-dot"></i> Suipacha 1153, San Francisco, Córdoba</p>
+      <p><i class="fa-solid fa-location-dot"></i> <a href="https://www.google.com/maps/place/Suipacha+1153,+San+Francisco,+C%C3%B3rdoba/@-31.4252744,-62.0767751,17z/data=!3m1!4b1!4m5!3m4!1s0x95cad7e03c22b02d:0x5ec227f6a6b736d2!8m2!3d-31.4252744!4d-62.0742002?entry=ttu" target="_blank" rel="noopener noreferrer" style="color:#4b5563;text-decoration:none;">Suipacha 1153, San Francisco, Córdoba</a></p>
       <p><i class="fa-brands fa-whatsapp"></i> <a href="https://wa.me/5493564827188" style="color:#4b5563;text-decoration:none;">+54 9 3564 827188</a></p>
     </div>
     <div class="contacto-redes">

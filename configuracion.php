@@ -407,7 +407,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 <?php if ($id_negocio != 2): // Ocultar para Juliette Nails ?>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
                 <?php endif; ?>
-                <li onclick="window.location.href='index.php'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
+                <?php
+                    $pagina_inicio = ($id_negocio == 2) ? 'JulietteNails.php' : 'Kore_Estetica-Inicio.php';
+                ?>
+                <li onclick="window.location.href='<?php echo $pagina_inicio; ?>'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
         </aside>
 
