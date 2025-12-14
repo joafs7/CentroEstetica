@@ -172,7 +172,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
     echo "<script>alert('Combos actualizados correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
     exit;
 }
+
+// Procesar carousel JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) {
+    $carousel_file = 'Imagenes/carousel.json';
+    $upload_dir = 'Imagenes/carousel/';
+    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+
+    // 1. Cargar imágenes existentes
+    $imagenes_existentes = [];
+    if (file_exists($carousel_file)) {
+        $imagenes_existentes = json_decode(file_get_contents($carousel_file), true) ?? [];
+    }
+
+    $nuevas_imagenes = [];
+    $alts = $_POST['carousel_alt'] ?? [];
+    $files = $_FILES['carousel_file'] ?? null;
+
+    $total = isset($files['name']) ? count($files['name']) : 0;
+    for ($index = 0; $index < $total; $index++) {
+        $alt = trim($alts[$index] ?? '');
+        $final_url = '';
+
+        // Procesar archivo subido
+        if ($files && isset($files['name'][$index]) && $files['name'][$index]) {
+            $tmp_name = $files['tmp_name'][$index];
+            $name = basename($files['name'][$index]);
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            $allowed = ['jpg','jpeg','png','gif','webp'];
+            if (in_array($ext, $allowed)) {
+                $new_name = uniqid('carousel_', true) . '.' . $ext;
+                $destino = $upload_dir . $new_name;
+                if (move_uploaded_file($tmp_name, $destino)) {
+                    $final_url = $destino;
+                }
+            }
+        }
+
+        if (!empty($final_url)) {
+            $nuevas_imagenes[] = [
+                'url' => $final_url,
+                'alt' => $alt
+            ];
+        }
+    }
+
+    // 2. Unir las imágenes existentes con las nuevas
+    $todas_las_imagenes = array_merge($imagenes_existentes, $nuevas_imagenes);
+
+    if (file_put_contents($carousel_file, json_encode($todas_las_imagenes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+        echo "<script>alert('Galería actualizada correctamente.'); window.location='configuracion.php?id_negocio=$id_negocio';</script>";
+    } else {
+        echo "<script>alert('Error al guardar la galería.');</script>";
+    }
+    exit;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -404,6 +460,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             <ul>
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
+                <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-images"></i> Galería</li>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
                 <li onclick="window.location.href='index.php'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
@@ -569,7 +626,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     ?>
                 </div>
             </div>
-            
+            <div id="seccion-galeria" class="seccion">
+    <h2>Galería del Carousel</h2>
+    
+    <form method="post" action="configuracion.php?id_negocio=<?= $id_negocio ?>" enctype="multipart/form-data">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Subir Imagen</th>
+                    <th>Texto Alt</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="carousel-tbody">
+    <?php
+    $carousel_file = 'Imagenes/carousel.json';
+    if (file_exists($carousel_file)) {
+        $carousel_images = json_decode(file_get_contents($carousel_file), true) ?? [];
+        foreach ($carousel_images as $index => $img):
+    ?>
+    <tr>
+        <td>
+            <!-- Campo oculto para conservar la imagen existente -->
+            <input type="hidden" name="carousel_url[]" value="<?= htmlspecialchars($img['url']) ?>">
+            <img src="<?= htmlspecialchars($img['url']) ?>" alt="" style="max-width:80px;max-height:80px;">
+        </td>
+        <td>
+            <input type="text" name="carousel_alt[]" class="form-control"
+                   placeholder="Descripción de la imagen"
+                   value="<?= htmlspecialchars($img['alt']) ?>">
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();">
+                Eliminar
+            </button>
+        </td>
+    </tr>
+    <?php endforeach; }?>
+</tbody>
+        </table>
+    </div>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="agregarFila();">
+        + Agregar imagen
+    </button>
+    <button type="submit" name="guardar_carousel" class="btn btn-primary mt-3">
+        Guardar Galería
+    </button>
+</form>
+</div>
             <!-- Promociones Configuración -->
             <div id="seccion-promociones" class="seccion">
                 <h2>Administrar Combos</h2>
@@ -653,7 +758,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 </form>
             </div>
         </div>
-    </div>
+        
+</div>
 
 
     <!-- Scripts -->
@@ -667,7 +773,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 if(item.getAttribute('onclick').includes(id)) item.classList.add('activo');
             });
         }
-
+function agregarFila() {
+    const tbody = document.getElementById('carousel-tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>
+            <input type="file" name="carousel_file[]" accept="image/*" class="form-control" required>
+        </td>
+        <td>
+            <input type="text" name="carousel_alt[]" class="form-control" placeholder="Descripción">
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();">
+                Eliminar
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
         window.addEventListener("DOMContentLoaded", () => {
             // Mostrar la sección de servicios por defecto
             const hash = window.location.hash;
