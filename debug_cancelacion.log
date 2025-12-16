@@ -1,0 +1,11 @@
+2025-12-16 04:31:20 - === NUEVA SOLICITUD ===
+2025-12-16 04:31:20 - Usuario ID: 18
+2025-12-16 04:31:20 - Es admin: SÍ, tipo sesión: admin
+2025-12-16 04:31:20 - Input recibido: {"id_historial":148}
+2025-12-16 04:31:20 - ID a cancelar: 148
+2025-12-16 04:31:20 - UPDATE ejecutado para ID: 148
+2025-12-16 04:31:20 - Verificación POST-UPDATE: cancelada = 1
+2025-12-16 04:31:20 - Admin cancelando. Usuario destino: 18
+2025-12-16 04:31:20 - Antes de insertar notificación - id_usuario_destino: 18, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Reducción Intensiva' el 31/12/2025 a las 08:00. Por favor agenda una nueva cita.
+2025-12-16 04:31:20 - Notificación insertada exitosamente para user_id=18
+2025-12-16 04:31:20 - Respuesta exitosa enviada

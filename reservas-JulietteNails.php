@@ -890,12 +890,12 @@ $conexion = conectarDB();
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
         <?php
         // Consulta SQL para obtener servicios
-        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '8' AND id_negocio = '2'";
+        $query = "SELECT id, nombre, precio, duracion_minutos FROM servicios WHERE categoria_id = '8' AND id_negocio = '2'";
         $result = mysqli_query($conexion, $query);
 
         while ($row = mysqli_fetch_assoc($result)) { ?>
             <div class="col-12 col-md-4">
-                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
                         <i class="fas fa-palette fa-3x pink-text"></i>
                     </div>
@@ -915,12 +915,12 @@ $conexion = conectarDB();
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
         <?php
         // Consulta SQL para obtener servicios
-        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '9' AND id_negocio = '2'";
+        $query = "SELECT id, nombre, precio, duracion_minutos FROM servicios WHERE categoria_id = '9' AND id_negocio = '2'";
         $result = mysqli_query($conexion, $query);
 
         while ($row = mysqli_fetch_assoc($result)) { ?>
             <div class="col-12 col-md-4">
-                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
                         <i class="fas fa-gem fa-3x pink-text"></i>
                     </div>
@@ -942,12 +942,12 @@ $conexion = conectarDB();
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
         <?php
         // Consulta SQL para obtener servicios
-        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '7' AND id_negocio = '2'";
+        $query = "SELECT id, nombre, precio, duracion_minutos FROM servicios WHERE categoria_id = '7' AND id_negocio = '2'";
         $result = mysqli_query($conexion, $query);
 
         while ($row = mysqli_fetch_assoc($result)) { ?>
             <div class="col-12 col-md-4">
-                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
                         <i class="fas fa-hand-sparkles fa-3x pink-text"></i>
                     </div>
@@ -968,12 +968,12 @@ $conexion = conectarDB();
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
         <?php
         // Consulta SQL para obtener servicios
-        $query = "SELECT id, nombre, precio FROM servicios WHERE categoria_id = '6' AND id_negocio = '2'";
+        $query = "SELECT id, nombre, precio, duracion_minutos FROM servicios WHERE categoria_id = '6' AND id_negocio = '2'";
         $result = mysqli_query($conexion, $query);
 
         while ($row = mysqli_fetch_assoc($result)) { ?>
             <div class="col-12 col-md-4">
-                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>">
+                <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
                     <div class="card-img-top d-flex align-items-center justify-content-center pt-3">
                         <i class="fas fa-shield-alt fa-3x pink-text"></i>
                     </div>
@@ -1197,7 +1197,8 @@ $conexion = conectarDB();
                 selectedService = {
                     id: this.dataset.id,
                     nombre: this.querySelector('.service-name-card').textContent,
-                    precio: this.querySelector('.service-price').textContent
+                    precio: this.querySelector('.service-price').textContent,
+                    duracion: parseInt(this.dataset.duracion) || 60
                 };
 
                 // Actualizar título
@@ -1347,7 +1348,7 @@ nextMonthBtn.addEventListener('click', () => {
         }
 
         function fetchReservedSlots(year, month) {
-        fetch(`obtener_reservas.php?year=${year}&month=${month + 1}`)
+        fetch(`obtener_reservas.php?year=${year}&month=${month + 1}&id_negocio=2`)
         .then(response => response.json())
         .then(data => {
             reservedSlots = data;
@@ -1423,10 +1424,15 @@ nextMonthBtn.addEventListener('click', () => {
     const fechaFormateada = selectedDate.toISOString().split('T')[0];
     const horaFormateada = `${selectedTime}:00`;
     
+    // Calcular duracion_horas a partir de duracion en minutos
+    const duracion_minutos = selectedService.duracion || 60;
+    const duracion_horas = Math.ceil(duracion_minutos / 60);
+    
     const datos = {
         fecha: fechaFormateada,
         hora: horaFormateada,
         servicio_id: parseInt(selectedService.id),
+        duracion_horas: duracion_horas,
         usuario_id: <?php echo $_SESSION['usuario_id']; ?>,
         retirado: isRetiradoSelected ? 1 : 0
     };
@@ -1451,6 +1457,22 @@ nextMonthBtn.addEventListener('click', () => {
             alert('Reserva guardada exitosamente');
             closeConfirmationModal();
 
+            // Añadir el nuevo turno y todos los horarios bloqueados a la lista de reservados
+            const fechaClave = selectedDate.toISOString().split('T')[0];
+            if (!reservedSlots[fechaClave]) reservedSlots[fechaClave] = [];
+            
+            // Obtener la duración en minutos del servicio seleccionado
+            const duracion_minutos = selectedService.duracion || 60;
+            const duracion_horas = Math.ceil(duracion_minutos / 60);
+            
+            // Agregar todos los horarios necesarios a reservedSlots
+            for (let h = 0; h < duracion_horas; h++) {
+              const hora_bloqueada = selectedTime + h;
+              if (!reservedSlots[fechaClave].includes(hora_bloqueada)) {
+                reservedSlots[fechaClave].push(hora_bloqueada);
+              }
+            }
+
             // Eliminar el horario seleccionado del DOM
             if (selectedTime !== null) {
                 document.querySelectorAll('.time-slot').forEach(slot => {
@@ -1460,6 +1482,9 @@ nextMonthBtn.addEventListener('click', () => {
                 });
                 selectedTime = null; // Limpiar selección
             }
+            
+            // Recargar los horarios bloqueados del mes actual para sincronizar con otros usuarios
+            fetchReservedSlots(currentYear, currentMonth);
             } else {
                 // Mostrar mensaje específico si el horario está ocupado
                 if (data.message.includes('Ya existe una reserva')) {

@@ -55,7 +55,7 @@ try {
     }
 
     $placeholders = implode(',', array_fill(0, count($horarios_a_verificar), '?'));
-    $query_verificar = "SELECT fecha_realizacion FROM historial WHERE fecha_realizacion IN ($placeholders) AND id_negocio = ?";
+    $query_verificar = "SELECT fecha_realizacion FROM historial WHERE fecha_realizacion IN ($placeholders) AND id_negocio = ? AND (cancelada = 0 OR cancelada IS NULL)";
     $stmt_verificar = $conexion->prepare($query_verificar);
 
     $types = str_repeat('s', count($horarios_a_verificar)) . 'i';
