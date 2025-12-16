@@ -13,17 +13,16 @@ if (!isset($_SESSION['usuario_id'])) {
 $conexion = conectarDB();
 $usuario_id = $_SESSION['usuario_id'];
 
-// Identificar el negocio. Asumimos Kore (id=1) por defecto si no se especifica.
-// La página de Juliette Nails debería pasar id_negocio=2
+// Identificar el negocio
 $id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : 1;
 
-// Verificar si el usuario es admin de este negocio
+// Verificar si el usuario es admin
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
 
-// Determinar el intervalo de tiempo basado en el parámetro GET
-$periodo = isset($_GET['periodo']) ? $_GET['periodo'] : 'semana'; // Por defecto 'semana'
+// Determinar el período
+$periodo = isset($_GET['periodo']) ? $_GET['periodo'] : 'semana';
 $clausula_fecha = "";
 
 switch ($periodo) {
@@ -34,7 +33,7 @@ switch ($periodo) {
         $clausula_fecha = "AND h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 3 MONTH)";
         break;
     case 'todos':
-        $clausula_fecha = ""; // Sin filtro de fecha
+        $clausula_fecha = "";
         break;
     case 'semana':
     default:
@@ -42,42 +41,28 @@ switch ($periodo) {
         break;
 }
 
-// Construir la consulta dinámicamente
-$query = "SELECT h.id, h.fecha_realizacion, h.precio, 
-          COALESCE(s.nombre, c.nombre) as servicio_nombre,
-          CONCAT(u.nombre, ' ', u.apellido) AS cliente_nombre,
-          COALESCE(h.id_categoria, s.categoria_id, NULL) AS categoria_id
-          FROM historial h
-          LEFT JOIN servicios s ON h.id_servicio = s.id
-          LEFT JOIN combos c ON h.id_combo = c.id
-          LEFT JOIN usuarios u ON h.id_usuario = u.id
-          WHERE h.id_negocio = ? AND COALESCE(s.nombre, c.nombre) IS NOT NULL
-          AND (h.cancelada = 0 OR h.cancelada IS NULL)";
+// Obtener citas canceladas
+$query = "SELECT 
+    h.id,
+    h.fecha_realizacion, 
+    h.precio, 
+    COALESCE(h.fecha_cancelacion, NOW()) as fecha_cancelacion,
+    COALESCE(s.nombre, c.nombre) as servicio_nombre,
+    CONCAT(u.nombre, ' ', u.apellido) AS cliente_nombre,
+    COALESCE(h.id_categoria, s.categoria_id, NULL) AS categoria_id
+FROM historial h
+LEFT JOIN servicios s ON h.id_servicio = s.id
+LEFT JOIN combos c ON h.id_combo = c.id
+LEFT JOIN usuarios u ON h.id_usuario = u.id
+WHERE h.id_negocio = ? AND h.cancelada = 1 AND COALESCE(s.nombre, c.nombre) IS NOT NULL";
 
-// Si no es admin, filtramos por su ID de usuario. Si es admin, ve todo.
+// Si no es admin, filtramos por su ID de usuario
 if (!$esAdmin) {
     $query .= " AND h.id_usuario = ?";
 }
 
-// Añadir el filtro de id_reserva_padre SOLO si es para Kore Estética (id_negocio = 1)
-if ($id_negocio === 1) {
-    // Verificar si la columna existe en la tabla `historial` antes de usarla
-    $colExists = false;
-    $colCheck = mysqli_query($conexion, "SHOW COLUMNS FROM historial LIKE 'id_reserva_padre'");
-    if ($colCheck && mysqli_num_rows($colCheck) > 0) {
-        $colExists = true;
-    }
-
-    if ($colExists) {
-        $query .= " AND h.id_reserva_padre IS NULL";
-    } else {
-        // Si la columna no existe, no agregamos la cláusula para evitar errores.
-        // Opcional: se podría registrar este hecho para depuración.
-    }
-}
-
 $query .= " {$clausula_fecha}
-          ORDER BY h.fecha_realizacion DESC";
+ORDER BY h.fecha_cancelacion DESC";
 
 $stmt = mysqli_prepare($conexion, $query);
 if ($esAdmin) {
@@ -85,12 +70,13 @@ if ($esAdmin) {
 } else {
     mysqli_stmt_bind_param($stmt, "ii", $id_negocio, $usuario_id);
 }
+
 mysqli_stmt_execute($stmt);
 $resultado = mysqli_stmt_get_result($stmt);
 
 $historial = [];
 while ($row = mysqli_fetch_assoc($resultado)) {
-    // Mapear id de categoría a nombre legible (ajusta según tu esquema)
+    // Mapear categoría
     $categoryNames = [
         6 => 'Capping',
         7 => 'Capping Poly',
@@ -108,6 +94,7 @@ while ($row = mysqli_fetch_assoc($resultado)) {
     $historial[] = [
         'id' => $row['id'],
         'fecha_realizacion' => $row['fecha_realizacion'],
+        'fecha_cancelacion' => $row['fecha_cancelacion'],
         'servicio' => $row['servicio_nombre'] ?? 'Servicio no especificado',
         'cliente' => $row['cliente_nombre'] ?? '',
         'precio' => $row['precio'],

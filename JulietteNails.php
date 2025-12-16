@@ -1,13 +1,7 @@
 <?php
 session_start();
 
-// Si no hay sesión, redirige al login
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: Login.php");
-    exit();
-}
-
-$nombreUsuario = $_SESSION['usuario'];
+$nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
 $id_negocio = 2;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
@@ -324,7 +318,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/Escudo.svg" alt="Capping">
           <div class="card-body">
             <h5>Capping</h5>
-            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
+            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
           </div>
         </div>
       </div>
@@ -333,7 +327,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/Pincel.svg" alt="Capping Polygel">
           <div class="card-body">
             <h5>Capping Polygel</h5>
-            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
+            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
           </div>
         </div>
       </div>
@@ -342,7 +336,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/Gotita.svg" alt="Soft Gel">
           <div class="card-body">
             <h5>Soft Gel</h5>
-            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
+            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
           </div>
         </div>
       </div>
@@ -351,7 +345,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/botella.svg" alt="Esmaltado Semi">
           <div class="card-body">
             <h5>Esmaltado Semi</h5>
-            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
+            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
           </div>
         </div>
       </div>
@@ -399,6 +393,54 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
   </footer>
 
 </div>
+
+<!-- Modal de Login requerido -->
+<div id="modalLoginRequired" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; background: linear-gradient(135deg, #f8b6b0 0%, #f6b8b3 100%); border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <h2 style="margin-bottom: 20px; color: #333;">Debes Iniciar Sesión</h2>
+        <p style="margin-bottom: 30px; color: #555; font-size: 16px;">Para realizar una reserva, debes iniciar sesión o registrarte primero.</p>
+        <button onclick="window.location.href='Login.php';" class="btn btn-pink" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer;">
+            Iniciar Sesión
+        </button>
+        <button onclick="cerrarModalLogin();" class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer; margin-top: 10px;">
+            Cancelar
+        </button>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+</style>
+
+<script>
+    function verificarSesionYReservar() {
+        // Verificar si hay sesión activa
+        const usuarioId = <?php echo isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 'null'; ?>;
+        
+        if (usuarioId === null) {
+            // No hay sesión, mostrar modal
+            document.getElementById('modalLoginRequired').style.display = 'flex';
+        } else {
+            // Hay sesión, ir a reservas
+            window.location.href = 'reservas-JulietteNails.php';
+        }
+    }
+    
+    function cerrarModalLogin() {
+        document.getElementById('modalLoginRequired').style.display = 'none';
+    }
+</script>
 
 </body>
 </html>

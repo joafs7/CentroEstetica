@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_servicios']
         $stmt->close();
     }
     $conexion->close();
-    echo "<script>alert('Servicios actualizados correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-servicios';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=servicios_actualizados#seccion-servicios';</script>";
     exit;
 }
 // Procesar agregar servicio
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_servicio'])) 
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>alert('Servicio agregado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-servicios';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=servicio_agregado#seccion-servicios';</script>";
     exit;
 }
 
@@ -59,12 +59,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_servicio'])) 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_servicio'], $_POST['servicio_id'])) {
     $conexion = conectarDB();
     $servicio_id = intval($_POST['servicio_id']);
-    $stmt = $conexion->prepare("DELETE FROM servicios WHERE id = ? AND id_negocio = ?");
-    $stmt->bind_param('ii', $servicio_id, $id_negocio);
-    $stmt->execute();
-    $stmt->close();
-    $conexion->close();
-    echo "<script>alert('Servicio eliminado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-servicios';</script>";
+    
+    try {
+        // Primero eliminar registros en historial que referencias este servicio
+        $stmt = $conexion->prepare("DELETE FROM historial WHERE id_servicio = ?");
+        $stmt->bind_param('i', $servicio_id);
+        $stmt->execute();
+        $stmt->close();
+        
+        // Luego eliminar el servicio
+        $stmt = $conexion->prepare("DELETE FROM servicios WHERE id = ? AND id_negocio = ?");
+        $stmt->bind_param('ii', $servicio_id, $id_negocio);
+        $stmt->execute();
+        $stmt->close();
+        $conexion->close();
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=servicio_eliminado#seccion-servicios';</script>";
+    } catch (Exception $e) {
+        $conexion->close();
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=servicio_eliminado&error=true#seccion-servicios';</script>";
+    }
     exit;
 }
 
@@ -77,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hacer_admin'], $_POST
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>alert('Rol de administrador asignado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-usuarios';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=admin_asignado#seccion-usuarios';</script>";
     exit;
 }
 
@@ -91,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quitar_admin'], $_POS
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>alert('Rol de administrador quitado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-usuarios';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=admin_quitado#seccion-usuarios';</script>";
     exit;
 }
 ?>
@@ -112,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_combo'])) {
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>alert('Combo agregado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combo_agregado#seccion-promociones';</script>";
     exit;
 }
 
@@ -120,12 +133,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_combo'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_combo'], $_POST['combo_id'])) {
     $conexion = conectarDB();
     $combo_id = intval($_POST['combo_id']);
-    $stmt = $conexion->prepare("DELETE FROM combos WHERE id = ? AND id_negocio = ?");
-    $stmt->bind_param('ii', $combo_id, $id_negocio);
-    $stmt->execute();
-    $stmt->close();
-    $conexion->close();
-    echo "<script>alert('Combo eliminado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    
+    try {
+        // Primero eliminar registros en historial que referencian este combo
+        $stmt = $conexion->prepare("DELETE FROM historial WHERE id_combo = ?");
+        $stmt->bind_param('i', $combo_id);
+        $stmt->execute();
+        $stmt->close();
+        
+        // Luego eliminar el combo
+        $stmt = $conexion->prepare("DELETE FROM combos WHERE id = ? AND id_negocio = ?");
+        $stmt->bind_param('ii', $combo_id, $id_negocio);
+        $stmt->execute();
+        $stmt->close();
+        $conexion->close();
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combo_eliminado#seccion-promociones';</script>";
+    } catch (Exception $e) {
+        $conexion->close();
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combo_eliminado&error=true#seccion-promociones';</script>";
+    }
     exit;
 }
 
@@ -144,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combo'], $_
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>alert('Combo modificado correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combo_modificado#seccion-promociones';</script>";
     exit;
 }
 
@@ -169,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
         $stmt->close();
     }
     $conexion->close();
-    echo "<script>alert('Combos actualizados correctamente.');window.location='configuracion.php?id_negocio=$id_negocio#seccion-promociones';</script>";
+    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combos_actualizados#seccion-promociones';</script>";
     exit;
 }
 ?>
@@ -302,6 +328,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             cursor: pointer;
         }
 
+        /* Estilos para Modal de Confirmación */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .modal-overlay.activo {
+            display: flex;
+        }
+        .modal-contenido {
+            background: linear-gradient(135deg, #f5b3a9 0%, #f8d7da 100%);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            border: 2px solid #f28b82;
+        }
+        .modal-contenido h3 {
+            color: #5d1a1a;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .modal-contenido p {
+            color: #6d2020;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+        .modal-botones {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .btn-confirmar {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-confirmar:hover {
+            background-color: #c9302c;
+        }
+        .btn-cancelar {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-cancelar:hover {
+            background-color: #5a6268;
+        }
+
+        /* Estilos para Modal de Éxito */
+        .modal-success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .modal-success-overlay.activo {
+            display: flex;
+        }
+        .modal-success-contenido {
+            background: linear-gradient(135deg, #ffc0cb 0%, #ffb3c1 100%);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            border: 2px solid #ff69b4;
+        }
+        .modal-success-icon {
+            font-size: 60px;
+            color: #d81b60;
+            margin-bottom: 20px;
+        }
+        .modal-success-contenido h3 {
+            color: #5d1a1a;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        .modal-success-contenido p {
+            color: #6d2020;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        .modal-success-button {
+            background-color: #d81b60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            font-size: 16px;
+        }
+        .modal-success-button:hover {
+            background-color: #c2185b;
+        }
+
         /* Estilos mejorados para el formulario de agregar servicio */
         .form-agregar-servicio {
             background: #fff;
@@ -405,7 +554,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
-                <li onclick="window.location.href='index.php'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
+                <li onclick="history.back()"><i class="fas fa-arrow-left"></i> Volver atrás</li>
             </ul>
         </aside>
 
@@ -492,9 +641,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                                 </div>
                             </td>
                             <td>
-                                <form method="post" action="configuracion.php?id_negocio=' . $id_negocio . '" onsubmit="return confirm(\'¿Seguro que deseas eliminar este servicio?\');" style="display:inline;">
+                                <form method="post" action="configuracion.php?id_negocio=' . $id_negocio . '" class="form-eliminar-servicio" style="display:inline;">
                                     <input type="hidden" name="servicio_id" value="' . $row['id'] . '">
-                                    <button type="submit" name="eliminar_servicio" class="btn btn-danger btn-sm">Eliminar</button>
+                                    <input type="hidden" name="eliminar_servicio" value="1">
+                                    <button type="button" class="btn btn-danger btn-sm btn-eliminar-servicio" data-servicio-id="' . $row['id'] . '" data-servicio-nombre="' . htmlspecialchars($row['nombre']) . '">Eliminar</button>
                                 </form>
                             </td>
                         </tr>';
@@ -506,7 +656,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             </table>
         </div>
         <div class="text-center mt-3">
-            <button type="submit" name="modificar_servicios" class="btn btn-primary">Guardar Cambios</button>
+            <button type="button" name="modificar_servicios" class="btn btn-primary btn-guardar-cambios" data-tipo="servicios">Guardar Cambios</button>
         </div>
     </form>
 </div>
@@ -616,11 +766,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                                         <td><input type="number" name="combo_duracion[' . $row['id'] . ']" value="' . htmlspecialchars($row['duracion_minutos']) . '" class="form-control" step="5" required></td>
                                         <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="combo_precio[' . $row['id'] . ']" value="' . htmlspecialchars($row['precio']) . '" class="form-control" step="0.01" required></div></td>
                                         <td>
-                                            <form method="post" action="configuracion.php?id_negocio=' . $id_negocio . '" onsubmit="return confirm(\'¿Seguro que deseas eliminar este combo?\');" style="display:inline;">
+                                            <form method="post" action="configuracion.php?id_negocio=' . $id_negocio . '" class="form-eliminar-combo" style="display:inline;">
                                                 <input type="hidden" name="combo_id" value="' . $row['id'] . '">
-                                                <button type="submit" name="eliminar_combo" class="btn btn-danger btn-sm">Eliminar</button>
+                                                <input type="hidden" name="eliminar_combo" value="1">
+                                                <button type="button" class="btn btn-danger btn-sm btn-eliminar-combo" data-combo-id="' . $row['id'] . '" data-combo-nombre="' . htmlspecialchars($row['nombre']) . '">Eliminar</button>
                                             </form>
-                                        </td>
+                                        </td>";
                                     </tr>';
                                 }
                                 $stmt->close();
@@ -630,7 +781,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                         </table>
                     </div>
                     <div class="text-center mt-3">
-                        <button type="submit" name="modificar_combos" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" name="modificar_combos" class="btn btn-primary btn-guardar-cambios" data-tipo="combos">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -638,8 +789,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
     </div>
 
 
+    <!-- Modal de Confirmación -->
+    <div id="modalConfirmacion" class="modal-overlay">
+        <div class="modal-contenido">
+            <h3 id="modalTitulo">¿Confirmar eliminación?</h3>
+            <p id="modalMensaje">¿Estás seguro que deseas eliminar este elemento?</p>
+            <div class="modal-botones">
+                <button type="button" class="btn-confirmar" onclick="confirmarEliminacion()">Sí, eliminar</button>
+                <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Éxito -->
+    <div id="modalExito" class="modal-success-overlay">
+        <div class="modal-success-contenido">
+            <div class="modal-success-icon">✓</div>
+            <h3 id="modalExitoTitulo">¡Operación Exitosa!</h3>
+            <p id="modalExitoMensaje">La acción se completó correctamente.</p>
+            <button type="button" class="modal-success-button" onclick="cerrarModalExito()">Aceptar</button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
+        let formActual = null;
+
+        // Mensajes para diferentes tipos de éxito
+        const mensajesExito = {
+            'servicio_agregado': { titulo: '¡Tratamiento Agregado!', mensaje: 'El tratamiento se agregó correctamente.' },
+            'servicios_actualizados': { titulo: '¡Tratamientos Actualizados!', mensaje: 'Los tratamientos se actualizaron correctamente.' },
+            'servicio_eliminado': { titulo: '¡Tratamiento Eliminado!', mensaje: 'El tratamiento se eliminó correctamente.' },
+            'combo_agregado': { titulo: '¡Combo Agregado!', mensaje: 'El combo se agregó correctamente.' },
+            'combos_actualizados': { titulo: '¡Combos Actualizados!', mensaje: 'Los combos se actualizaron correctamente.' },
+            'combo_modificado': { titulo: '¡Combo Modificado!', mensaje: 'El combo se modificó correctamente.' },
+            'combo_eliminado': { titulo: '¡Combo Eliminado!', mensaje: 'El combo se eliminó correctamente.' },
+            'admin_asignado': { titulo: '¡Admin Asignado!', mensaje: 'El rol de administrador se asignó correctamente.' },
+            'admin_quitado': { titulo: '¡Admin Removido!', mensaje: 'El rol de administrador se removió correctamente.' }
+        };
+
         function mostrarSeccion(id){
             document.querySelectorAll('.seccion').forEach(sec => sec.style.display = 'none');
             document.getElementById(id).style.display = 'block';
@@ -648,6 +836,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             items.forEach(item => {
                 if(item.getAttribute('onclick').includes(id)) item.classList.add('activo');
             });
+        }
+
+        function abrirModalConfirmacion(titulo, mensaje, form) {
+            document.getElementById('modalTitulo').textContent = titulo;
+            document.getElementById('modalMensaje').textContent = mensaje;
+            document.getElementById('modalConfirmacion').classList.add('activo');
+            formActual = form;
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalConfirmacion').classList.remove('activo');
+            formActual = null;
+        }
+
+        function confirmarEliminacion() {
+            if (formActual) {
+                formActual.submit();
+            }
+            cerrarModal();
+        }
+
+        function mostrarModalExito(tipo) {
+            const mensaje = mensajesExito[tipo];
+            if (mensaje) {
+                document.getElementById('modalExitoTitulo').textContent = mensaje.titulo;
+                document.getElementById('modalExitoMensaje').textContent = mensaje.mensaje;
+                document.getElementById('modalExito').classList.add('activo');
+            }
+        }
+
+        function cerrarModalExito() {
+            document.getElementById('modalExito').classList.remove('activo');
         }
 
         window.addEventListener("DOMContentLoaded", () => {
@@ -662,6 +882,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 }
             } else {
                 mostrarSeccion('seccion-servicios');
+            }
+
+            // Verificar si hay un parámetro de éxito en la URL
+            const params = new URLSearchParams(window.location.search);
+            const success = params.get('success');
+            if (success) {
+                mostrarModalExito(success);
+                // Limpiar la URL para que no se muestre de nuevo
+                const newUrl = window.location.pathname + '?id_negocio=' + params.get('id_negocio') + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
+            // Evento para botones de guardar cambios con AJAX
+            document.querySelectorAll('.btn-guardar-cambios').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tipo = this.getAttribute('data-tipo');
+                    const form = tipo === 'servicios' ? document.getElementById('form-servicios') : document.getElementById('form-combos');
+                    
+                    const formData = new FormData(form);
+                    formData.append('id_negocio', <?php echo $id_negocio; ?>);
+                    formData.append('tipo', tipo);
+
+                    fetch('actualizar_configuracion.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            mostrarModalExito(tipo === 'servicios' ? 'servicios_actualizados' : 'combos_actualizados');
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al actualizar. Por favor, intenta de nuevo.');
+                    });
+                });
+            });
+
+            // Evento para botones de eliminar servicio
+            document.querySelectorAll('.btn-eliminar-servicio').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const servicioNombre = this.getAttribute('data-servicio-nombre');
+                    const form = this.closest('form');
+                    abrirModalConfirmacion(
+                        '¿Eliminar Tratamiento?',
+                        `¿Seguro que deseas eliminar el tratamiento "${servicioNombre}"?`,
+                        form
+                    );
+                });
+            });
+
+            // Evento para botones de eliminar combo
+            document.querySelectorAll('.btn-eliminar-combo').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const comboNombre = this.getAttribute('data-combo-nombre');
+                    const form = this.closest('form');
+                    abrirModalConfirmacion(
+                        '¿Eliminar Combo?',
+                        `¿Seguro que deseas eliminar el combo "${comboNombre}"?`,
+                        form
+                    );
+                });
+            });
+        });
+
+        // Cerrar modal al hacer clic afuera
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('modalConfirmacion');
+            const modalExito = document.getElementById('modalExito');
+            if (e.target === modal) {
+                cerrarModal();
+            }
+            if (e.target === modalExito) {
+                cerrarModalExito();
             }
         });
     </script>

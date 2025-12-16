@@ -12,26 +12,33 @@ header("ETag: " . md5(microtime()));
 // Variables de sesión (pueden no estar definidas si el usuario no está logueado)
 $nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
 $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
-$id_negocio = 1;
+$id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : 1;
+$id_negocio_admin = isset($_SESSION['id_negocio_admin']) ? $_SESSION['id_negocio_admin'] : null;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
 
-// --- INICIO: Obtener notificaciones para el admin ---
+// Si es admin, usar su id_negocio_admin para las notificaciones
+$id_negocio_para_notif = $esAdmin && $id_negocio_admin ? $id_negocio_admin : $id_negocio;
+
+// DEBUG: Log para verificar valores
+error_log("DEBUG Notificaciones - usuario_id: $usuario_id, esAdmin: " . ($esAdmin ? 'true' : 'false') . ", id_negocio: $id_negocio, id_negocio_admin: " . ($id_negocio_admin ?? 'NULL') . ", id_negocio_para_notif: $id_negocio_para_notif");
+
+// --- INICIO: Obtener notificaciones (para admin y usuarios) ---
 $notificaciones_no_leidas = 0;
 $lista_notificaciones = [];
-if ($esAdmin) {
+if ($usuario_id) {  // Si hay usuario logueado (admin o usuario normal)
     include_once 'conexEstetica.php';
     $conexion_notif = conectarDB();
     $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
     $stmt_notif = $conexion_notif->prepare($query_notif);
-    $stmt_notif->bind_param('ii', $_SESSION['usuario_id'], $id_negocio);
+    $stmt_notif->bind_param('ii', $usuario_id, $id_negocio_para_notif);
     $stmt_notif->execute();
     $resultado_notif = $stmt_notif->get_result();
     $notificaciones_no_leidas = $resultado_notif->num_rows;
     while($fila = $resultado_notif->fetch_assoc()) $lista_notificaciones[] = $fila;
 }
-// --- FIN: Obtener notificaciones para el admin ---
+// --- FIN: Obtener notificaciones (para admin y usuarios) ---
 
 ?>
 
@@ -141,6 +148,14 @@ if ($esAdmin) {
             border-top-right-radius: calc(0.75rem - 1px);
             padding: 1rem 1.25rem;
         }
+        /* Estilo para notificaciones sin leer */
+        .dropdown-menu-notifications .unread-notification {
+            background-color: #fde8e6 !important;
+            font-weight: 500;
+        }
+        .dropdown-menu-notifications .unread-notification:hover, .dropdown-menu-notifications .unread-notification:focus {
+            background-color: var(--light-pink) !important;
+        }
         
         .offcanvas-header {
             background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
@@ -159,7 +174,7 @@ if ($esAdmin) {
         }
         
         .card {
-            border: none;
+            border: 2px solid #b02a6f;
             border-radius: 15px;
             overflow: hidden;
             transition: transform 0.3s, box-shadow 0.3s;
@@ -198,6 +213,57 @@ if ($esAdmin) {
             box-shadow: 0 5px 15px rgba(216, 112, 106, 0.3);
         }
         
+        /* Animaciones para el botón de reservar */
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px rgba(232, 156, 148, 0.5), 0 0 10px rgba(216, 112, 106, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(232, 156, 148, 0.8), 0 0 30px rgba(216, 112, 106, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(232, 156, 148, 0.5), 0 0 10px rgba(216, 112, 106, 0.3);
+            }
+        }
+        
+        @keyframes gentle-bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        
+        .btn-highlight {
+            animation: pulse-glow 2s ease-in-out infinite, gentle-bounce 2s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--dark-pink) !important;
+            border: 3px solid #a85a52 !important;
+            font-weight: 700;
+        }
+        
+        .btn-highlight::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
         .section-title {
             position: relative;
             display: block;
@@ -221,8 +287,221 @@ if ($esAdmin) {
         }
         
         .promo-card {
-            border: 2px dashed var(--primary-color);
+            border: 2px solid #b02a6f;
             background-color: white;
+        }
+        
+        .discount-badge {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #d63384 0%, #b02a6f 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(214, 51, 132, 0.4);
+            animation: rotateStar 3s linear infinite;
+        }
+        
+        .discount-badge i {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 2px;
+        }
+        
+        .discount-badge span {
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            margin-top: -5px;
+        }
+        
+        @keyframes rotateStar {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Estilos para modales de cancelación */
+        .modal-exito-cancelacion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeInModal 0.3s ease;
+        }
+
+        .contenedor-exito-cancelacion {
+            background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);
+            padding: 50px 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUpModal 0.4s ease;
+        }
+
+        .icono-exito {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+            animation: bounceIcon 0.6s ease;
+        }
+
+        .contenedor-exito-cancelacion h2 {
+            color: #d63384;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .contenedor-exito-cancelacion p {
+            color: #666;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .contenedor-exito-cancelacion .subtexto {
+            color: #999;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .btn-cerrar-exito {
+            background: linear-gradient(135deg, #d63384 0%, #b02a6f 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(214, 51, 132, 0.3);
+        }
+
+        .btn-cerrar-exito:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+        }
+
+        /* Modal de Error */
+        .modal-error-cancelacion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeInModal 0.3s ease;
+        }
+
+        .contenedor-error-cancelacion {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUpModal 0.4s ease;
+            border-left: 5px solid #dc3545;
+        }
+
+        .icono-error {
+            font-size: 80px;
+            color: #dc3545;
+            margin-bottom: 20px;
+            animation: shakeIcon 0.5s ease;
+        }
+
+        .contenedor-error-cancelacion h2 {
+            color: #d63384;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .contenedor-error-cancelacion p {
+            color: #666;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .btn-cerrar-error {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-cerrar-error:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        @keyframes fadeInModal {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUpModal {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounceIcon {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes shakeIcon {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
         }
         
         .promo-price {
@@ -296,23 +575,64 @@ if ($esAdmin) {
         
         .footer {
             background-color: white;
-            padding: 30px 0;
-            margin-top: 50px;
+            padding: 20px 0;
+            margin-top: 30px;
             text-align: center;
             box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
         }
         
+        .footer .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .footer .logo-placeholder {
+            align-self: flex-start;
+            margin-left: 20px;
+        }
+        
+        .footer p {
+            margin: 0;
+            margin-top: 5px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+        
         .logo-placeholder {
-            width: 180px;
-            height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
             border-radius: 10px;
+            padding: 8px 15px;
+            width: fit-content;
+        }
+        
+        .logo-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .logo-text {
             font-weight: bold;
             font-size: 1.5rem;
+            color: white;
         }
         
         /* Efecto para elementos seleccionados */
@@ -521,6 +841,38 @@ if ($esAdmin) {
                     box-shadow: 0 0 0 2px var(--dark-pink);
                 }
                 .tabla-reservas tr:hover { background-color: #fff5f5; }
+                
+                /* Estilos para los tabs */
+                .nav-tabs {
+                    border-bottom: 2px solid var(--light-pink);
+                    padding: 0 0 -2px 0;
+                }
+                .nav-tabs .nav-link {
+                    color: var(--text-color);
+                    border: none;
+                    border-bottom: 3px solid transparent;
+                    transition: all 0.3s ease;
+                    font-weight: 500;
+                    margin-bottom: -2px;
+                }
+                .nav-tabs .nav-link:hover {
+                    color: var(--dark-pink);
+                    border-bottom-color: var(--secondary-color);
+                }
+                .nav-tabs .nav-link.active {
+                    color: var(--dark-pink);
+                    background-color: transparent;
+                    border-bottom-color: var(--primary-color);
+                    font-weight: 600;
+                }
+                .tab-pane {
+                    animation: fadeIn 0.3s ease-in;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
         html {
             scroll-behavior: smooth;
             }
@@ -531,7 +883,12 @@ if ($esAdmin) {
         <!-- Barra de navegación moderna -->
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-        <div class="logo-placeholder">KORE</div>
+        <div class="logo-placeholder">
+            <div class="logo-circle">
+                <img src="imagenes/KoreEstetica.png" alt="Kore Estética Logo">
+            </div>
+            <span class="logo-text">KORE</span>
+        </div>
         <!-- Botón hamburguesa para móviles -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -544,11 +901,14 @@ if ($esAdmin) {
                 <a href="#servicio" class="nav-btn">Servicios</a>
                 <a href="#promos" class="nav-btn">Combos</a>
                 <a href="#contacto" class="nav-btn">Contacto</a>
-                <!-- Botón para abrir sidebar de usuario -->
+                
+                <!-- Botón para abrir sidebar de usuario (Mi cuenta) -->
                 <button class="nav-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
                     <i class="fas fa-user-circle"></i> Mi cuenta
                 </button>
-                <?php if ($esAdmin): ?>
+                
+                <!-- CAMPANITA DE NOTIFICACIONES (para usuarios logueados) -->
+                <?php if ($usuario_id): ?>
                 <div class="dropdown">
                     <button class="nav-btn position-relative" type="button" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-bell"></i>
@@ -563,7 +923,7 @@ if ($esAdmin) {
                         <?php if (!empty($lista_notificaciones)): ?>
                             <?php foreach($lista_notificaciones as $notif): ?>
                             <li>
-                                <a class="dropdown-item d-flex align-items-start notification-item" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
+                                <a class="dropdown-item d-flex align-items-start notification-item unread-notification" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
                                     <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
                                     <div>
                                         <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
@@ -575,7 +935,7 @@ if ($esAdmin) {
                         <?php else: ?>
                             <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
                         <?php endif; ?>
-                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="#" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
+                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="#" id="verTodasNotificaciones" data-bs-toggle="modal" data-bs-target="#todasNotificacionesModal" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
                     </ul>
                 </div>
                 <?php endif; ?>
@@ -599,23 +959,25 @@ if ($esAdmin) {
                 $usuarioApellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : '';
                 $usuarioEmail = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 $usuarioCelular = isset($_SESSION['celular']) ? $_SESSION['celular'] : '';
+                $fotoPerfil = isset($_SESSION['foto_perfil']) ? $_SESSION['foto_perfil'] : '';
 
                 // Si falta algún dato en la sesión, intentar obtenerlo desde la BD
-                if ($usuarioId && (empty($usuarioApellido) || empty($usuarioEmail) || empty($usuarioCelular))) {
+                if ($usuarioId && (empty($usuarioApellido) || empty($usuarioEmail) || empty($usuarioCelular) || empty($fotoPerfil))) {
                     if (file_exists('conexEstetica.php')) {
                         include_once 'conexEstetica.php';
                         $conexionTmp = conectarDB();
                         if ($conexionTmp) {
-                            $stmt = mysqli_prepare($conexionTmp, "SELECT nombre, apellido, email, celular FROM usuarios WHERE id = ? LIMIT 1");
+                            $stmt = mysqli_prepare($conexionTmp, "SELECT nombre, apellido, email, celular, foto_perfil FROM usuarios WHERE id = ? LIMIT 1");
                             if ($stmt) {
                                 mysqli_stmt_bind_param($stmt, 'i', $usuarioId);
                                 mysqli_stmt_execute($stmt);
-                                mysqli_stmt_bind_result($stmt, $dbNombre, $dbApellido, $dbEmail, $dbCelular);
+                                mysqli_stmt_bind_result($stmt, $dbNombre, $dbApellido, $dbEmail, $dbCelular, $dbFoto);
                                 if (mysqli_stmt_fetch($stmt)) {
                                     if (empty($usuarioNombre)) $usuarioNombre = $dbNombre;
                                     if (empty($usuarioApellido)) $usuarioApellido = $dbApellido;
                                     if (empty($usuarioEmail)) $usuarioEmail = $dbEmail;
                                     if (empty($usuarioCelular)) $usuarioCelular = $dbCelular;
+                                    if (empty($fotoPerfil)) $fotoPerfil = $dbFoto;
                                 }
                                 mysqli_stmt_close($stmt);
                             }
@@ -626,11 +988,31 @@ if ($esAdmin) {
                 ?>
 
                 <div class="mb-4 text-center">
-                    <div style="font-size:72px;color:var(--dark-pink)"><i class="fas fa-user-circle"></i></div>
+                    <div style="position: relative; width: fit-content; margin: 0 auto;">
+                        <?php 
+                        // Mostrar foto cargada o Gravatar
+                        if (!empty($fotoPerfil) && file_exists($fotoPerfil)) {
+                            echo '<img id="imgPerfil" src="' . htmlspecialchars($fotoPerfil) . '?v=' . time() . '" alt="Foto de perfil" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--dark-pink);">';
+                        } elseif (!empty($usuarioEmail)) {
+                            $gravatarHash = md5(strtolower(trim($usuarioEmail)));
+                            $gravatarUrl = "https://www.gravatar.com/avatar/{$gravatarHash}?d=identicon&s=200";
+                            echo '<img id="imgPerfil" src="' . htmlspecialchars($gravatarUrl) . '" alt="Foto de perfil" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--dark-pink);">';
+                        } else {
+                            echo '<div style="font-size:72px;color:var(--dark-pink)"><i class="fas fa-user-circle"></i></div>';
+                        }
+                        ?>
+                        <?php if ($usuarioId): ?>
+                        <label for="inputFoto" style="position: absolute; bottom: 0; right: 0; background-color: var(--dark-pink); color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all 0.3s;" title="Cambiar foto de perfil">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                        <input type="file" id="inputFoto" style="display: none;" accept="image/*">
+                        <?php endif; ?>
+                    </div>
                     <h5 class="mt-2"><?php echo htmlspecialchars($usuarioNombre . ' ' . $usuarioApellido); ?></h5>
                 </div>
 
-                <!-- Formulario para editar datos del usuario -->
+                <?php if ($usuarioId): ?>
+                <!-- Formulario para editar datos del usuario (solo si está logueado) -->
                 <form action="editar_perfil.php" method="post">
                     <div class="row">
                         <div class="col-12 mb-2">
@@ -652,11 +1034,13 @@ if ($esAdmin) {
                     </div>
                     <input type="hidden" name="usuario_id" value="<?php echo htmlspecialchars($usuarioId); ?>">
                     <div class="row g-2 mb-2">
+                        <?php if ($usuarioId): ?>
                         <div class="col-12">
                             <button type="button" class="btn w-100" style="background-color: var(--primary-color); color: white;" onclick="mostrarHistorial()">
                                 <i class="fas fa-history"></i> Ver Historial de Citas
                             </button>
                         </div>
+                        <?php endif; ?>
                         <div class="col-12">
                          <?php if ($esAdmin): ?>
                         <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
@@ -674,8 +1058,51 @@ if ($esAdmin) {
                 </form>
 
                 <?php if (isset($_GET['updated']) && $_GET['updated'] == '1') { ?>
-                    <div class="alert alert-success mt-3">Perfil actualizado correctamente.</div>
+                    <div class="alert alert-success mt-3" id="alertaExito">
+                        <i class="fas fa-check-circle me-2"></i>Perfil actualizado correctamente.
+                    </div>
+                    <script>
+                        // Abrir la barra lateral SOLO si viene directamente del formulario de edición
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.get('updated') === '1' && params.get('openSidebar') === '1') {
+                            const userSidebar = document.getElementById('userSidebar');
+                            if (userSidebar) {
+                                const offcanvasInstance = new bootstrap.Offcanvas(userSidebar);
+                                offcanvasInstance.show();
+                            }
+                            
+                            // Limpiar la URL para que no vuelva a abrirse en recargas posteriores
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                        
+                        // Desaparecer el mensaje después de 4 segundos
+                        setTimeout(function() {
+                            const alertaExito = document.getElementById('alertaExito');
+                            if (alertaExito) {
+                                alertaExito.style.transition = 'opacity 0.5s ease-out';
+                                alertaExito.style.opacity = '0';
+                                setTimeout(function() {
+                                    alertaExito.remove();
+                                }, 500);
+                            }
+                        }, 4000);
+                    </script>
                 <?php } ?>
+
+                <?php else: ?>
+                <!-- Opciones cuando NO hay sesión iniciada -->
+                <div class="text-center">
+                    <p class="text-muted mb-4">No has iniciado sesión</p>
+                    <div class="d-grid gap-2">
+                        <a href="Login.php" class="btn text-white fw-bold" style="background-color: var(--dark-pink);">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </a>
+                        <a href="index.php#registro" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-plus me-2"></i>Registrarse
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -686,9 +1113,9 @@ if ($esAdmin) {
     <div class="container">
         <h1 class="display-4 fw-bold">Te damos la bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Kore Estética Corporal</h1>
         <p class="lead">Un espacio diseñado para que puedas relajarte y disfrutar de tratamientos que le hacen bien a tu cuerpo</p>
-        <button class="btn btn-pink btn-lg mt-3" onclick="window.location.href='reservas-kore.php'">
+        <a href="reservas-kore.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink btn-lg mt-3 btn-highlight">
             <i class="fas fa-calendar-check me-2"></i> Reservar turno
-        </button>
+        </a>
     </div>
 </section>
 
@@ -771,7 +1198,7 @@ $resultado = mysqli_query($conexion, $query_faciales);
                         <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
                         <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                         <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</div>
-                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
+                        <a href="reservas-kore.php?id_negocio=<?php echo $id_negocio; ?>&servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
                     </div>
                 </div>
             </div>
@@ -802,7 +1229,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
                         <p class="card-text"><?php echo htmlspecialchars($row['descripcion']); ?></p>
                         <div class="service-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></div>
                         <div class="service-duration">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</div>
-                        <a href="reservas-kore.php?servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
+                        <a href="reservas-kore.php?id_negocio=<?php echo $id_negocio; ?>&servicio=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Agendar</a>
                     </div>
                 </div>
             </div>
@@ -828,13 +1255,39 @@ $resultado = mysqli_query($conexion, $query_masajes);
             }
             
             // Consulta para obtener los combos/promociones
-            $query_combos = "SELECT nombre, precio, descripcion, duracion_minutos, imagen_url FROM combos WHERE id_negocio = 1";
-            $resultado_combos = mysqli_query($conexion, $query_combos);
+            $query_combos = "SELECT nombre, precio, descripcion, duracion_minutos, imagen_url FROM combos WHERE id_negocio = ?";
+            $stmt_combos = $conexion->prepare($query_combos);
+            $stmt_combos->bind_param('i', $id_negocio);
+            $stmt_combos->execute();
+            $resultado_combos = $stmt_combos->get_result();
             ?>
             <div class="row g-4 justify-content-center">
-                <?php while ($row = mysqli_fetch_assoc($resultado_combos)) { ?>
+                <?php while ($row = mysqli_fetch_assoc($resultado_combos)) { 
+                    // Determinar descuento según el nombre del combo
+                    $nombre_combo = strtolower(trim($row['nombre']));
+                    $descuento = 0;
+                    
+                    // Búsqueda flexible para 15%
+                    if (strpos($nombre_combo, 'booty') !== false || 
+                        strpos($nombre_combo, 'jornada') !== false || 
+                        (strpos($nombre_combo, 'electrodos') !== false && strpos($nombre_combo, 'masajes') !== false)) {
+                        $descuento = 15;
+                    } 
+                    // Búsqueda flexible para 20%
+                    elseif (strpos($nombre_combo, 'piernas') !== false || 
+                            strpos($nombre_combo, 'reducción') !== false ||
+                            strpos($nombre_combo, 'reduccion') !== false) {
+                        $descuento = 20;
+                    }
+                ?>
                     <div class="col-md-6 col-lg-4">
-                        <div class="card promo-card h-100">
+                        <div class="card promo-card h-100 position-relative">
+                            <?php if ($descuento > 0): ?>
+                            <div class="discount-badge">
+                                <i class="fas fa-star"></i>
+                                <span>-<?php echo $descuento; ?>%</span>
+                            </div>
+                            <?php endif; ?>
                             <div class="card-img-top d-flex align-items-center justify-content-center">
                                 <?php if (!empty($row['imagen_url'])): ?>
                                     <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="service-thumb">
@@ -860,8 +1313,8 @@ $resultado = mysqli_query($conexion, $query_masajes);
                                 <?php if (!empty($row['duracion_minutos'])) { ?>
                                     <p class="text-muted">Duración: <?php echo (int)$row['duracion_minutos']; ?> minutos</p>
                                 <?php } ?>
-                                <h4 class="promo-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></h4>
-                                <a href="reservas-kore.php" class="btn btn-pink mt-3">Reservar ahora</a>
+                                <h4 class="promo-price">$<?php echo number_format($row['precio'], 0, ',', '.'); ?></H4>
+                                <a href="reservas-kore.php?id_negocio=<?php echo $id_negocio; ?>&combo=<?php echo urlencode($row['nombre']); ?>" class="btn btn-pink mt-3">Reservar ahora</a>
                             </div>
                         </div>
                     </div>
@@ -896,9 +1349,14 @@ $resultado = mysqli_query($conexion, $query_masajes);
         <!-- Footer -->
         <footer class="footer">
             <div class="container">
-                <div class="logo-placeholder">KORE</div>
-                <p class="mt-3">Beauty Kore Estética y Bienestar - Tu espacio de belleza y relajación</p>
-                <p>© 2023 Kore Estética Corporal. Todos los derechos reservados.</p>
+                <div class="logo-placeholder">
+                    <div class="logo-circle">
+                        <img src="imagenes/KoreEstetica.png" alt="Kore Estética Logo">
+                    </div>
+                    <span class="logo-text">KORE</span>
+                </div>
+                <p>Beauty Kore Estética y Bienestar - Tu espacio de belleza y relajación</p>
+                <p>© 2025 Kore Estética Corporal. Todos los derechos reservados.</p>
             </div>
         </footer>
     </div>
@@ -906,7 +1364,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
     <!-- Modal para ver Notificación -->
     <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" style="background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);">
           <div class="modal-header pink-gradient text-white">
             <h5 class="modal-title" id="notificationModalLabel"><i class="fas fa-bell me-2"></i>Detalle de la Notificación</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -920,6 +1378,53 @@ $resultado = mysqli_query($conexion, $query_masajes);
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Modal Todas las Notificaciones -->
+    <div class="modal fade" id="todasNotificacionesModal" tabindex="-1" aria-labelledby="todasNotificacionesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);">
+                <div class="modal-header pink-gradient text-white">
+                    <h5 class="modal-title" id="todasNotificacionesModalLabel"><i class="fas fa-bell me-2"></i>Todas las Notificaciones</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <input type="text" id="filtro-notif-cliente" placeholder="Buscar por cliente..." class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="filtro-notif-servicio" placeholder="Buscar por servicio..." class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="date" id="filtro-notif-fecha" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Notificaciones -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Servicio</th>
+                                    <th>Mensaje</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todasNotificacionesTableBody">
+                                <tr><td colspan="5" class="text-center py-4">Cargando notificaciones...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Historial de Citas -->
@@ -948,32 +1453,72 @@ $resultado = mysqli_query($conexion, $query_masajes);
                                     <option value="semana" selected>Última semana</option>
                                     <option value="mes">Último mes</option>
                                     <option value="tres_meses">Últimos 3 meses</option>
-                                    <option value="todos">Ver todo el historial</option>
                                 </select>
                             </div>
                         </div>
                         <!-- Columna de la Tabla -->
                         <div class="col-md-8">
-                            <div class="filtros">
-                                <input type="text" id="filtro-nombre" placeholder="Buscar por cliente..." class="form-control" style="flex:1; min-width:140px;">
-                                <input type="text" id="filtro-servicio" placeholder="Buscar por servicio..." class="form-control" style="flex:1; min-width:140px;">
-                                <input type="date" id="filtro-fecha" class="form-control" style="width:160px;">
-                            </div>
-                            <div class="tabla-reservas">
-                                <div class="table-responsive">
-                                    <table id="historialTabla" class="table">
-                                        <thead>
-                                            <tr>
-                                            <th>Cliente</th>
-                                            <th>Servicio</th>
-                                            <th>Categoría</th>
-                                            <th>Fecha</th>
-                                            <th>Hora</th>
-                                            <th>Precio</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody id="historialTableBody"></tbody>
-                                    </table>
+                            <!-- Tabs para Citas Activas y Canceladas -->
+                            <ul class="nav nav-tabs mb-3" id="historialTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="citasActivas-tab" data-bs-toggle="tab" data-bs-target="#citasActivas" type="button" role="tab" aria-controls="citasActivas" aria-selected="true">
+                                        <i class="fas fa-calendar-check me-2"></i>Citas Activas
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="citasCanceladas-tab" data-bs-toggle="tab" data-bs-target="#citasCanceladas" type="button" role="tab" aria-controls="citasCanceladas" aria-selected="false">
+                                        <i class="fas fa-ban me-2"></i>Citas Canceladas
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Contenido de las Tabs -->
+                            <div class="tab-content" id="historialTabsContent">
+                                <!-- Tab de Citas Activas -->
+                                <div class="tab-pane fade show active" id="citasActivas" role="tabpanel" aria-labelledby="citasActivas-tab">
+                                    <div class="filtros mb-3">
+                                        <input type="text" id="filtro-nombre" placeholder="Buscar por cliente..." class="form-control" style="flex:1; min-width:140px;">
+                                        <input type="text" id="filtro-servicio" placeholder="Buscar por servicio..." class="form-control" style="flex:1; min-width:140px;">
+                                    </div>
+                                    <div class="tabla-reservas">
+                                        <div class="table-responsive">
+                                            <table id="historialTabla" class="table">
+                                                <thead>
+                                                    <tr>
+                                                    <th>Cliente</th>
+                                                    <th>Servicio</th>
+                                                    <th>Categoría</th>
+                                                    <th>Fecha</th>
+                                                    <th>Hora</th>
+                                                    <th>Precio</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="historialTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab de Citas Canceladas -->
+                                <div class="tab-pane fade" id="citasCanceladas" role="tabpanel" aria-labelledby="citasCanceladas-tab">
+                                    <div class="tabla-reservas">
+                                        <div class="table-responsive">
+                                            <table id="historialCanceladoTabla" class="table">
+                                                <thead>
+                                                    <tr>
+                                                    <th>Cliente</th>
+                                                    <th>Servicio</th>
+                                                    <th>Categoría</th>
+                                                    <th>Fecha Original</th>
+                                                    <th>Fecha Cancelación</th>
+                                                    <th>Precio</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="historialCanceladoTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -986,12 +1531,17 @@ $resultado = mysqli_query($conexion, $query_masajes);
     
 
     <script>
+        // Variable global para saber si el usuario es admin
+        const esAdmin = <?php echo $esAdmin ? 'true' : 'false'; ?>;
+
+        // Variables globales (removidas - ahora usamos atributo data del modal)
+
         // Mover la lógica de carga a su propia función para poder reutilizarla
         function cargarHistorial(periodo) {
                 const tbody = document.getElementById('historialTableBody');
                 // Limpiar la tabla INMEDIATAMENTE y mostrar el mensaje de carga.
                 // Esto asegura que no se vea contenido viejo en ningún momento.
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Cargando historial...</td></tr>'; // Mensaje de carga
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Cargando historial...</td></tr>'; // Mensaje de carga
 
             // Hacer la petición AJAX para obtener el historial
             fetch(`obtener_historial.php?periodo=${periodo}&id_negocio=1&_=${new Date().getTime()}`, { 
@@ -1020,7 +1570,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
                     tbody.innerHTML = '';
 
                     if (!data || (Array.isArray(data) && data.length === 0)) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No tienes citas en este período.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No tienes citas en este período.</td></tr>';
                         return;
                     }
 
@@ -1029,7 +1579,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
 
                     // Si la API devuelve un objeto con 'error' mostrarlo
                     if (!Array.isArray(data) && data.error) {
-                        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${data.error}</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.error}</td></tr>`;
                         return;
                     }
 
@@ -1049,6 +1599,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
                         tr.dataset.cliente = (cliente || '').toLowerCase();
                         tr.dataset.servicio = (servicio || '').toLowerCase();
                         tr.dataset.categoria = (categoria || '').toLowerCase();
+                        tr.dataset.id = cita.id;
 
                         tr.innerHTML = `
                             <td>${escapeHtml(cliente)}</td>
@@ -1057,13 +1608,95 @@ $resultado = mysqli_query($conexion, $query_masajes);
                             <td>${fechaStr}</td>
                             <td>${horaStr}</td>
                             <td>$${formatearPrecio(cita.precio)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="abrirModalCancelacion(${cita.id})" title="Cancelar cita">
+                                    <i class="fas fa-trash"></i> Cancelar
+                                </button>
+                            </td>
                         `;
+                        
                         tbody.appendChild(tr);
                     });
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     const msg = (error && error.message) ? error.message : 'Error al cargar el historial.';
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${msg}</td></tr>`;
+                });
+        }
+
+        function cargarHistorialCancelado(periodo) {
+                const tbody = document.getElementById('historialCanceladoTableBody');
+                // Limpiar la tabla INMEDIATAMENTE y mostrar el mensaje de carga.
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Cargando citas canceladas...</td></tr>';
+
+            // Hacer la petición AJAX para obtener el historial cancelado
+            fetch(`obtener_historial_cancelado.php?periodo=${periodo}&id_negocio=1&_=${new Date().getTime()}`, { 
+                method: 'GET',
+                cache: 'no-store', // No guardar en caché
+                headers: { 'Cache-Control': 'no-cache' },
+                credentials: 'same-origin' 
+            })
+                .then(async response => {
+                    const text = await response.text();
+                    // Intentar parsear JSON sólo si es una respuesta con contenido JSON
+                    try {
+                        const data = text ? JSON.parse(text) : null;
+                        if (!response.ok) {
+                            const msg = (data && data.error) ? data.error : `Error del servidor (status ${response.status})`;
+                            throw new Error(msg);
+                        }
+                        return data;
+                    } catch (e) {
+                        // Si no es JSON válido, lanzar error con el texto
+                        throw new Error(text || e.message);
+                    }
+                })
+                .then(data => {
+                    // Limpiar tabla
+                    tbody.innerHTML = '';
+
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No tienes citas canceladas en este período.</td></tr>';
+                        return;
+                    }
+
+                    // Si la API devuelve un objeto con 'error' mostrarlo
+                    if (!Array.isArray(data) && data.error) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${data.error}</td></tr>`;
+                        return;
+                    }
+
+                    // Rellenar la tabla con los datos
+                    data.forEach(cita => {
+                        const fechaObj = new Date(cita.fecha_realizacion);
+                        const fechaStr = fechaObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const fechaCancelObj = new Date(cita.fecha_cancelacion);
+                        const fechaCancelStr = fechaCancelObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const categoria = cita.categoria_nombre || '';
+                        const cliente = cita.cliente || '';
+                        const servicio = cita.servicio || '';
+
+                        const tr = document.createElement('tr');
+                        tr.dataset.cliente = (cliente || '').toLowerCase();
+                        tr.dataset.servicio = (servicio || '').toLowerCase();
+                        tr.dataset.categoria = (categoria || '').toLowerCase();
+
+                        tr.innerHTML = `
+                            <td>${escapeHtml(cliente)}</td>
+                            <td>${escapeHtml(servicio)}</td>
+                            <td>${escapeHtml(categoria)}</td>
+                            <td>${fechaStr}</td>
+                            <td>${fechaCancelStr}</td>
+                            <td>$${formatearPrecio(cita.precio)}</td>
+                        `;
+                        
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const msg = (error && error.message) ? error.message : 'Error al cargar el historial cancelado.';
                     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${msg}</td></tr>`;
                 });
         }
@@ -1112,8 +1745,14 @@ $resultado = mysqli_query($conexion, $query_masajes);
                 if (eventDates.includes(dateStr)) {
                     dayEl.classList.add('has-events');
                     dayEl.addEventListener('click', () => {
-                        document.getElementById('filtro-fecha').value = dateStr;
-                        filtrarHistorial();
+                        // Filtrar por fecha seleccionada
+                        const filas = document.querySelectorAll('#historialTabla tbody tr');
+                        filas.forEach(fila => {
+                            const rowFechaIso = (fila.dataset.fechaIso || '').trim();
+                            fila.style.display = rowFechaIso === dateStr ? '' : 'none';
+                        });
+                        
+                        // Actualizar selección visual del día
                         document.querySelectorAll('.historial-calendar-day.selected').forEach(d => d.classList.remove('selected'));
                         dayEl.classList.add('selected');
                     });
@@ -1138,6 +1777,7 @@ $resultado = mysqli_query($conexion, $query_masajes);
 
             // Cargar el historial con el valor por defecto (última semana)
             cargarHistorial(periodoSelect.value);
+            cargarHistorialCancelado(periodoSelect.value);
 
             modal.show();
         }
@@ -1165,47 +1805,228 @@ $resultado = mysqli_query($conexion, $query_masajes);
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
         }
+        
+        // Función para cancelar una cita desde el historial
+        function cancelarCitaHistorial(citaId) {
+            fetch('cancelar_reserva.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id_historial: citaId })
+            })
+            .then(response => response.text())
+            .then(text => {
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        // Mostrar un modal bonito de éxito
+                        mostrarModalExitoCancelacion();
+                        // Recargar el historial
+                        setTimeout(() => {
+                            cargarHistorial(document.getElementById('periodoHistorial').value);
+                            cargarHistorialCancelado(document.getElementById('periodoHistorial').value);
+                        }, 1500);
+                    } else {
+                        // Mostrar un modal bonito de error
+                        mostrarModalErrorCancelacion(data.error || data.message || 'Error desconocido');
+                    }
+                } catch (e) {
+                    console.error('Error al parsear JSON:', e);
+                    console.error('Respuesta del servidor:', text);
+                    mostrarModalErrorCancelacion('Error al procesar la respuesta del servidor');
+                }
+            })
+            .catch(error => {
+                console.error('Error en cancelarCitaHistorial:', error);
+                mostrarModalErrorCancelacion('Error al procesar la cancelación: ' + error.message);
+            });
+        }
+        
+        // Función para mostrar modal de éxito de cancelación
+        function mostrarModalExitoCancelacion() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-exito-cancelacion';
+            modal.innerHTML = `
+                <div class="contenedor-exito-cancelacion">
+                    <div class="icono-exito">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2>¡Cita Cancelada!</h2>
+                    <p>La cita ha sido cancelada correctamente.</p>
+                    <p class="subtexto">Se ha notificado al estético sobre la cancelación.</p>
+                    <button onclick="this.closest('.modal-exito-cancelacion').remove()" class="btn-cerrar-exito">Entendido</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Auto cerrar después de 3 segundos
+            setTimeout(() => {
+                const elem = document.querySelector('.modal-exito-cancelacion');
+                if (elem) elem.remove();
+            }, 3000);
+        }
+        
+        // Función para mostrar modal de error de cancelación
+        function mostrarModalErrorCancelacion(mensaje) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-error-cancelacion';
+            modal.innerHTML = `
+                <div class="contenedor-error-cancelacion">
+                    <div class="icono-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h2>Error al Cancelar</h2>
+                    <p>${mensaje}</p>
+                    <button onclick="this.closest('.modal-error-cancelacion').remove()" class="btn-cerrar-error">Entendido</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Variables para la confirmación de cancelación
+        
+        // Función para abrir el modal de cancelación
+        function abrirModalCancelacion(idCita) {
+            console.log('abrirModalCancelacion:', idCita);
+            const modal = document.getElementById('modalConfirmCancelacion');
+            modal.dataset.citaId = idCita;
+            
+            // Mostrar el subtexto correcto según si es admin o usuario
+            const subtextoAdmin = document.getElementById('subtexto-admin');
+            const subtextoUsuario = document.getElementById('subtexto-usuario');
+            
+            if (esAdmin) {
+                subtextoAdmin.style.display = 'block';
+                subtextoUsuario.style.display = 'none';
+            } else {
+                subtextoAdmin.style.display = 'none';
+                subtextoUsuario.style.display = 'block';
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function mostrarModalConfirmCancelacion(citaId) {
+            console.log('mostrarModalConfirmCancelacion llamado con:', citaId, 'tipo:', typeof citaId);
+            const modal = document.getElementById('modalConfirmCancelacion');
+            if (modal) {
+                modal.setAttribute('data-cita-id', citaId);
+                
+                // Mostrar el subtexto correcto según si es admin o usuario
+                const subtextoAdmin = document.getElementById('subtexto-admin');
+                const subtextoUsuario = document.getElementById('subtexto-usuario');
+                
+                if (esAdmin) {
+                    subtextoAdmin.style.display = 'block';
+                    subtextoUsuario.style.display = 'none';
+                } else {
+                    subtextoAdmin.style.display = 'none';
+                    subtextoUsuario.style.display = 'block';
+                }
+                
+                modal.classList.add('show');
+                console.log('Modal mostrado con ID:', modal.getAttribute('data-cita-id'));
+            } else {
+                console.error('Modal modalConfirmCancelacion no encontrado');
+            }
+        }
+        
+        function cerrarModalConfirmCancelacion() {
+            const modal = document.getElementById('modalConfirmCancelacion');
+            if (modal) {
+                modal.classList.remove('show');
+                modal.dataset.citaId = '';
+            }
+        }
+        
+        function confirmarCancelacionCita() {
+            const modal = document.getElementById('modalConfirmCancelacion');
+            const idCita = modal.dataset.citaId || modal.getAttribute('data-cita-id');
+            console.log('confirmarCancelacionCita ejecutada, idCita=', idCita, 'tipo:', typeof idCita);
+            
+            if (idCita && parseInt(idCita) > 0) {
+                const idAcancelar = parseInt(idCita);
+                cerrarModalConfirmCancelacion();
+                cancelarCitaHistorial(idAcancelar);
+            } else {
+                console.error('ID de cita inválido:', idCita);
+                alert('Error: No se pudo obtener el ID de la cita');
+            }
+        }
+        
         // Manejar la selección de elementos
         document.addEventListener('DOMContentLoaded', function() {
-            // Añadir listeners para filtrar la tabla de historial (igual que Juliette)
+            // Event listeners para los botones del modal de confirmación de cancelación
+            const btnMantener = document.getElementById('btnMantenerCita');
+            const btnConfirmar = document.getElementById('btnConfirmarCancelacion');
+            const modal = document.getElementById('modalConfirmCancelacion');
+            
+            if (btnMantener) {
+                btnMantener.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Botón mantener clickeado');
+                    cerrarModalConfirmCancelacion();
+                });
+            }
+            
+            if (btnConfirmar) {
+                btnConfirmar.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Botón confirmar clickeado, dataset.citaId=', modal.dataset.citaId);
+                    confirmarCancelacionCita();
+                });
+            }
+            
+            // Cerrar modal al hacer clic fuera
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        cerrarModalConfirmCancelacion();
+                    }
+                });
+            }
+            
+            // Ocultar filtro de nombre si no es admin
+            if (!esAdmin) {
+                const filtroNombreContainer = document.getElementById('filtro-nombre');
+                if (filtroNombreContainer) {
+                    filtroNombreContainer.parentElement.style.display = 'none';
+                }
+            }
+            
+            // Añadir listeners para filtrar la tabla de historial
             const filtroNombre = document.getElementById('filtro-nombre');
             const filtroServicio = document.getElementById('filtro-servicio');
-            const filtroFecha = document.getElementById('filtro-fecha');
             
             function filtrarHistorial() {
                 const nombre = (filtroNombre.value || '').toLowerCase().trim();
                 const servicio = (filtroServicio.value || '').toLowerCase().trim();
-                const fecha = (filtroFecha.value || '').trim(); // formato YYYY-MM-DD
 
-                // Si se borra la fecha del calendario, deseleccionar el día
-                if (fecha === '') {
-                    document.querySelectorAll('.historial-calendar-day.selected').forEach(d => d.classList.remove('selected'));
-                }
                 const filas = document.querySelectorAll('#historialTabla tbody tr');
                 filas.forEach(fila => {
                     const rowCliente = (fila.dataset.cliente || '').toLowerCase();
                     const rowServicio = (fila.dataset.servicio || '').toLowerCase();
                     const rowCategoria = (fila.dataset.categoria || '').toLowerCase();
-                    const rowFechaIso = (fila.dataset.fechaIso || '').trim();
 
                     const visibleNombre = nombre === '' || rowCliente.includes(nombre);
                     const visibleServicio = servicio === '' || rowServicio.includes(servicio) || rowCategoria.includes(servicio);
-                    const visibleFecha = fecha === '' || rowFechaIso === fecha;
 
-                    fila.style.display = (visibleNombre && visibleServicio && visibleFecha) ? '' : 'none';
+                    fila.style.display = (visibleNombre && visibleServicio) ? '' : 'none';
                 });
             }
 
             // Asignar eventos de 'input' para una respuesta inmediata al borrar
             if (filtroNombre) filtroNombre.addEventListener('input', filtrarHistorial);
             if (filtroServicio) filtroServicio.addEventListener('input', filtrarHistorial);
-            if (filtroFecha) filtroFecha.addEventListener('input', filtrarHistorial);
 
-            // Limpiar el filtro de fecha si se cambia el período general
+            // Limpiar el filtro cuando se cambia el período general
             const periodoSelect = document.getElementById('periodoHistorial');
             periodoSelect.addEventListener('change', function() {
-                if(filtroFecha) filtroFecha.value = ''; // Limpiar filtro de fecha
                 cargarHistorial(this.value);
+                cargarHistorialCancelado(this.value);
             });
 
             // Manejar selección en la barra de navegación
@@ -1294,37 +2115,518 @@ $resultado = mysqli_query($conexion, $query_masajes);
                     .catch(error => console.error('Error al marcar la notificación:', error));
                 });
             });
+            
+            // Manejo de carga de foto de perfil
+            const inputFoto = document.getElementById('inputFoto');
+            if (inputFoto) {
+                inputFoto.addEventListener('change', function(e) {
+                    const archivo = e.target.files[0];
+                    if (!archivo) return;
+
+                    // Mostrar spinner de carga
+                    const imgPerfil = document.getElementById('imgPerfil');
+                    const originalSrc = imgPerfil.src;
+
+                    const formData = new FormData();
+                    formData.append('foto', archivo);
+
+                    fetch('cargar_foto_perfil.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Actualizar la imagen con timestamp para evitar caché
+                            imgPerfil.src = data.foto_url + '?v=' + new Date().getTime();
+                            // Limpiar input
+                            inputFoto.value = '';
+                        } else {
+                            alert('Error al cargar la foto: ' + data.error);
+                            imgPerfil.src = originalSrc;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al cargar la foto');
+                        imgPerfil.src = originalSrc;
+                    });
+                });
+            }
+            
             // Proteger enlaces y botones de reserva - redirigir a login si no hay sesión
             const usuarioLogueado = <?php echo isset($_SESSION['usuario_id']) ? 'true' : 'false'; ?>;
             
-            // Proteger todos los enlaces que van a reservas-kore.php
-            document.querySelectorAll('a[href*="reservas-kore.php"]').forEach(enlace => {
+            // Función para ir a reservas - verifica si usuario está logueado
+            function irAReservas() {
                 if (!usuarioLogueado) {
-                    enlace.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        alert('Debes iniciar sesión para hacer una reserva');
-                        window.location.href = 'Login.php';
-                        return false;
-                    });
+                    const modal = new bootstrap.Modal(document.getElementById('reservaRestringidaModal'));
+                    modal.show();
+                } else {
+                    window.location.href = 'reservas-kore.php?id_negocio=<?php echo $id_negocio; ?>';
+                }
+            }
+            
+            // Usar event delegation para proteger enlaces dinámicamente
+            document.addEventListener('click', function(e) {
+                if (!usuarioLogueado && e.target.closest('a[href*="reservas-kore.php"]')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const modal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
+                    modal.show();
+                    return false;
                 }
             });
             
-            // Proteger botones que dicen "Reservar turno"
-            document.querySelectorAll('button').forEach(btn => {
-                if (btn.textContent.includes('Reservar') || btn.textContent.includes('Agendar')) {
-                    if (!usuarioLogueado) {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            alert('Debes iniciar sesión para hacer una reserva');
-                            window.location.href = 'Login.php';
-                            return false;
-                        });
-                    }
+            // Usar event delegation para proteger botones dinámicamente
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('button');
+                if (!usuarioLogueado && btn && (btn.textContent.includes('Reservar') || btn.textContent.includes('Agendar'))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const modal = new bootstrap.Modal(document.getElementById('reservaRestringidaModal'));
+                    modal.show();
+                    return false;
                 }
             });
+            
+            // Manejar clics en enlaces Agendar
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a.agendar-btn');
+                if (!usuarioLogueado && link) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const modal = new bootstrap.Modal(document.getElementById('reservaRestringidaModal'));
+                    modal.show();
+                    return false;
+                }
+            });
+
+            // Event listeners para los filtros del historial cancelado
+            const filtroNombreCancelado = document.createElement('input');
+            const filtroServicioCancelado = document.createElement('input');
+            
+            // Los filtros ya existen en la tab de canceladas (compartidos con los de activas)
+            // Escuchar cambios en los inputs cuando se cambia la tab
+            const citasActivasTab = document.getElementById('citasActivas-tab');
+            const citasCanceladasTab = document.getElementById('citasCanceladas-tab');
+            
+            // Cuando se hace clic en la tab de citas canceladas
+            if (citasCanceladasTab) {
+                citasCanceladasTab.addEventListener('shown.bs.tab', function() {
+                    // Limpiar los filtros
+                    if (filtroNombre) filtroNombre.value = '';
+                    if (filtroServicio) filtroServicio.value = '';
+                    
+                    // Actualizar la función de filtrado para que use la tabla de canceladas
+                    filtrarHistorialCancelado();
+                    
+                    // Reasignar los listeners a la tabla de canceladas
+                    if (filtroNombre) {
+                        filtroNombre.removeEventListener('input', filtrarHistorial);
+                        filtroNombre.addEventListener('input', filtrarHistorialCancelado);
+                    }
+                    if (filtroServicio) {
+                        filtroServicio.removeEventListener('input', filtrarHistorial);
+                        filtroServicio.addEventListener('input', filtrarHistorialCancelado);
+                    }
+                });
+            }
+
+            // Cuando se hace clic en la tab de citas activas
+            if (citasActivasTab) {
+                citasActivasTab.addEventListener('shown.bs.tab', function() {
+                    // Limpiar los filtros
+                    if (filtroNombre) filtroNombre.value = '';
+                    if (filtroServicio) filtroServicio.value = '';
+                    
+                    // Reasignar los listeners a la tabla de activas
+                    if (filtroNombre) {
+                        filtroNombre.removeEventListener('input', filtrarHistorialCancelado);
+                        filtroNombre.addEventListener('input', filtrarHistorial);
+                    }
+                    if (filtroServicio) {
+                        filtroServicio.removeEventListener('input', filtrarHistorialCancelado);
+                        filtroServicio.addEventListener('input', filtrarHistorial);
+                    }
+                });
+            }
+
+            // Función para filtrar la tabla de historial cancelado
+            function filtrarHistorialCancelado() {
+                const nombre = (filtroNombre?.value || '').toLowerCase().trim();
+                const servicio = (filtroServicio?.value || '').toLowerCase().trim();
+
+                const filas = document.querySelectorAll('#historialCanceladoTabla tbody tr');
+                filas.forEach(fila => {
+                    const rowCliente = (fila.dataset.cliente || '').toLowerCase();
+                    const rowServicio = (fila.dataset.servicio || '').toLowerCase();
+                    const rowCategoria = (fila.dataset.categoria || '').toLowerCase();
+
+                    const visibleNombre = nombre === '' || rowCliente.includes(nombre);
+                    const visibleServicio = servicio === '' || rowServicio.includes(servicio) || rowCategoria.includes(servicio);
+
+                    fila.style.display = (visibleNombre && visibleServicio) ? '' : 'none';
+                });
+            }
         });
     </script>
+
+    <!-- Modales Personalizados con colores de Kore Estética -->
+    <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);">
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #f6b8b3 0%, #e89c94 100%);">
+                    <h5 class="modal-title fw-bold text-white">
+                        <i class="fas fa-sparkles me-2"></i>Agendar Cita
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="text-dark fw-5 mb-3">Para agendar tu cita en <strong style="color: #d8706a;">Kore Estética</strong>, necesitas iniciar sesión primero.</p>
+                    <p class="text-dark mb-0"><i class="fas fa-heart" style="color: #d8706a;"></i> ¡Te esperamos! <i class="fas fa-spa" style="color: #d8706a;"></i></p>
+                </div>
+                <div class="modal-footer border-0 gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn text-white fw-bold" style="background-color: #d8706a;" onclick="window.location.href = 'Login.php'">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reservaRestringidaModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);">
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #f6b8b3 0%, #e89c94 100%);">
+                    <h5 class="modal-title fw-bold text-white">
+                        <i class="fas fa-lock me-2"></i>Acceso Restringido
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="text-dark fw-5 mb-3">Para reservar tus servicios de belleza y bienestar con nosotras, debes iniciar sesión primero.</p>
+                    <p class="text-dark mb-0"><i class="fas fa-sparkles" style="color: #d8706a;"></i> ¡Inicia sesión y agenda ahora! <i class="fas fa-heart" style="color: #d8706a;"></i></p>
+                </div>
+                <div class="modal-footer border-0 gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn text-white fw-bold" style="background-color: #d8706a;" onclick="window.location.href = 'Login.php'">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Cargar todas las notificaciones cuando se abre el modal
+    document.getElementById('todasNotificacionesModal').addEventListener('show.bs.modal', function() {
+        cargarTodasNotificaciones();
+    });
+
+    function cargarTodasNotificaciones() {
+        const tbody = document.getElementById('todasNotificacionesTableBody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">Cargando notificaciones...</td></tr>';
+
+        fetch('obtener_todas_notificaciones.php', {
+            method: 'GET',
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' },
+            credentials: 'same-origin'
+        })
+        .then(async response => {
+            const text = await response.text();
+            try {
+                const data = text ? JSON.parse(text) : [];
+                if (!response.ok) {
+                    throw new Error('Error al cargar notificaciones');
+                }
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No hay notificaciones.</td></tr>';
+                    return;
+                }
+
+                // Renderizar notificaciones
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const fecha = new Date(item.fecha_creacion).toLocaleString('es-ES', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                    const estado = item.leida == 1 ? '<span class="badge bg-secondary">Leída</span>' : '<span class="badge bg-danger">Sin leer</span>';
+                    
+                    const row = document.createElement('tr');
+                    row.dataset.fecha = item.fecha_creacion;
+                    row.dataset.cliente = (item.cliente || '').toLowerCase();
+                    row.dataset.servicio = (item.servicio || '').toLowerCase();
+                    
+                    row.innerHTML = `
+                        <td>${fecha}</td>
+                        <td>${item.cliente || '-'}</td>
+                        <td>${item.servicio || '-'}</td>
+                        <td>${item.mensaje}</td>
+                        <td>${estado}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (e) {
+                console.error('Error:', e);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar notificaciones</td></tr>';
+            }
+        });
+    }
+
+    // Filtrado de notificaciones
+    document.getElementById('filtro-notif-cliente').addEventListener('input', filtrarNotificacionesTabla);
+    document.getElementById('filtro-notif-servicio').addEventListener('input', filtrarNotificacionesTabla);
+    document.getElementById('filtro-notif-fecha').addEventListener('input', filtrarNotificacionesTabla);
+
+    function filtrarNotificacionesTabla() {
+        const cliente = document.getElementById('filtro-notif-cliente').value.toLowerCase().trim();
+        const servicio = document.getElementById('filtro-notif-servicio').value.toLowerCase().trim();
+        const fecha = document.getElementById('filtro-notif-fecha').value.trim();
+
+        const filas = document.querySelectorAll('#todasNotificacionesTableBody tr');
+        filas.forEach(fila => {
+            const rowCliente = (fila.dataset.cliente || '').toLowerCase();
+            const rowServicio = (fila.dataset.servicio || '').toLowerCase();
+            const rowFecha = (fila.dataset.fecha || '').split(' ')[0]; // YYYY-MM-DD
+
+            const visibleCliente = cliente === '' || rowCliente.includes(cliente);
+            const visibleServicio = servicio === '' || rowServicio.includes(servicio);
+            const visibleFecha = fecha === '' || rowFecha === fecha;
+
+            fila.style.display = (visibleCliente && visibleServicio && visibleFecha) ? '' : 'none';
+        });
+    }
+</script>
+
+<!-- Modal de Confirmación de Cancelación de Cita -->
+<div id="modalConfirmCancelacion" class="modal-confirm-cancelacion" data-cita-id="">
+    <div class="modal-confirm-content">
+        <div class="modal-confirm-header">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <p class="modal-confirm-text">¿Estás seguro de que deseas cancelar esta cita?</p>
+        <p class="modal-confirm-subtitle" id="subtexto-admin" style="display: none;">
+            El cliente será notificado y podrá agendar una nueva cita en cualquier momento.
+        </p>
+        <p class="modal-confirm-subtitle" id="subtexto-usuario" style="display: none;">
+            La esteticista será notificada. Puedes agendar una nueva cita en cualquier momento.
+        </p>
+        <div class="modal-confirm-divider"></div>
+        <div class="modal-confirm-buttons">
+            <button type="button" id="btnMantenerCita" class="btn-confirm-keep">
+                <i class="fas fa-check-circle"></i> Mantener Cita
+            </button>
+            <button type="button" id="btnConfirmarCancelacion" class="btn-confirm-cancel">
+                <i class="fas fa-times-circle"></i> Sí, Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-confirm-cancelacion {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9998;
+        backdrop-filter: blur(4px);
+    }
+    
+    .modal-confirm-cancelacion.show {
+        display: flex;
+    }
+    
+    .modal-confirm-content {
+        background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 50%, #e89c94 100%);
+        padding: 50px 40px;
+        border-radius: 20px;
+        box-shadow: 0 25px 80px rgba(216, 112, 106, 0.25);
+        max-width: 500px;
+        text-align: center;
+        border-top: 6px solid #d8706a;
+        animation: slideInConfirm 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .modal-confirm-content::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, #d8706a, #c55a55, #d8706a);
+        box-shadow: 0 2px 10px rgba(216, 112, 106, 0.3);
+    }
+    
+    .modal-confirm-header {
+        font-size: 70px;
+        color: white;
+        margin-bottom: 20px;
+        animation: bounceConfirm 0.6s ease;
+        text-shadow: 0 2px 8px rgba(216, 112, 106, 0.3);
+    }
+    
+    .modal-confirm-title {
+        font-size: 32px;
+        color: #8b4a44;
+        margin: 0 0 15px 0;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-confirm-text {
+        font-size: 18px;
+        color: #5a4038;
+        margin: 0 0 10px 0;
+        font-weight: 600;
+    }
+    
+    .modal-confirm-subtitle {
+        font-size: 14px;
+        color: #5a4038;
+        margin: 0 0 25px 0;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+    
+    .modal-confirm-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(216, 112, 106, 0.3), transparent);
+        margin: 25px 0;
+    }
+    
+    .modal-confirm-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-confirm-keep,
+    .btn-confirm-cancel {
+        border: none;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-size: 15px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        flex: 1;
+        min-width: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-confirm-keep {
+        background: linear-gradient(135deg, #d8706a 0%, #c55a55 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(216, 112, 106, 0.25);
+    }
+    
+    .btn-confirm-keep:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(216, 112, 106, 0.35);
+        background: linear-gradient(135deg, #c55a55 0%, #b04a47 100%);
+    }
+    
+    .btn-confirm-keep:active {
+        transform: translateY(-1px);
+    }
+    
+    .btn-confirm-cancel {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25);
+    }
+    
+    .btn-confirm-cancel:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.35);
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    }
+    
+    .btn-confirm-cancel:active {
+        transform: translateY(-1px);
+    }
+    
+    .btn-confirm-keep i,
+    .btn-confirm-cancel i {
+        font-size: 16px;
+    }
+    
+    @keyframes slideInConfirm {
+        from {
+            transform: translateY(-40px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes bounceConfirm {
+        0% {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .btn-confirm-keep:hover {
+        background-color: #ccc;
+    }
+    
+    .btn-confirm-cancel {
+        background: linear-gradient(135deg, #e89c94 0%, #f6b8b3 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-confirm-cancel:hover {
+        background: linear-gradient(135deg, #d8807c 0%, #e89c94 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<!-- Cerrar modal al hacer clic fuera -->
+<script>
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('modalConfirmCancelacion');
+        if (event.target === modal) {
+            cerrarModalConfirmCancelacion();
+        }
+    });
+</script>
+
 </body>
 </html>

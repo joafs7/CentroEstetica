@@ -2,8 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 
-// Verificar que el usuario esté autenticado y sea admin
-if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'admin') {
+// Verificar que el usuario esté autenticado (admin o usuario normal)
+if (!isset($_SESSION['usuario_id'])) {
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

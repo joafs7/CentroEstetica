@@ -1,10 +1,10 @@
 <?php
 session_start();
 
-// Si no hay sesión, redirige al login
+// Si no hay sesión, muestra un modal y espera a que el usuario haga clic
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: Login.php");
-    exit();
+    // No redirigimos automáticamente, permitimos que la página cargue con el modal
+    $mostrar_modal_login = true;
 }
 
 include 'conexEstetica.php';
@@ -1483,5 +1483,40 @@ nextMonthBtn.addEventListener('click', () => {
         modalModifyBtn.addEventListener('click', closeConfirmationModal);
         modalCloseBtn.addEventListener('click', closeConfirmationModal);
     </script>
+
+<!-- Modal para solicitar login si no hay sesión -->
+<?php if (isset($mostrar_modal_login) && $mostrar_modal_login): ?>
+<div id="modalLoginRequired" class="modal-overlay" style="display: flex;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <h2 style="margin-bottom: 20px;">Debes Iniciar Sesión</h2>
+        <p style="margin-bottom: 30px; color: #666;">Para realizar una reserva, debes iniciar sesión o registrarte primero.</p>
+        <button onclick="window.location.href='Login.php';" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer;">
+            Iniciar Sesión
+        </button>
+    </div>
+</div>
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+</style>
+<?php endif; ?>
+
 </body>
 </html>

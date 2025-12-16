@@ -22,6 +22,11 @@ $esAdmin = isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'admin';
             // Ocultar los botones de login/registro
             document.querySelector(".btn-Iniciar").style.display = "none";
         }
+        
+        // Si viene con #registro en la URL, abrir el modal de registro
+        if (window.location.hash === '#registro') {
+            document.getElementById("registroOverlay").style.display = "flex";
+        }
     });
     </script>
     <script>
@@ -127,23 +132,70 @@ h3 {
 }
 
 .tarjeta:hover {
-  transform: scale(1.03);
+  transform: scale(1.05);
 }
 
 .card {
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 50%, #e89c94 100%);
+  border: 3px solid #d8706a;
+  box-shadow: 
+    0 25px 70px rgba(216, 112, 106, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 40px rgba(248, 182, 176, 0.2);
   overflow: hidden;
-  transition: box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  animation: cardGlow 3s ease-in-out infinite;
 }
 
 .card:hover {
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 25px 70px rgba(216, 112, 106, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 80px rgba(216, 112, 106, 0.4),
+    0 0 120px rgba(248, 182, 176, 0.3);
+}
+
+@keyframes cardGlow {
+  0%, 100% {
+    box-shadow: 
+      0 25px 70px rgba(216, 112, 106, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 0 40px rgba(248, 182, 176, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 25px 70px rgba(216, 112, 106, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 0 80px rgba(216, 112, 106, 0.4),
+      0 0 120px rgba(248, 182, 176, 0.3);
+  }
 }
 
 .card-img-top {
   height: 250px;
   object-fit: cover;
+  border-bottom: 3px solid rgba(216, 112, 106, 0.2);
+}
+
+.tarjeta:first-child .card-img-top {
+  object-fit: contain;
+  object-position: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(250, 240, 240, 0.2) 100%);
+  padding: 10px;
+}
+
+.card-body {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 240, 240, 0.95) 100%);
+  padding: 20px;
+}
+
+.card-title {
+  color: #5a4038 !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+  margin: 0 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Modales */
@@ -165,70 +217,133 @@ h3 {
 }
 
 .login-box {
-  background: white;
-  padding: 40px 32px 32px 32px;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f9f5f7 100%);
+  padding: 40px 45px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(214, 51, 132, 0.25);
   width: 100%;
-  max-width: 420px;
-  max-height: 95vh;
-  overflow-y: auto;
-  animation: fadeIn 0.6s ease-in-out;
+  max-width: 700px;
+  max-height: none;
+  overflow-y: visible;
+  animation: slideUp 0.5s ease-out;
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  border: 3px solid #d63384;
 }
 .login-box h1 {
-  font-size: 28px;
+  font-size: 32px;
   color: #d63384;
-  margin-bottom: 25px;
-  font-weight: 600;
+  margin-bottom: 8px;
+  font-weight: 700;
   text-align: center;
-  margin-top: 30px; /* Asegura espacio debajo del botón cerrar */
+  margin-top: 0;
+  letter-spacing: -0.5px;
+}
+.login-box-subtitle {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 25px;
+  font-weight: 400;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .form-label {
-  font-weight: 500;
-  color: #444;
+  font-weight: 600;
+  color: #555;
+  font-size: 13px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .form-control {
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  border-radius: 10px;
+  border: 2px solid #e8d5e0;
+  padding: 10px 12px;
+  font-size: 14px;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
 }
 
 .form-control:focus {
   border-color: #d63384;
-  box-shadow: 0 0 8px rgba(214, 51, 132, 0.3);
+  background-color: #fff;
+  box-shadow: 0 0 12px rgba(214, 51, 132, 0.25);
   outline: none;
 }
 
+.form-control::placeholder {
+  color: #bbb;
+  font-size: 13px;
+}
+
+.input-group .form-control {
+  border-right: none;
+}
+
+.input-group .btn {
+  border: 2px solid #e8d5e0;
+  color: #d63384;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+  border-radius: 10px;
+  margin-left: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.input-group .btn:hover {
+  background-color: #f0e5eb;
+  border-color: #d63384;
+}
+
+.mb-3 {
+  margin-bottom: 16px !important;
+}
+
+.row {
+  margin-right: -8px;
+  margin-left: -8px;
+}
+
+.col-md-6 {
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
 .btnForm {
- background-color: #d63384;
+  background: linear-gradient(135deg, #d63384 0%, #c0297d 100%);
   color: white;
-  padding: 12px;
+  padding: 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   width: 100%;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 16px;
-  margin-top: 20px;      /* Espacio arriba */
-  margin-bottom: 10px;   /* Espacio abajo */
-  transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(214, 51, 132, 0.08);
+  margin-top: 24px;
+  margin-bottom: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(214, 51, 132, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .btnForm:hover {
-  background-color: #b02a6f;
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+}
+
+.btnForm:active {
+  transform: translateY(0px);
 }
 <style>
 .btn-close-pink {
@@ -256,7 +371,7 @@ h3 {
             <a href="logout.php" class="btn btn-Registrarse">Cerrar Sesión</a>
         <?php else: ?>
             <!-- Mostrar los botones de iniciar sesión y registrarse si no está logueado -->
-            <button class="btn-Iniciar" onclick="mostrarLogin()">Iniciar Sesión</button>
+            <a href="Login.php" class="btn-Iniciar" style="text-decoration: none;">Iniciar Sesión</a>
             <button class="btn-Registrarse" onclick="mostrarRegistro()">Regístrate Ahora</button>
         <?php endif; ?>
     </div>
@@ -290,8 +405,13 @@ h3 {
                 <a href="#" onclick="mostrarRegistro(); cerrar('loginOverlay')" class="btn btn-outline-secondary">Registrarse</a>
             </div>
 
-            <div class="text-end mt-2">
-                <a href="RecuperarContrasena.php" class="text-decoration-none text-dark">¿Olvidaste tu contraseña?</a>
+            <div class="mt-3">
+                <div class="text-end mb-2">
+                    <a href="RecuperarContrasena.php" class="text-decoration-none text-dark">¿Olvidaste tu contraseña?</a>
+                </div>
+                <div class="text-center">
+                    <p class="mb-0">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro(); cerrar('loginOverlay')" class="fw-bold text-decoration-none" style="color: #d63384;">Regístrate</a></p>
+                </div>
             </div>
         </form>
     </div>
@@ -302,44 +422,56 @@ h3 {
     <div class="login-box position-relative">
         <!-- Botón cerrar -->
         <button type="button" class="btn-close btn-close-pink" aria-label="Cerrar" onclick="cerrar('registroOverlay')" style="position:absolute;top:18px;right:18px;z-index:10;"></button>
-        <h1 class="text-center mb-4">Registrarse</h1>
+        <h1 class="text-center">✨ Crear Cuenta</h1>
         <form action="" method="POST">
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre</label>
-                <input type="text" id="nombre" name="nombre" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="apellido" class="form-label">Apellido</label>
-                <input type="text" id="apellido" name="apellido" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="celular" class="form-label">Celular</label>
-                <input type="tel" id="celular" name="celular" class="form-control" required placeholder="Sin el 0 ni el 15">
-            </div>
-            <div class="mb-3">
-                <label for="registroContrasena" class="form-label">Contraseña</label>
-                <div class="input-group">
-                    <input type="password" id="registroContrasena" name="contrasena" class="form-control" required>
-                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registroContrasena', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label"><i class="fas fa-user" style="color: #d63384;"></i>Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Tu nombre" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="apellido" class="form-label"><i class="fas fa-user" style="color: #d63384;"></i>Apellido</label>
+                        <input type="text" id="apellido" name="apellido" class="form-control" placeholder="Tu apellido" required>
+                    </div>
                 </div>
             </div>
             <div class="mb-3">
-                <label for="confirmarContrasena" class="form-label">Confirmar contraseña</label>
-                <div class="input-group">
-                    <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" required>
-                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmarContrasena', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                <label for="email" class="form-label"><i class="fas fa-envelope" style="color: #d63384;"></i>Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="tu@email.com" required>
+            </div>
+            <div class="mb-3">
+                <label for="celular" class="form-label"><i class="fas fa-phone" style="color: #d63384;"></i>Celular</label>
+                <input type="tel" id="celular" name="celular" class="form-control" placeholder="3564827188" required>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="registroContrasena" class="form-label"><i class="fas fa-lock" style="color: #d63384;"></i>Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" id="registroContrasena" name="contrasena" class="form-control" placeholder="8+ caracteres" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registroContrasena', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="confirmarContrasena" class="form-label"><i class="fas fa-lock" style="color: #d63384;"></i>Confirmar</label>
+                        <div class="input-group">
+                            <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" placeholder="Repite" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmarContrasena', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="d-grid mt-4">
-                <button type="submit" class="btnForm">Registrarse</button>
+            <div class="d-grid mt-3">
+                <button type="submit" class="btnForm">Crear Cuenta</button>
             </div>
         </form>
     </div>
@@ -404,16 +536,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <H1 class="bienvenida">Bienvenida/o</H1>
 
-    <H3>Seleccione la estetica en la que su belleza pueda deslumbrar!</H3>
+    <H3>Seleccione la estética en la que su belleza pueda deslumbrar!</H3>
   
 <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center align-items-center">
-    <!-- Tarjeta Kore Estetica -->
+    <!-- Tarjeta Kore Estética -->
     <div class="col tarjeta">
         <a href="Kore_Estetica-Inicio.php?id_negocio=1" class="text-decoration-none">
             <div class="card">
-                <img src="imagenes/KoreEstetica.jpeg" class="card-img-top" alt="Kore Estetica">
+                <img src="imagenes/KoreEstetica.png" class="card-img-top" alt="Kore Estética">
                 <div class="card-body">
-                    <h5 class="card-title text-center">Kore Estetica</h5>
+                    <h5 class="card-title text-center">Kore Estética</h5>
                 </div>
             </div>
         </a>

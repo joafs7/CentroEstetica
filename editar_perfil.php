@@ -43,8 +43,8 @@ if (file_exists('conexEstetica.php')) {
 
 // Redirigir de vuelta a la página principal con indicador
 if ($source === 'juliette') {
-    header('Location: JulietteNails.php?updated=1');
+    header('Location: JulietteNails.php?updated=1&openSidebar=1');
 } else {
-    header('Location: Kore_Estetica-Inicio.php?updated=1');
+    header('Location: Kore_Estetica-Inicio.php?updated=1&openSidebar=1');
 }
 exit();

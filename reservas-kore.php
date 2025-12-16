@@ -1,14 +1,17 @@
 <?php
 session_start();
 
-// Si no hay sesión, redirige al login
+// Si no hay sesión, muestra un modal y espera a que el usuario haga clic
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: Login.php");
-    exit();
+    // No redirigimos automáticamente, permitimos que la página cargue con el modal
+    $mostrar_modal_login = true;
 }
 
 include 'conexEstetica.php';
 $conexion = conectarDB();
+
+// Obtener id_negocio del parámetro GET o de sesión
+$id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : 1;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -82,6 +85,30 @@ $conexion = conectarDB();
             color: #fff;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             position: relative;
+        }
+        
+        .btn-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn-home:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
         }
         
         /* ----- MENÚ CATEGORÍAS ----- */
@@ -221,9 +248,9 @@ $conexion = conectarDB();
         }
         
         .service-card.selected {
-            background: #fff9db;
-            border-color: #ffd43b;
-            box-shadow: 0 6px 12px rgba(255, 212, 59, 0.3);
+            background: #f6b8b3;
+            border-color: #d8706a;
+            box-shadow: 0 6px 12px rgba(216, 112, 106, 0.4);
         }
 
         .service-card.selected::after {
@@ -636,7 +663,7 @@ $conexion = conectarDB();
         }
         
         .confirmation-modal {
-            background: white;
+            background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);
             border-radius: 20px;
             width: 90%;
             max-width: 500px;
@@ -850,6 +877,9 @@ $conexion = conectarDB();
 <div class="container">
     
     <header>
+        <a href="Kore_Estetica-Inicio.php" class="btn-home" title="Volver a inicio">
+            <i class="fas fa-home"></i>
+        </a>
         <div class="logo">
             <i class="fas fa-spa"></i>
         </div>
@@ -874,8 +904,11 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '10' AND id_negocio = '1'";
-                $result = mysqli_query($conexion, $query);
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '10' AND id_negocio = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param('i', $id_negocio);
+                $stmt->execute();
+                $result = $stmt->get_result();
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
@@ -904,8 +937,11 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '11' AND id_negocio = '1'";
-                $result = mysqli_query($conexion, $query);
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '11' AND id_negocio = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param('i', $id_negocio);
+                $stmt->execute();
+                $result = $stmt->get_result();
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
@@ -934,8 +970,11 @@ $conexion = conectarDB();
             <h2 class="section-title"></h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '12' AND id_negocio = '1'";
-                $result = mysqli_query($conexion, $query);
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM servicios WHERE categoria_id = '12' AND id_negocio = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param('i', $id_negocio);
+                $stmt->execute();
+                $result = $stmt->get_result();
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
@@ -976,8 +1015,11 @@ $conexion = conectarDB();
             ?>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 services-grid">
                 <?php
-                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM combos WHERE id_negocio='1'";
-                $result = mysqli_query($conexion, $query);
+                $query = "SELECT id, nombre, descripcion, precio, duracion_minutos, imagen_url FROM combos WHERE id_negocio = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param('i', $id_negocio);
+                $stmt->execute();
+                $result = $stmt->get_result();
                 while ($row = mysqli_fetch_assoc($result)) { ?>
                     <div class="col-12 col-md-4">
                         <div class="card h-100 service-card" data-id="<?php echo $row['id']; ?>" data-duracion="<?php echo $row['duracion_minutos']; ?>">
@@ -1356,15 +1398,15 @@ function showConfirmationModal() {
     });
 
     confirmBtn.addEventListener('click', () => {
-        if (selectedServices.length === 0) { alert("Selecciona al menos un tratamiento o combo"); return; }
-        if (!selectedDate) { alert("Selecciona una fecha"); return; }
-        if (!selectedTime) { alert("Selecciona un horario"); return; }
+        if (selectedServices.length === 0) { mostrarModalMensaje('Advertencia', 'Selecciona al menos un tratamiento o combo'); return; }
+        if (!selectedDate) { mostrarModalMensaje('Advertencia', 'Selecciona una fecha'); return; }
+        if (!selectedTime) { mostrarModalMensaje('Advertencia', 'Selecciona un horario'); return; }
         showConfirmationModal();
     });
 
     modalConfirmBtn.addEventListener('click', () => {
         if (selectedServices.length === 0 || !selectedDate || selectedTime === null) {
-            alert("⚠️ Faltan datos para confirmar la reserva.");
+            mostrarModalMensaje('Advertencia', 'Faltan datos para confirmar la reserva.');
         return;
     }
 
@@ -1376,7 +1418,7 @@ function showConfirmationModal() {
     hora: horaFormateada,
     // El backend espera un array de servicios
     servicios: [servicio],
-    id_negocio: 1
+    id_negocio: <?php echo $id_negocio; ?>
   };
 
   fetch('guardar_historial.php', {
@@ -1394,7 +1436,7 @@ function showConfirmationModal() {
     try {
       const data = JSON.parse(text);
       if (data.success) {
-        alert('✅ Reserva guardada exitosamente');
+        mostrarModalMensaje('¡Reserva Confirmada!', 'Tu cita ha sido agendada exitosamente. ¡Te esperamos!', 'exito');
         closeConfirmationModal();
 
         // Añadir el nuevo turno a la lista de reservados para que se deshabilite al instante
@@ -1413,7 +1455,7 @@ function showConfirmationModal() {
         document.querySelectorAll('.service-card.selected').forEach(c => c.classList.remove('selected'));
         updateSummary();
       } else {
-        alert('❌ Error al guardar la reserva: ' + data.message);
+        mostrarModalMensaje('Error', 'Error al guardar la reserva: ' + data.message, 'error');
         if (data.message.includes('Ya existe una reserva')) {
           generateTimeSlots(); // regenerar horarios
         }
@@ -1424,7 +1466,7 @@ function showConfirmationModal() {
   })
   .catch(error => {
     console.error('Error:', error);
-    alert('❌ Error al procesar la solicitud: ' + error.message);
+    mostrarModalMensaje('Error', 'Error al procesar la solicitud: ' + error.message, 'error');
   });
 });
 
@@ -1437,7 +1479,154 @@ function showConfirmationModal() {
     // Inicializar
     renderCalendar(currentMonth, currentYear);
     attachServiceListeners();
+    
+    // Seleccionar automáticamente un servicio o combo si viene en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const servicioParam = urlParams.get('servicio');
+    const comboParam = urlParams.get('combo');
+    
+    if (servicioParam || comboParam) {
+        // Esperar a que los servicios se carguen en el DOM
+        setTimeout(() => {
+            const searchTerm = servicioParam || comboParam;
+            const serviceCard = Array.from(document.querySelectorAll('.service-card')).find(card => 
+                card.querySelector('.service-name-card').textContent.trim() === decodeURIComponent(searchTerm)
+            );
+            if (serviceCard) {
+                // Simular un clic en la tarjeta del servicio o combo
+                serviceCard.click();
+            }
+        }, 100);
+    }
 });
 </script>
+
+<!-- Modal para mensajes personalizados (éxito, error, advertencia) -->
+<div id="modalMensaje" class="modal-overlay-msg" style="display: none;">
+    <div class="modal-content-msg">
+        <div id="iconoMensaje" style="font-size: 60px; margin-bottom: 15px;"></div>
+        <h2 id="tituloMensaje" style="margin-bottom: 15px; color: #333; font-size: 24px;"></h2>
+        <p id="contenidoMensaje" style="margin-bottom: 25px; color: #666; line-height: 1.6;"></p>
+        <button onclick="cerrarModalMensaje()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+            Aceptar
+        </button>
+    </div>
+</div>
+
+<style>
+    .modal-overlay-msg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none !important;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal-overlay-msg.show {
+        display: flex !important;
+    }
+    
+    .modal-content-msg {
+        background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 100%);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        text-align: center;
+        border-top: 5px solid #e89c94;
+    }
+    
+    /* Estilo para el botón dentro del modal - con gradiente rosa */
+    .modal-content-msg .btn-primary {
+        background: linear-gradient(135deg, #e89c94 0%, #f6b8b3 100%) !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-content-msg .btn-primary:hover {
+        background: linear-gradient(135deg, #d8807c 0%, #e89c94 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+    }
+</style>
+
+<script>
+    function mostrarModalMensaje(titulo, contenido, tipo = 'advertencia') {
+        const modal = document.getElementById('modalMensaje');
+        const iconoDiv = document.getElementById('iconoMensaje');
+        const tituloDiv = document.getElementById('tituloMensaje');
+        const contenidoDiv = document.getElementById('contenidoMensaje');
+        
+        tituloDiv.textContent = titulo;
+        contenidoDiv.textContent = contenido;
+        
+        // Establecer icono según el tipo
+        if (tipo === 'exito') {
+            iconoDiv.innerHTML = '✅';
+            iconoDiv.style.color = '#4CAF50';
+        } else if (tipo === 'error') {
+            iconoDiv.innerHTML = '❌';
+            iconoDiv.style.color = '#f28b82';
+        } else {
+            iconoDiv.innerHTML = '⚠️';
+            iconoDiv.style.color = '#ff9800';
+        }
+        
+        modal.classList.add('show');
+    }
+    
+    function cerrarModalMensaje() {
+        document.getElementById('modalMensaje').classList.remove('show');
+    }
+    
+    // Cerrar modal al hacer clic fuera
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('modalMensaje');
+        if (event.target === modal) {
+            cerrarModalMensaje();
+        }
+    });
+</script>
+
+<!-- Modal para solicitar login si no hay sesión -->
+<?php if (isset($mostrar_modal_login) && $mostrar_modal_login): ?>
+<div id="modalLoginRequired" class="modal-overlay" style="display: flex;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <h2 style="margin-bottom: 20px;">Debes Iniciar Sesión</h2>
+        <p style="margin-bottom: 30px; color: #666;">Para realizar una reserva, debes iniciar sesión o registrarte primero.</p>
+        <button onclick="window.location.href='Login.php';" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer;">
+            Iniciar Sesión
+        </button>
+    </div>
+</div>
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+</style>
+<?php endif; ?>
+
 </body>
-</html> 
+</html>
