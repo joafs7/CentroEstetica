@@ -553,8 +553,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             <ul>
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
+                <?php if ($id_negocio != 2): // Ocultar para Juliette Nails ?>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
-                <li onclick="history.back()"><i class="fas fa-arrow-left"></i> Volver atrás</li>
+                <?php endif; ?>
+                <?php
+                    $pagina_inicio = ($id_negocio == 2) ? 'JulietteNails.php' : 'Kore_Estetica-Inicio.php';
+                ?>
+                <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-images"></i> Galería</li>
+                <li onclick="window.location.href='<?php echo $pagina_inicio; ?>'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
         </aside>
 
@@ -785,8 +791,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     </div>
                 </form>
             </div>
-        </div>
+            <div id="seccion-galeria" class="seccion">
+<h2>Galería del Carousel</h2>
+    
+    <form method="post" action="configuracion.php?id_negocio=<?= $id_negocio ?>" enctype="multipart/form-data">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Subir Imagen</th>
+                    <th>Texto Alt</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+          <tbody id="carousel-tbody">
+    <?php
+    $carousel_file = 'Imagenes/carousel.json';
+    if (file_exists($carousel_file)) {
+        $carousel_images = json_decode(file_get_contents($carousel_file), true) ?? [];
+        foreach ($carousel_images as $index => $img):
+    ?>
+    <tr>
+        <td>
+            <!-- Campo oculto para conservar la imagen existente -->
+            <input type="hidden" name="carousel_url[]" value="<?= htmlspecialchars($img['url']) ?>">
+            <img src="<?= htmlspecialchars($img['url']) ?>" alt="" style="max-width:80px;max-height:80px;">
+        </td>
+        <td>
+            <input type="text" name="carousel_alt[]" class="form-control"
+                   placeholder="Descripción de la imagen"
+                   value="<?= htmlspecialchars($img['alt']) ?>">
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();">
+                Eliminar
+            </button>
+        </td>
+    </tr>
+    <?php endforeach; }?>
+</tbody>
+        </table>
     </div>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <button type="button" class="btn btn-secondary" onclick="agregarFila();">
+            <i class="fas fa-plus me-1"></i> Agregar imagen
+        </button>
+        <button type="submit" name="guardar_carousel" class="btn btn-primary">Guardar Galería</button>
+    </div>
+</form>
+</div>
+</div>
+        
+</div>
 
 
     <!-- Modal de Confirmación -->
@@ -813,6 +869,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
 
     <!-- Scripts -->
     <script>
+        function agregarFila() {
+    const tbody = document.getElementById('carousel-tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>
+            <input type="file" name="carousel_file[]" accept="image/*" class="form-control" required>
+        </td>
+        <td>
+            <input type="text" name="carousel_alt[]" class="form-control" placeholder="Descripción">
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove();">
+                Eliminar
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
         let formActual = null;
 
         // Mensajes para diferentes tipos de éxito
