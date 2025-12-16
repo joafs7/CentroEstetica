@@ -21,12 +21,71 @@ if ($conexion->connect_error) {
     die("Error de conexión: " . $conexion->connect_error);
 }
 
-// Consulta base para traer los datos del historial
+// Procesar cancelación de turno
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_turno'])) {
+    $id_historial = intval($_POST['id_historial']);
+    
+    // Obtener la fecha y hora de la reserva
+    $query_check = "SELECT fecha_realizacion FROM historial WHERE id = ?";
+    $stmt_check = $conexion->prepare($query_check);
+    $stmt_check->bind_param("i", $id_historial);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+    $reserva = $result_check->fetch_assoc();
+    $stmt_check->close();
+    
+    if ($reserva) {
+        $fecha_reserva = new DateTime($reserva['fecha_realizacion']);
+        $fecha_actual = new DateTime();
+        
+        // Calcular la diferencia en horas
+        $diferencia = $fecha_reserva->getTimestamp() - $fecha_actual->getTimestamp();
+        $horas_diferencia = $diferencia / 3600;
+        
+        // Verificar si faltan menos de 2 horas
+        if ($horas_diferencia < 2 && $horas_diferencia > 0) {
+            echo "<script>
+                alert('No se puede cancelar el turno con menos de 2 horas de anticipación.\\nTiempo restante: " . round($horas_diferencia, 1) . " horas');
+                window.location='verReservas.php';
+            </script>";
+            exit();
+        }
+        
+        // Si ya pasó el horario
+        if ($horas_diferencia < 0) {
+            echo "<script>
+                alert('No se puede cancelar un turno que ya pasó.');
+                window.location='verReservas.php';
+            </script>";
+            exit();
+        }
+    }
+    
+    // Verificar que el turno pertenezca al usuario o sea admin
+    if ($esAdmin) {
+        $stmt_delete = $conexion->prepare("DELETE FROM historial WHERE id = ? AND id_negocio = ?");
+        $stmt_delete->bind_param("ii", $id_historial, $id_negocio);
+    } else {
+        $stmt_delete = $conexion->prepare("DELETE FROM historial WHERE id = ? AND id_usuario = ? AND id_negocio = ?");
+        $stmt_delete->bind_param("iii", $id_historial, $usuario_id, $id_negocio);
+    }
+    
+    if ($stmt_delete->execute()) {
+        echo "<script>alert('Turno cancelado exitosamente.'); window.location='verReservas.php';</script>";
+    } else {
+        echo "<script>alert('Error al cancelar el turno.');</script>";
+    }
+    $stmt_delete->close();
+}
+
+// Consulta base para traer los datos del historial (agregamos el id)
 $query_base = "
     SELECT 
         h.id,
         CONCAT(u.nombre, ' ', u.apellido) AS cliente,
         COALESCE(s.nombre, c.nombre) AS servicio,
+        h.id_servicio,
+        h.id_combo,
         h.precio AS precio,
         h.fecha_realizacion AS fecha,
         TIME(h.fecha_realizacion) AS hora
@@ -93,6 +152,7 @@ header {
   padding:15px 30px;
   border-radius:20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 30px; /* Separación agregada */
 }
 header img {height:50px;}
 header h2 {color:var(--dark-pink); font-weight:bold;}
@@ -121,18 +181,6 @@ header h2 {color:var(--dark-pink); font-weight:bold;}
   border-color: var(--dark-pink);
   box-shadow: 0 0 4px var(--dark-pink);
 }
-.btn-filtrar {
-  background:var(--primary-color);
-  border:none;
-  color:white;
-  padding:8px 20px;
-  border-radius:20px;
-  transition:0.3s;
-}
-.btn-filtrar:hover {
-  background:var(--dark-pink);
-  transform:translateY(-2px);
-}
 
 /* ----- TABLA ----- */
 .tabla-reservas {
@@ -141,6 +189,7 @@ header h2 {color:var(--dark-pink); font-weight:bold;}
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   overflow:hidden;
   animation:fadeIn 0.8s ease;
+  margin-top: 30px; /* Separación adicional */
 }
 
 /* Estilos para los tabs */
@@ -200,10 +249,67 @@ td {
   text-align:center;
   padding:10px;
   border-bottom:1px solid #eee;
+  vertical-align:middle;
 }
 tr:hover {
   background-color: #fff5f5;
   transition:0.3s;
+}
+
+/* ----- BOTONES DE ACCIÓN ----- */
+.acciones-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-accion {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-accion i {
+  font-size: 0.9rem;
+}
+
+.btn-modificar {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: white;
+}
+
+.btn-modificar:hover {
+  background: linear-gradient(135deg, #db2777 0%, #be185d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(219, 39, 119, 0.3);
+  color: white;
+}
+
+.btn-cancelar {
+  background: linear-gradient(135deg, #f8b6b0 0%, #f6b8b3 100%);
+  color: #831843;
+}
+
+.btn-cancelar:hover {
+  background: linear-gradient(135deg, #f6b8b3 0%, #f4a4a0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(248, 182, 176, 0.4);
+}
+
+.btn-cancelar:active,
+.btn-modificar:active {
+  transform: translateY(0);
 }
 
 /* ----- FOOTER ----- */
@@ -212,6 +318,45 @@ footer {
   padding:15px;
   margin-top:40px;
   color:#777;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .btn-accion {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+  
+  .acciones-cell {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  table {
+    font-size: 0.9rem;
+  }
+  
+  th, td {
+    padding: 8px 5px;
+  }
+  
+  header {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-accion i {
+    margin-right: 0;
+  }
+  
+  .btn-accion span {
+    display: none;
+  }
+  
+  header {
+    margin-bottom: 15px;
+  }
 }
 </style>
 </head>
@@ -226,11 +371,13 @@ footer {
   </header>
 
   <!-- FILTROS -->
+ <?php if ($esAdmin): ?>
   <div class="filtros">
     <input type="text" id="filtro-nombre" placeholder="Buscar por nombre...">
     <input type="text" id="filtro-servicio" placeholder="Buscar por servicio...">
     <input type="date" id="filtro-fecha">
   </div>
+  <?php endif; ?>
 
   <!-- TABLA DE RESERVAS -->
   <div class="tabla-reservas">
@@ -453,9 +600,13 @@ let reservaIdPendiente = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Añadir listeners para filtrar en tiempo real (solo para tabla activa)
-    document.getElementById("filtro-nombre").addEventListener("keyup", filtrar);
-    document.getElementById("filtro-servicio").addEventListener("keyup", filtrar);
-    document.getElementById("filtro-fecha").addEventListener("change", filtrar);
+    const filtroNombre = document.getElementById("filtro-nombre");
+    const filtroServicio = document.getElementById("filtro-servicio");
+    const filtroFecha = document.getElementById("filtro-fecha");
+    
+    if (filtroNombre) filtroNombre.addEventListener("keyup", filtrar);
+    if (filtroServicio) filtroServicio.addEventListener("keyup", filtrar);
+    if (filtroFecha) filtroFecha.addEventListener("change", filtrar);
     
     // Agregar listeners para botones de cancelar en tabla activa
     agregarListenersCancelarActivas();
@@ -467,9 +618,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reservasActivasTab) {
         reservasActivasTab.addEventListener('shown.bs.tab', function() {
             // Limpiar filtros
-            document.getElementById("filtro-nombre").value = '';
-            document.getElementById("filtro-servicio").value = '';
-            document.getElementById("filtro-fecha").value = '';
+            if (filtroNombre) filtroNombre.value = '';
+            if (filtroServicio) filtroServicio.value = '';
+            if (filtroFecha) filtroFecha.value = '';
             
             // Re-agregar listeners para tabla activa
             agregarListenersCancelarActivas();
@@ -479,9 +630,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reservasCanceladasTab) {
         reservasCanceladasTab.addEventListener('shown.bs.tab', function() {
             // Limpiar filtros (no se usan en canceladas)
-            document.getElementById("filtro-nombre").value = '';
-            document.getElementById("filtro-servicio").value = '';
-            document.getElementById("filtro-fecha").value = '';
+            if (filtroNombre) filtroNombre.value = '';
+            if (filtroServicio) filtroServicio.value = '';
+            if (filtroFecha) filtroFecha.value = '';
         });
     }
 });
@@ -591,9 +742,16 @@ function cancelarReserva(reservaId) {
 }
 
 function filtrar() {
-  const nombre = document.getElementById("filtro-nombre").value.toLowerCase();
-  const servicio = document.getElementById("filtro-servicio").value.toLowerCase();
-  const fecha = document.getElementById("filtro-fecha").value;
+  const filtroNombre = document.getElementById("filtro-nombre");
+  const filtroServicio = document.getElementById("filtro-servicio");
+  const filtroFecha = document.getElementById("filtro-fecha");
+  
+  // Si los filtros no existen (no es admin), no hacer nada
+  if (!filtroNombre || !filtroServicio || !filtroFecha) return;
+  
+  const nombre = filtroNombre.value.toLowerCase();
+  const servicio = filtroServicio.value.toLowerCase();
+  const fecha = filtroFecha.value;
   const filas = document.querySelectorAll("#tabla tbody tr");
 
     filas.forEach(fila => {
