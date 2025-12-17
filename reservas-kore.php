@@ -1137,7 +1137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función para obtener las reservas del mes
     function fetchReservedSlots(year, month) {
         // El mes en JS es 0-11, en PHP es 1-12. Sumamos 1.
-        fetch(`obtener_reservas.php?year=${year}&month=${month + 1}`)
+        fetch(`obtener_reservas.php?year=${year}&month=${month + 1}&id_negocio=1`)
             .then(response => response.json())
             .then(data => {
                 reservedSlots = data;
@@ -1439,21 +1439,34 @@ function showConfirmationModal() {
         mostrarModalMensaje('¡Reserva Confirmada!', 'Tu cita ha sido agendada exitosamente. ¡Te esperamos!', 'exito');
         closeConfirmationModal();
 
-        // Añadir el nuevo turno a la lista de reservados para que se deshabilite al instante
+        // Añadir el nuevo turno y todos los horarios bloqueados a la lista de reservados
         const fechaClave = selectedDate.toISOString().split('T')[0];
         if (!reservedSlots[fechaClave]) reservedSlots[fechaClave] = [];
-        reservedSlots[fechaClave].push(selectedTime);
-
-        // Eliminar el horario seleccionado del DOM
-        document.querySelectorAll('.time-slot').forEach(slot => {
-          if (slot.textContent === `${selectedTime}:00`) slot.remove();
-        });
+        
+        // Obtener la duración en minutos del servicio seleccionado
+        const servicio = selectedServices[0];
+        const duracion_minutos = servicio.duracion || 60;
+        const duracion_horas = Math.ceil(duracion_minutos / 60);
+        
+        // Agregar todos los horarios necesarios a reservedSlots
+        for (let h = 0; h < duracion_horas; h++) {
+          const hora_bloqueada = selectedTime + h;
+          if (!reservedSlots[fechaClave].includes(hora_bloqueada)) {
+            reservedSlots[fechaClave].push(hora_bloqueada);
+          }
+        }
 
         // Limpiar selección
         selectedServices = [];
         selectedTime = null;
         document.querySelectorAll('.service-card.selected').forEach(c => c.classList.remove('selected'));
         updateSummary();
+        
+        // Recargar los horarios bloqueados del mes actual para sincronizar con otros usuarios
+        fetchReservedSlots(currentYear, currentMonth);
+        
+        // Regenerar los horarios para mostrar las horas bloqueadas correctamente
+        generateTimeSlots();
       } else {
         mostrarModalMensaje('Error', 'Error al guardar la reserva: ' + data.message, 'error');
         if (data.message.includes('Ya existe una reserva')) {

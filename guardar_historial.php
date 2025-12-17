@@ -51,12 +51,37 @@ try {
     // Combinar fecha y hora
     $conexion = conectarDB();
     $fecha_realizacion = $datos['fecha'] . ' ' . $datos['hora'];
+    
+    // Obtener la duración que se envía desde el frontend
+    $duracion_minutos = 60; // Por defecto 60 minutos
+    if (isset($datos['servicios']) && !empty($datos['servicios']) && isset($datos['servicios'][0]['duracion'])) {
+        $duracion_minutos = intval($datos['servicios'][0]['duracion']);
+    }
+    
+    // Calcular cuántas horas se necesitan (redondear hacia arriba)
+    $duracion_horas = ceil($duracion_minutos / 60);
+    
+    // Crear array de todas las horas que se necesitan verificar
+    $horarios_a_verificar = [];
+    $fecha_check = new DateTime($fecha_realizacion);
+    for ($i = 0; $i < $duracion_horas; $i++) {
+        $horarios_a_verificar[] = $fecha_check->format('Y-m-d H:i:s');
+        $fecha_check->add(new DateInterval('PT1H'));
+    }
 
-    // Verificar disponibilidad del horario
+    // Verificar disponibilidad de TODOS los horarios necesarios
+    $placeholders = implode(',', array_fill(0, count($horarios_a_verificar), '?'));
     $query_verificar = "SELECT COUNT(*) as total FROM historial 
-                        WHERE fecha_realizacion = ? AND id_negocio = 1";
+                        WHERE fecha_realizacion IN ($placeholders) 
+                        AND id_negocio = 1 
+                        AND (cancelada = 0 OR cancelada IS NULL)";
     $stmt_verificar = $conexion->prepare($query_verificar);
-    $stmt_verificar->bind_param('s', $fecha_realizacion);
+    if (!$stmt_verificar) {
+        throw new Exception('Error preparando consulta de verificación: ' . $conexion->error);
+    }
+    
+    $types = str_repeat('s', count($horarios_a_verificar));
+    $stmt_verificar->bind_param($types, ...$horarios_a_verificar);
     $stmt_verificar->execute();
     $result_verificar = $stmt_verificar->get_result();
     $row = $result_verificar->fetch_assoc();
@@ -65,7 +90,7 @@ try {
     if ($row['total'] > 0) {
         echo json_encode([
             'success' => false,
-            'message' => 'Ya existe una reserva para esta fecha y hora.'
+            'message' => 'Uno o más horarios necesarios ya están reservados.'
         ]);
         exit;
     }
@@ -181,34 +206,34 @@ try {
     // Guardar el id de la inserción principal para relacionar bloqueos
     $parent_insert_id = $conexion->insert_id;
 
-    // Si la duración es mayor a 60 minutos, guarda un bloqueo para el siguiente turno
-    if ($duracion > 60) {
-        $fecha_bloqueo = new DateTime($fecha_realizacion);
-        $fecha_bloqueo->modify('+1 hour');
-        $fecha_bloqueo_str = $fecha_bloqueo->format('Y-m-d H:i:s');
-        $nombre_bloqueo = "Bloqueo por combo";
+    // Si la duración es mayor a 60 minutos, guarda bloqueos para los horarios siguientes
+    if ($duracion_minutos > 60) {
+        // Calcular cuántos bloqueos adicionales se necesitan
+        $duracion_horas = ceil($duracion_minutos / 60);
+        
+        // Insertar bloqueos para cada hora adicional necesaria
+        $query_bloqueo = "INSERT INTO historial (
+            id_usuario, nombre, apellido, id_categoria, id_servicio, id_combo, id_negocio, id_cita, id_venta, precio, fecha_realizacion, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt_b = $conexion->prepare($query_bloqueo);
+        if (!$stmt_b) {
+            throw new Exception('Error preparando consulta de bloqueo: ' . $conexion->error);
+        }
+
         $precio_bloqueo = 0;
-
-        // Verificar si la columna id_reserva_padre existe en la tabla `historial`
-        $colCheck = mysqli_query($conexion, "SHOW COLUMNS FROM historial LIKE 'id_reserva_padre'");
-        $has_parent_col = ($colCheck && mysqli_num_rows($colCheck) > 0);
-
-        if ($has_parent_col) {
-            // Insertar bloqueo relacionándolo con la reserva padre (no aparecerá en historial si se filtra por id_reserva_padre IS NULL)
-            $query_bloqueo = "INSERT INTO historial (
-                id_usuario, nombre, apellido, id_categoria, id_servicio, id_combo, id_negocio, id_cita, id_venta, precio, fecha_realizacion, created_at, updated_at, id_reserva_padre
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-            $stmt_b = $conexion->prepare($query_bloqueo);
-            if (!$stmt_b) {
-                throw new Exception('Error preparando consulta de bloqueo: ' . $conexion->error);
-            }
-
-            $id_reserva_padre_val = $parent_insert_id;
+        $nombre_bloqueo = "Bloqueo por combo";
+        $fecha_bloqueo = new DateTime($fecha_realizacion);
+        
+        // Insertar un bloqueo para cada hora adicional necesaria
+        for ($i = 1; $i < $duracion_horas; $i++) {
+            $fecha_bloqueo->add(new DateInterval('PT1H'));
+            $fecha_bloqueo_str = $fecha_bloqueo->format('Y-m-d H:i:s');
+            
             $stmt_b->bind_param(
-                'issiiiiidssssi',
+                'issiiiiiidsss',
                 $_SESSION['usuario_id'],
-                $_SESSION['nombre'],
+                $nombre_bloqueo,
                 $_SESSION['apellido'],
                 $id_categoria,
                 $id_servicio,
@@ -219,22 +244,15 @@ try {
                 $precio_bloqueo,
                 $fecha_bloqueo_str,
                 $created_at,
-                $updated_at,
-                $id_reserva_padre_val
+                $updated_at
             );
 
             if (!$stmt_b->execute()) {
-                $stmt_b->close();
-                throw new Exception('Error al guardar el bloqueo del turno siguiente: ' . $stmt_b->error);
+                throw new Exception('Error al insertar bloqueo de horario: ' . $stmt_b->error);
             }
-
-            $stmt_b->close();
-        } else {
-            // Si la columna no existe en la tabla, no insertamos el bloqueo porque generaría
-            // una fila adicional visible en el historial (precio $0). En su lugar, confiar en el
-            // bloqueo a nivel de aplicación o considerar crear una tabla específica para bloqueos.
-            error_log('guardar_historial: la columna id_reserva_padre no existe; no se insertó bloqueo.');
         }
+
+        $stmt_b->close();
     }
 
     $stmt->close();

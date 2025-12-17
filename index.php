@@ -52,12 +52,47 @@ function togglePassword(inputId, button) {
         icon.classList.add('fa-eye');
     }
 }
+
+// Función para mostrar mensajes personalizados
+function mostrarMensajeValidacion(titulo, mensaje, tipo = 'error') {
+    const modalMensaje = document.getElementById('modalMensajeValidacion');
+    const iconoMensaje = document.getElementById('iconoMensajeValidacion');
+    const tituloMensaje = document.getElementById('tituloMensaje');
+    const contenidoMensaje = document.getElementById('contenidoMensaje');
+    
+    // Limpiar clases previas
+    modalMensaje.classList.remove('modal-error', 'modal-exito', 'modal-advertencia');
+    
+    // Asignar clase según el tipo
+    if (tipo === 'error') {
+        modalMensaje.classList.add('modal-error');
+        iconoMensaje.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i>';
+    } else if (tipo === 'exito') {
+        modalMensaje.classList.add('modal-exito');
+        iconoMensaje.innerHTML = '<i class="fas fa-check-circle" style="color: #27ae60;"></i>';
+    } else if (tipo === 'advertencia') {
+        modalMensaje.classList.add('modal-advertencia');
+        iconoMensaje.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i>';
+    }
+    
+    tituloMensaje.textContent = titulo;
+    contenidoMensaje.textContent = mensaje;
+    modalMensaje.style.display = 'flex';
+}
+
+function cerrarMensajeValidacion() {
+    const modalMensaje = document.getElementById('modalMensajeValidacion');
+    modalMensaje.style.display = 'none';
+}
+
 // Cierra si se hace clic fuera del modal
 window.addEventListener("click", function(e) {
     const loginOverlay = document.getElementById("loginOverlay");
     const registroOverlay = document.getElementById("registroOverlay");
+    const modalMensaje = document.getElementById("modalMensajeValidacion");
     if (e.target === loginOverlay) cerrar("loginOverlay");
     if (e.target === registroOverlay) cerrar("registroOverlay");
+    if (e.target === modalMensaje) cerrarMensajeValidacion();
 });
     </script>  
 	
@@ -254,9 +289,10 @@ h3 {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.form-label {
+/* Estilos para modales de login y registro */
+.login-overlay .form-label {
   font-weight: 600;
-  color: #555;
+  color: #5a4038;
   font-size: 13px;
   margin-bottom: 6px;
   display: flex;
@@ -264,7 +300,7 @@ h3 {
   gap: 6px;
 }
 
-.form-control {
+.login-overlay .form-control {
   border-radius: 10px;
   border: 2px solid #e8d5e0;
   padding: 10px 12px;
@@ -273,23 +309,23 @@ h3 {
   transition: all 0.3s ease;
 }
 
-.form-control:focus {
+.login-overlay .form-control:focus {
   border-color: #d63384;
   background-color: #fff;
   box-shadow: 0 0 12px rgba(214, 51, 132, 0.25);
   outline: none;
 }
 
-.form-control::placeholder {
+.login-overlay .form-control::placeholder {
   color: #bbb;
   font-size: 13px;
 }
 
-.input-group .form-control {
+.login-overlay .input-group .form-control {
   border-right: none;
 }
 
-.input-group .btn {
+.login-overlay .input-group .btn {
   border: 2px solid #e8d5e0;
   color: #d63384;
   background-color: #fafafa;
@@ -300,26 +336,26 @@ h3 {
   font-size: 13px;
 }
 
-.input-group .btn:hover {
+.login-overlay .input-group .btn:hover {
   background-color: #f0e5eb;
   border-color: #d63384;
 }
 
-.mb-3 {
+.login-overlay .mb-3 {
   margin-bottom: 16px !important;
 }
 
-.row {
+.login-overlay .row {
   margin-right: -8px;
   margin-left: -8px;
 }
 
-.col-md-6 {
+.login-overlay .col-md-6 {
   padding-right: 8px;
   padding-left: 8px;
 }
 
-.btnForm {
+.login-overlay .btnForm {
   background: linear-gradient(135deg, #d63384 0%, #c0297d 100%);
   color: white;
   padding: 14px;
@@ -337,12 +373,12 @@ h3 {
   letter-spacing: 0.5px;
 }
 
-.btnForm:hover {
+.login-overlay .btnForm:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
 }
 
-.btnForm:active {
+.login-overlay .btnForm:active {
   transform: translateY(0px);
 }
 <style>
@@ -357,6 +393,361 @@ h3 {
 .btn-close-pink:hover {
     color: #b02a6f;
     opacity: 1;
+}
+
+/* Estilos para la tarjeta de Registro */
+.registro-card {
+    background: linear-gradient(135deg, #fadcd9 0%, #f6b8b3 50%, #e89c94 100%);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    box-shadow: 
+        0 25px 70px rgba(216, 112, 106, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(248, 182, 176, 0.15);
+    width: 100%;
+    max-width: 700px;
+    padding: 50px 40px;
+    animation: slideUpRegistro 0.6s ease-out, glowRegistro 3s ease-in-out infinite;
+    border: 3px solid #d8706a;
+    position: relative;
+}
+
+@keyframes slideUpRegistro {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes glowRegistro {
+    0%, 100% {
+        box-shadow: 
+            0 25px 70px rgba(216, 112, 106, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            0 0 40px rgba(248, 182, 176, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 25px 70px rgba(216, 112, 106, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4),
+            0 0 80px rgba(216, 112, 106, 0.5),
+            0 0 120px rgba(248, 182, 176, 0.4);
+    }
+}
+
+.registro-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.registro-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #5a4038;
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.registro-header p {
+    font-size: 14px;
+    color: #5a4038;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+/* Estilos de formulario unificados */
+.registro-card .form-group {
+    margin-bottom: 20px;
+}
+
+.registro-card .form-label {
+    font-weight: 600;
+    color: #5a4038;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.registro-card .form-label i {
+    color: #d8706a;
+    font-size: 15px;
+}
+
+.registro-card .form-control {
+    border: 2px solid rgba(216, 112, 106, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.85);
+    color: #5a4038;
+}
+
+.registro-card .form-control:focus {
+    border-color: #d8706a;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 0.2rem rgba(216, 112, 106, 0.25);
+    outline: none;
+    color: #5a4038;
+}
+
+.registro-card .form-control::placeholder {
+    color: #a89089;
+}
+
+/* Input group para contraseña */
+.registro-card .input-group {
+    position: relative;
+}
+
+.registro-card .btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #8b6f65;
+    cursor: pointer;
+    padding: 6px;
+    transition: color 0.3s ease;
+    z-index: 10;
+    font-size: 16px;
+}
+
+.registro-card .btn-toggle-password:hover {
+    color: #d8706a;
+}
+
+.registro-card .form-control {
+    padding-right: 45px;
+}
+
+/* Botón de registro */
+.btn-registro {
+    background: linear-gradient(135deg, #d8706a 0%, #e89c94 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-weight: 600;
+    font-size: 16px;
+    color: white;
+    width: 100%;
+    margin-top: 30px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 20px rgba(216, 112, 106, 0.3);
+    cursor: pointer;
+}
+
+.btn-registro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(216, 112, 106, 0.4);
+    background: linear-gradient(135deg, #c95a54 0%, #d8706a 100%);
+    color: white;
+}
+
+.btn-registro:active {
+    transform: translateY(0px);
+}
+
+/* Footer del registro */
+.registro-footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px solid rgba(216, 112, 106, 0.2);
+}
+
+.registro-footer p {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin: 0;
+}
+
+.registro-footer a {
+    color: #d8706a;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.registro-footer a:hover {
+    color: #c95a54;
+    text-decoration: underline;
+}
+
+.btn-close-registro {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #5a4038;
+    opacity: 0.7;
+    transition: color 0.2s, opacity 0.2s;
+    cursor: pointer;
+}
+
+.btn-close-registro:hover {
+    color: #3d2b27;
+    opacity: 1;
+}
+
+.registro-card .row {
+    margin-right: -8px;
+    margin-left: -8px;
+}
+
+.registro-card .col-md-6 {
+    padding-right: 8px;
+    padding-left: 8px;
+}
+
+/* Modal de Mensajes Personalizados */
+.modal-mensaje-validacion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal-contenido-validacion {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    min-width: 350px;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideInModal 0.4s ease-out;
+    border: 3px solid #ddd;
+}
+
+@keyframes slideInModal {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+#iconoMensajeValidacion {
+    font-size: 60px;
+    margin-bottom: 20px;
+}
+
+#tituloMensaje {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+#contenidoMensaje {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.btn-cerrar-mensaje {
+    background: linear-gradient(135deg, #d63384 0%, #c0297d 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-cerrar-mensaje:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(214, 51, 132, 0.3);
+}
+
+.btn-cerrar-mensaje:active {
+    transform: translateY(0);
+}
+
+/* Variantes de color según el tipo de mensaje */
+.modal-mensaje-validacion.modal-error .modal-contenido-validacion {
+    border-color: #e74c3c;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
+}
+
+.modal-mensaje-validacion.modal-exito .modal-contenido-validacion {
+    border-color: #27ae60;
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(39, 174, 96, 0.05) 100%);
+}
+
+.modal-mensaje-validacion.modal-advertencia .modal-contenido-validacion {
+    border-color: #f39c12;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.05) 100%);
+}
+
+.modal-mensaje-validacion.modal-error #tituloMensaje {
+    color: #e74c3c;
+}
+
+.modal-mensaje-validacion.modal-exito #tituloMensaje {
+    color: #27ae60;
+}
+
+.modal-mensaje-validacion.modal-advertencia #tituloMensaje {
+    color: #f39c12;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .registro-card {
+        padding: 40px 25px;
+        max-width: 100%;
+    }
+
+    .registro-header h1 {
+        font-size: 26px;
+    }
+
+    .registro-header p {
+        font-size: 13px;
+    }
+
+    .form-label {
+        font-size: 13px;
+    }
+
+    .form-control {
+        padding: 11px 14px;
+        font-size: 14px;
+    }
+
+    .btn-registro {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
 }
 </style>
 
@@ -419,59 +810,71 @@ h3 {
 
 <!-- Modal Registro -->
 <div class="login-overlay" id="registroOverlay">
-    <div class="login-box position-relative">
+    <div class="registro-card position-relative">
         <!-- Botón cerrar -->
-        <button type="button" class="btn-close btn-close-pink" aria-label="Cerrar" onclick="cerrar('registroOverlay')" style="position:absolute;top:18px;right:18px;z-index:10;"></button>
-        <h1 class="text-center">✨ Crear Cuenta</h1>
+        <button type="button" class="btn-close-registro" aria-label="Cerrar" onclick="cerrar('registroOverlay')" style="position:absolute;top:20px;right:20px;z-index:10;"><i class="fas fa-times"></i></button>
+        
+        <!-- Header -->
+        <div class="registro-header">
+            <h1>Crear Cuenta</h1>
+            <p>Únete a nuestro centro estético</p>
+        </div>
+
         <form action="" method="POST">
             <div class="row">
                 <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label"><i class="fas fa-user" style="color: #d63384;"></i>Nombre</label>
+                    <div class="form-group">
+                        <label for="nombre" class="form-label"><i class="fas fa-user"></i> Nombre</label>
                         <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Tu nombre" required>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="apellido" class="form-label"><i class="fas fa-user" style="color: #d63384;"></i>Apellido</label>
+                    <div class="form-group">
+                        <label for="apellido" class="form-label"><i class="fas fa-user"></i> Apellido</label>
                         <input type="text" id="apellido" name="apellido" class="form-control" placeholder="Tu apellido" required>
                     </div>
                 </div>
             </div>
-            <div class="mb-3">
-                <label for="email" class="form-label"><i class="fas fa-envelope" style="color: #d63384;"></i>Email</label>
+
+            <div class="form-group">
+                <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email</label>
                 <input type="email" id="email" name="email" class="form-control" placeholder="tu@email.com" required>
             </div>
-            <div class="mb-3">
-                <label for="celular" class="form-label"><i class="fas fa-phone" style="color: #d63384;"></i>Celular</label>
+
+            <div class="form-group">
+                <label for="celular" class="form-label"><i class="fas fa-phone"></i> Celular</label>
                 <input type="tel" id="celular" name="celular" class="form-control" placeholder="3564827188" required>
             </div>
+
             <div class="row">
                 <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="registroContrasena" class="form-label"><i class="fas fa-lock" style="color: #d63384;"></i>Contraseña</label>
+                    <div class="form-group">
+                        <label for="registroContrasena" class="form-label"><i class="fas fa-lock"></i> Contraseña</label>
                         <div class="input-group">
                             <input type="password" id="registroContrasena" name="contrasena" class="form-control" placeholder="8+ caracteres" required>
-                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registroContrasena', this)">
-                                <i class="fas fa-eye"></i>
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('registroContrasena', this)">
+                                <i class="fa-regular fa-eye"></i>
                             </button>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="confirmarContrasena" class="form-label"><i class="fas fa-lock" style="color: #d63384;"></i>Confirmar</label>
+                    <div class="form-group">
+                        <label for="confirmarContrasena" class="form-label"><i class="fas fa-lock"></i> Confirmar</label>
                         <div class="input-group">
-                            <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" placeholder="Repite" required>
-                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmarContrasena', this)">
-                                <i class="fas fa-eye"></i>
+                            <input type="password" id="confirmarContrasena" name="confirmar_contrasena" class="form-control" placeholder="Repite la contraseña" required>
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('confirmarContrasena', this)">
+                                <i class="fa-regular fa-eye"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="d-grid mt-3">
-                <button type="submit" class="btnForm">Crear Cuenta</button>
+
+            <button type="submit" class="btn-registro">Crear Cuenta</button>
+
+            <div class="registro-footer">
+                <p>¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin(); cerrar('registroOverlay')">Inicia sesión</a></p>
             </div>
         </form>
     </div>
@@ -489,34 +892,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Validar formato del email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strpos($email, '@') === false || strpos($email, '.com') === false) {
-        echo "<script>alert('El correo electrónico debe contener @ y terminar en .com');</script>";
+        echo "<script>mostrarMensajeValidacion('Error en el Email', 'El correo electrónico debe contener @ y terminar en .com', 'error'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
         exit();
     }
     // Validar celular (no debe contener 0 ni 15)
     if (preg_match('/(^0|15)/', $celular) || strpos($celular, '0') !== false || strpos($celular, '15') !== false) {
-        echo "<script>alert('El celular no debe contener el 0 ni el 15. Ejemplo: 3564827188');</script>";
+        echo "<script>mostrarMensajeValidacion('Error en el Celular', 'El celular no debe contener el 0 ni el 15. Ejemplo: 3564827188', 'error'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
         exit();
     }
 
     // Validar longitud de la contraseña
     if (strlen($contrasena) < 8) {
-        echo "<script>alert('La contraseña debe tener al menos 8 caracteres.');</script>";
+        echo "<script>mostrarMensajeValidacion('Contraseña Débil', 'La contraseña debe tener al menos 8 caracteres.', 'advertencia'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
         exit();
     }
 
     // Validar que las contraseñas coincidan
     if ($_POST['contrasena'] !== $_POST['confirmar_contrasena']) {
-        echo "<script>alert('Las contraseñas no coinciden.');</script>";
+        echo "<script>mostrarMensajeValidacion('Las Contraseñas no Coinciden', 'Por favor, verifica que ambas contraseñas sean iguales.', 'advertencia'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
         exit();
     }
 
     $query_check = "SELECT id FROM usuarios WHERE email = '$email' LIMIT 1";
     $result_check = mysqli_query($conex, $query_check);
     if (mysqli_num_rows($result_check) > 0) {
-        echo "<script>alert('El correo electrónico ya se encuentra registrado.');</script>";
+        echo "<script>mostrarMensajeValidacion('Email ya Registrado', 'Este correo electrónico ya se encuentra registrado en nuestro sistema.', 'error'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
         mysqli_close($conex);
         exit();
     }
+
+    // Validar que el celular no esté duplicado
+    $query_check_celular = "SELECT id FROM usuarios WHERE celular = '$celular' LIMIT 1";
+    $result_check_celular = mysqli_query($conex, $query_check_celular);
+    if (mysqli_num_rows($result_check_celular) > 0) {
+        echo "<script>mostrarMensajeValidacion('Celular ya Registrado', 'Este número de celular ya se encuentra registrado en nuestro sistema.', 'error'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
+        mysqli_close($conex);
+        exit();
+    }
+
     // Encriptar la contraseña antes de almacenarla
     $contrasena_hash = password_hash($contrasena, PASSWORD_BCRYPT);
 
@@ -525,9 +938,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                       VALUES ('$nombre', '$apellido', '$email', '$celular', '$contrasena_hash')";
 
     if (mysqli_query($conex, $query_usuario)) {
-        echo "<script>alert('Registro exitoso. Ahora puede iniciar sesión.');</script>";
+        echo "<script>mostrarMensajeValidacion('¡Registro Exitoso!', 'Bienvenido/a. Ahora puede iniciar sesión con sus datos.', 'exito'); setTimeout(function() { document.getElementById('registroOverlay').style.display = 'none'; }, 2000);</script>";
     } else {
-        echo "<script>alert('Error al registrar el usuario: " . mysqli_error($conex) . "');</script>";
+        echo "<script>mostrarMensajeValidacion('Error en el Registro', 'Ocurrió un error al registrar. Por favor, intente nuevamente.', 'error'); document.getElementById('registroOverlay').style.display = 'flex';</script>";
     }
 
     mysqli_close($conex);
@@ -562,6 +975,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </a>
     </div>
 </div>
+
+<!-- Modal Personalizado de Mensajes de Validación -->
+<div class="modal-mensaje-validacion" id="modalMensajeValidacion">
+    <div class="modal-contenido-validacion">
+        <div id="iconoMensajeValidacion"></div>
+        <h2 id="tituloMensaje">Mensaje</h2>
+        <p id="contenidoMensaje">Contenido del mensaje</p>
+        <button class="btn-cerrar-mensaje" onclick="cerrarMensajeValidacion()">Aceptar</button>
+    </div>
+</div>
+
 <script>
 document.querySelector('#registroOverlay form').addEventListener('submit', function(e) {
     const email = document.getElementById('email').value.trim();
@@ -570,22 +994,22 @@ document.querySelector('#registroOverlay form').addEventListener('submit', funct
     const confirmar = document.getElementById('confirmarContrasena').value;
 
     if (!email.includes('@') || !email.endsWith('.com')) {
-        alert('El correo electrónico debe contener @ y terminar en .com');
+        mostrarMensajeValidacion('Error en el Email', 'El correo electrónico debe contener @ y terminar en .com', 'error');
         e.preventDefault();
         return;
     }
     if (celular.includes('0') || celular.includes('15')) {
-        alert('El celular no debe contener el 0 ni el 15. Ejemplo: 3564827188');
+        mostrarMensajeValidacion('Error en el Celular', 'El celular no debe contener el 0 ni el 15. Ejemplo: 3564827188', 'error');
         e.preventDefault();
         return;
     }
     if (contrasena.length < 8) {
-        alert('La contraseña debe tener al menos 8 caracteres.');
+        mostrarMensajeValidacion('Contraseña Débil', 'La contraseña debe tener al menos 8 caracteres.', 'advertencia');
         e.preventDefault();
         return;
     }
     if (contrasena !== confirmar) {
-        alert('Las contraseñas no coinciden.');
+        mostrarMensajeValidacion('Las Contraseñas no Coinciden', 'Por favor, verifica que ambas contraseñas sean iguales.', 'advertencia');
         e.preventDefault();
         return;
     }

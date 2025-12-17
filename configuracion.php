@@ -554,7 +554,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
-                <li onclick="history.back()"><i class="fas fa-arrow-left"></i> Volver atrás</li>
+                <li onclick="window.location='Kore_Estetica-Inicio.php?id_negocio=1'"><i class="fas fa-arrow-left"></i> Volver atrás</li>
             </ul>
         </aside>
 
@@ -657,6 +657,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
         </div>
         <div class="text-center mt-3">
             <button type="button" name="modificar_servicios" class="btn btn-primary btn-guardar-cambios" data-tipo="servicios">Guardar Cambios</button>
+            <button type="button" class="btn btn-info btn-actualizar ms-2" data-tipo="servicios"><i class="fas fa-sync-alt me-2"></i>Actualizar</button>
         </div>
     </form>
 </div>
@@ -782,6 +783,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     </div>
                     <div class="text-center mt-3">
                         <button type="button" name="modificar_combos" class="btn btn-primary btn-guardar-cambios" data-tipo="combos">Guardar Cambios</button>
+                        <button type="button" class="btn btn-info btn-actualizar ms-2" data-tipo="combos"><i class="fas fa-sync-alt me-2"></i>Actualizar</button>
                     </div>
                 </form>
             </div>
@@ -893,6 +895,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 const newUrl = window.location.pathname + '?id_negocio=' + params.get('id_negocio') + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
             }
+
+            // Evento para botones de actualizar (recargar página)
+            document.querySelectorAll('.btn-actualizar').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    location.reload();
+                });
+            });
 
             // Evento para botones de guardar cambios con AJAX
             document.querySelectorAll('.btn-guardar-cambios').forEach(btn => {
