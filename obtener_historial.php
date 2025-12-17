@@ -28,17 +28,20 @@ $clausula_fecha = "";
 
 switch ($periodo) {
     case 'mes':
+        // Mostrar citas del último mes (pasado + futuro cercano)
         $clausula_fecha = "AND h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
         break;
     case 'tres_meses':
+        // Mostrar citas de los últimos 3 meses
         $clausula_fecha = "AND h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 3 MONTH)";
         break;
     case 'todos':
-        $clausula_fecha = ""; // Sin filtro de fecha
+        $clausula_fecha = ""; // Sin filtro de fecha - mostrar todas
         break;
     case 'semana':
     default:
-        $clausula_fecha = "AND h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        // Mostrar citas de la última semana + futuras (próximas semanas)
+        $clausula_fecha = "AND (h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 7 DAY) OR h.fecha_realizacion >= NOW())";
         break;
 }
 
@@ -51,33 +54,20 @@ $query = "SELECT h.id, h.fecha_realizacion, h.precio,
           LEFT JOIN servicios s ON h.id_servicio = s.id
           LEFT JOIN combos c ON h.id_combo = c.id
           LEFT JOIN usuarios u ON h.id_usuario = u.id
-          WHERE h.id_negocio = ? AND COALESCE(s.nombre, c.nombre) IS NOT NULL
-          AND (h.cancelada = 0 OR h.cancelada IS NULL)";
+          WHERE h.id_negocio = ? 
+          AND (h.cancelada = 0 OR h.cancelada IS NULL)
+          AND h.precio > 0";
 
 // Si no es admin, filtramos por su ID de usuario. Si es admin, ve todo.
 if (!$esAdmin) {
     $query .= " AND h.id_usuario = ?";
 }
 
-// Añadir el filtro de id_reserva_padre SOLO si es para Kore Estética (id_negocio = 1)
-if ($id_negocio === 1) {
-    // Verificar si la columna existe en la tabla `historial` antes de usarla
-    $colExists = false;
-    $colCheck = mysqli_query($conexion, "SHOW COLUMNS FROM historial LIKE 'id_reserva_padre'");
-    if ($colCheck && mysqli_num_rows($colCheck) > 0) {
-        $colExists = true;
-    }
-
-    if ($colExists) {
-        $query .= " AND h.id_reserva_padre IS NULL";
-    } else {
-        // Si la columna no existe, no agregamos la cláusula para evitar errores.
-        // Opcional: se podría registrar este hecho para depuración.
-    }
-}
+// Filtrar para mostrar solo reservas principales (excluir bloqueos con precio 0)
+$query .= " AND h.precio > 0";
 
 $query .= " {$clausula_fecha}
-          ORDER BY h.fecha_realizacion DESC";
+          ORDER BY h.created_at DESC";
 
 $stmt = mysqli_prepare($conexion, $query);
 if ($esAdmin) {

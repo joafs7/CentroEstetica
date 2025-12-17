@@ -37,7 +37,8 @@ switch ($periodo) {
         break;
     case 'semana':
     default:
-        $clausula_fecha = "AND h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        // Mostrar cancelaciones de la última semana y futuras
+        $clausula_fecha = "AND (h.fecha_realizacion >= DATE_SUB(NOW(), INTERVAL 7 DAY) OR h.fecha_realizacion >= NOW())";
         break;
 }
 
@@ -54,15 +55,18 @@ FROM historial h
 LEFT JOIN servicios s ON h.id_servicio = s.id
 LEFT JOIN combos c ON h.id_combo = c.id
 LEFT JOIN usuarios u ON h.id_usuario = u.id
-WHERE h.id_negocio = ? AND h.cancelada = 1 AND COALESCE(s.nombre, c.nombre) IS NOT NULL";
+WHERE h.id_negocio = ? AND h.cancelada = 1 AND h.precio > 0";
 
 // Si no es admin, filtramos por su ID de usuario
 if (!$esAdmin) {
     $query .= " AND h.id_usuario = ?";
 }
 
+// Filtrar para mostrar solo reservas principales (excluir bloqueos con precio 0)
+$query .= " AND h.precio > 0";
+
 $query .= " {$clausula_fecha}
-ORDER BY h.fecha_cancelacion DESC";
+ORDER BY h.created_at DESC";
 
 $stmt = mysqli_prepare($conexion, $query);
 if ($esAdmin) {

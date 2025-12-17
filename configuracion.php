@@ -554,7 +554,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 <li class="activo" onclick="mostrarSeccion('seccion-servicios')"><i class="fas fa-tags"></i> Servicios y Precios</li>
                 <li onclick="mostrarSeccion('seccion-usuarios')"><i class="fas fa-users"></i> Usuarios</li>
                 <li onclick="mostrarSeccion('seccion-promociones')"><i class="fas fa-percent"></i> Promociones</li>
-                <li onclick="history.back()"><i class="fas fa-arrow-left"></i> Volver atrás</li>
+                <li onclick="window.location='Kore_Estetica-Inicio.php?id_negocio=1'"><i class="fas fa-arrow-left"></i> Volver atrás</li>
             </ul>
         </aside>
 
