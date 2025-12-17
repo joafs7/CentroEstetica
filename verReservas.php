@@ -639,29 +639,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function agregarListenersCancelarActivas() {
     document.querySelectorAll('#tabla-cuerpo .cancelar-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Obtener el ID del atributo data-id
-            const idFromDataAttr = this.dataset.id;
-            const idFromAttribute = this.getAttribute('data-id');
-            
-            console.log('Dataset ID:', idFromDataAttr);
-            console.log('Attribute ID:', idFromAttribute);
-            
-            // Usar el ID más confiable
-            reservaIdPendiente = idFromDataAttr || idFromAttribute;
-            
+        btn.onclick = function() {
+            reservaIdPendiente = this.getAttribute('data-id');
             if (!reservaIdPendiente || isNaN(reservaIdPendiente)) {
-                console.error('No se pudo obtener el ID de la fila:', {
-                    dataset: idFromDataAttr,
-                    attribute: idFromAttribute,
-                    rowData: this.closest('tr')?.dataset
-                });
                 alert('Error: No se pudo obtener el ID de la cita. Por favor recargue la página.');
                 return;
             }
-            
             mostrarModalConfirm();
-        });
+        };
     });
 }
 
@@ -677,68 +662,73 @@ function cerrarModalConfirm() {
 function confirmarCancelacion() {
     if (reservaIdPendiente) {
         cerrarModalConfirm();
-        cancelarReserva(reservaIdPendiente);
+        
+        // Crear un formulario dinámico para enviar por POST
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'verReservas.php';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'cancelar_turno';
+        input.value = '1';
+        form.appendChild(input);
+        
+        const inputId = document.createElement('input');
+        inputId.type = 'hidden';
+        inputId.name = 'id_historial';
+        inputId.value = reservaIdPendiente;
+        form.appendChild(inputId);
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 
 function cancelarReserva(reservaId) {
     // Validación del ID
-    if (!reservaId || reservaId === 'undefined' || isNaN(reservaId)) {
-        console.error('ID de reserva inválido:', reservaId);
-        alert('Error: No se pudo obtener el ID de la cita. Por favor recargue la página.');
+    if (!reservaId || isNaN(reservaId)) {
+        mostrarMensaje('Error: ID de reserva inválido');
         return;
     }
 
-    console.log('Cancelando reserva con ID:', reservaId);
-
     fetch('cancelar_reserva.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_historial: parseInt(reservaId) })
     })
-    .then(response => {
-        console.log('Respuesta HTTP status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        console.log('Texto de respuesta:', text);
-        try {
-            const data = JSON.parse(text);
-            console.log('JSON parseado:', data);
-            
-            if (data.success) {
-                alert('Reserva cancelada correctamente');
-                
-                // Remover la fila del DOM inmediatamente
-                const fila = document.querySelector(`tr[data-id="${reservaId}"]`);
-                if (fila) {
-                    fila.remove();
-                    console.log('Fila removida del DOM');
-                }
-                
-                // Recargar la página después de un pequeño delay
-                setTimeout(() => {
-                    console.log('Recargando página...');
-                    window.location.reload(true); // true = fuerza a ignorar el caché
-                }, 1000);
-            } else {
-                alert('Error al cancelar: ' + (data.error || data.message || 'Error desconocido'));
-            }
-        } catch (e) {
-            console.error('Error al parsear JSON:', e);
-            console.error('Respuesta del servidor:', text);
-            alert('Respuesta inválida del servidor');
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje('Reserva cancelada correctamente');
+            // Remover la fila del DOM
+            const fila = document.querySelector(`tr[data-id="${reservaId}"]`);
+            if (fila) fila.remove();
+        } else {
+            mostrarMensaje('Error al cancelar: ' + (data.error || data.message || 'Error desconocido'));
         }
     })
     .catch(error => {
-        console.error('Error en la cancelación:', error);
-        alert('Error al procesar la cancelación: ' + error.message);
+        mostrarMensaje('Error al procesar la cancelación: ' + error.message);
     });
+}
+// Mensaje flotante reutilizable
+function mostrarMensaje(msg, tiempo = 2500) {
+    let box = document.getElementById('mensaje-flotante');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'mensaje-flotante';
+        box.style = 'display:none;position:fixed;top:30px;left:50%;transform:translateX(-50%);z-index:3000;min-width:260px;max-width:90vw;padding:18px 28px;background:linear-gradient(135deg,#f8b6b0 0%,#f472b6 100%);color:#831843;font-size:1.1rem;border-radius:16px;box-shadow:0 4px 18px rgba(236,72,153,0.18);text-align:center;transition:opacity 0.4s;';
+        box.innerHTML = '<span id="mensaje-flotante-text"></span>';
+        document.body.appendChild(box);
+    }
+    document.getElementById('mensaje-flotante-text').textContent = msg;
+    box.style.display = 'block';
+    box.style.opacity = '1';
+    setTimeout(() => {
+        box.style.opacity = '0';
+        setTimeout(() => { box.style.display = 'none'; }, 400);
+    }, tiempo);
 }
 
 function filtrar() {

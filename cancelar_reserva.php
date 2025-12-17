@@ -58,10 +58,9 @@ if (!$input) {
 }
 
 // Validar que existe el campo id_historial
+$input = json_decode(file_get_contents('php://input'), true);
 if (!isset($input['id_historial'])) {
-    log_msg("ERROR: No se envió id_historial");
-    http_response_code(400);
-    echo json_encode(['error' => 'No se envió el ID de la cita (id_historial)', 'success' => false], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['success' => false, 'error' => 'No se envió el ID de la cita (id_historial)']);
     exit();
 }
 

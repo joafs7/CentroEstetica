@@ -1234,15 +1234,15 @@ $conexion = conectarDB();
         });
 
         if (!selectedService) {
-            alert('Por favor selecciona un servicio');
+            mostrarMensaje('Por favor selecciona un servicio');
             return;
         }
         if (!selectedDate) {
-            alert('Por favor selecciona una fecha');
+            mostrarMensaje('Por favor selecciona una fecha');
             return;
         }
         if (!selectedTime) {
-            alert('Por favor selecciona un horario');
+            mostrarMensaje('Por favor selecciona un horario');
             return;
         }
         
@@ -1502,7 +1502,7 @@ nextMonthBtn.addEventListener('click', () => {
         try {
             const data = JSON.parse(text);
         if (data.success) {
-            alert('Reserva guardada exitosamente');
+            mostrarMensaje('Reserva guardada exitosamente');
             closeConfirmationModal();
 
             // Añadir el nuevo turno y todos los horarios bloqueados a la lista de reservados
@@ -1534,7 +1534,7 @@ nextMonthBtn.addEventListener('click', () => {
             // Recargar los horarios bloqueados del mes actual para sincronizar con otros usuarios
             fetchReservedSlots(currentYear, currentMonth);
             } else {
-                alert('Error al guardar la reserva: ' + data.message);
+                 mostrarMensaje('Error al guardar la reserva: ' + data.message);
             }
         } catch (e) {
             throw new Error('Respuesta no válida del servidor: ' + text);
@@ -1542,12 +1542,24 @@ nextMonthBtn.addEventListener('click', () => {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error al procesar la solicitud: ' + error.message);
+    mostrarMensaje('Error al procesar la solicitud: ' + error.message);
     });
         });
         
         modalModifyBtn.addEventListener('click', closeConfirmationModal);
         modalCloseBtn.addEventListener('click', closeConfirmationModal);
+        
+        function mostrarMensaje(msg, tiempo = 2500) {
+        const box = document.getElementById('mensaje-flotante');
+        const text = document.getElementById('mensaje-flotante-text');
+        text.textContent = msg;
+        box.style.display = 'block';
+        box.style.opacity = '1';
+        setTimeout(() => {
+            box.style.opacity = '0';
+            setTimeout(() => { box.style.display = 'none'; }, 400);
+        }, tiempo);
+        }
     </script>
 
 <!-- Modal para solicitar login si no hay sesión -->
@@ -1583,6 +1595,8 @@ nextMonthBtn.addEventListener('click', () => {
     }
 </style>
 <?php endif; ?>
-
+<div id="mensaje-flotante" style="display:none;position:fixed;top:30px;left:50%;transform:translateX(-50%);z-index:3000;min-width:260px;max-width:90vw;padding:18px 28px;background:linear-gradient(135deg,#f8b6b0 0%,#f472b6 100%);color:#831843;font-size:1.1rem;border-radius:16px;box-shadow:0 4px 18px rgba(236,72,153,0.18);text-align:center;transition:opacity 0.4s;">
+    <span id="mensaje-flotante-text"></span>
+</div>
 </body>
 </html>
