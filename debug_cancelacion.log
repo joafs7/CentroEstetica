@@ -9,3 +9,164 @@
 2025-12-16 04:31:20 - Antes de insertar notificación - id_usuario_destino: 18, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Reducción Intensiva' el 31/12/2025 a las 08:00. Por favor agenda una nueva cita.
 2025-12-16 04:31:20 - Notificación insertada exitosamente para user_id=18
 2025-12-16 04:31:20 - Respuesta exitosa enviada
+2025-12-18 05:47:00 - === NUEVA SOLICITUD ===
+2025-12-18 05:47:00 - Usuario ID: 18
+2025-12-18 05:47:00 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 05:47:00 - Input recibido: {"id_historial":228}
+2025-12-18 05:47:00 - ID a cancelar: 228
+2025-12-18 05:47:00 - UPDATE ejecutado para ID: 228
+2025-12-18 05:47:00 - Bloqueos cancelados para reserva ID: 228 (filas afectadas: 1)
+2025-12-18 05:47:00 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 05:47:00 - Admin cancelando. Usuario destino: 18
+2025-12-18 05:47:00 - Antes de insertar notificación - id_usuario_destino: 18, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Jornadas Antiarrugas' el 01/01/2026 a las 18:00. Por favor agenda una nueva cita.
+2025-12-18 05:47:00 - Notificación insertada exitosamente para user_id=18
+2025-12-18 05:47:00 - Respuesta exitosa enviada
+2025-12-18 05:47:04 - === NUEVA SOLICITUD ===
+2025-12-18 05:47:04 - Usuario ID: 18
+2025-12-18 05:47:04 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 05:47:04 - Input recibido: {"id_historial":227}
+2025-12-18 05:47:04 - ID a cancelar: 227
+2025-12-18 05:47:04 - UPDATE ejecutado para ID: 227
+2025-12-18 05:47:04 - Bloqueos cancelados para reserva ID: 227 (filas afectadas: 0)
+2025-12-18 05:47:04 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 05:47:04 - Admin cancelando. Usuario destino: 18
+2025-12-18 05:47:04 - Antes de insertar notificación - id_usuario_destino: 18, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Sesión intensiva en piernas' el 01/01/2026 a las 16:00. Por favor agenda una nueva cita.
+2025-12-18 05:47:04 - Notificación insertada exitosamente para user_id=18
+2025-12-18 05:47:04 - Respuesta exitosa enviada
+2025-12-18 15:27:32 - === NUEVA SOLICITUD ===
+2025-12-18 15:27:32 - Usuario ID: 18
+2025-12-18 15:27:32 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 15:27:32 - Input recibido: {"id_historial":230}
+2025-12-18 15:27:32 - ID a cancelar: 230
+2025-12-18 15:27:32 - UPDATE ejecutado para ID: 230
+2025-12-18 15:27:32 - Bloqueos cancelados para reserva ID: 230 (filas afectadas: 0)
+2025-12-18 15:27:32 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 15:27:32 - Admin cancelando. Usuario destino: 18
+2025-12-18 15:27:32 - Antes de insertar notificación - id_usuario_destino: 18, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Sesión intensiva en piernas' el 01/01/2026 a las 19:00. Por favor agenda una nueva cita.
+2025-12-18 15:27:32 - Notificación insertada exitosamente para user_id=18
+2025-12-18 15:27:32 - Respuesta exitosa enviada
+2025-12-18 15:29:28 - === NUEVA SOLICITUD ===
+2025-12-18 15:29:28 - Usuario ID: 18
+2025-12-18 15:29:28 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 15:29:28 - Input recibido: {"id_historial":232}
+2025-12-18 15:29:28 - ID a cancelar: 232
+2025-12-18 15:29:28 - UPDATE ejecutado para ID: 232
+2025-12-18 15:29:28 - Bloqueos cancelados para reserva ID: 232 (filas afectadas: 1)
+2025-12-18 15:29:28 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 15:29:28 - Admin cancelando. Usuario destino: 18
+2025-12-18 15:29:28 - Antes de insertar notificación - id_usuario_destino: 18, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'PRUEBA COMBO' el 01/01/2026 a las 10:00. Por favor agenda una nueva cita.
+2025-12-18 15:29:28 - Notificación insertada exitosamente para user_id=18
+2025-12-18 15:29:28 - Respuesta exitosa enviada
+2025-12-18 15:41:42 - === NUEVA SOLICITUD ===
+2025-12-18 15:41:42 - Usuario ID: 18
+2025-12-18 15:41:42 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 15:41:42 - Input recibido: {"id_historial":235}
+2025-12-18 15:41:42 - ID a cancelar: 235
+2025-12-18 15:41:42 - UPDATE ejecutado para ID: 235
+2025-12-18 15:41:42 - Bloqueos cancelados para reserva ID: 235 (filas afectadas: 0)
+2025-12-18 15:41:42 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 15:41:42 - Admin cancelando. Usuario destino: 21
+2025-12-18 15:41:42 - Antes de insertar notificación - id_usuario_destino: 21, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Vacumterapia' el 02/01/2026 a las 16:00. Por favor agenda una nueva cita.
+2025-12-18 15:41:42 - Notificación insertada exitosamente para user_id=21
+2025-12-18 15:41:42 - Respuesta exitosa enviada
+2025-12-18 15:41:52 - === NUEVA SOLICITUD ===
+2025-12-18 15:41:52 - Usuario ID: 18
+2025-12-18 15:41:52 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 15:41:52 - Input recibido: {"id_historial":237}
+2025-12-18 15:41:52 - ID a cancelar: 237
+2025-12-18 15:41:52 - UPDATE ejecutado para ID: 237
+2025-12-18 15:41:52 - Bloqueos cancelados para reserva ID: 237 (filas afectadas: 1)
+2025-12-18 15:41:52 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 15:41:52 - Admin cancelando. Usuario destino: 21
+2025-12-18 15:41:52 - Antes de insertar notificación - id_usuario_destino: 21, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Sesión Booty Up' el 02/01/2026 a las 18:00. Por favor agenda una nueva cita.
+2025-12-18 15:41:52 - Notificación insertada exitosamente para user_id=21
+2025-12-18 15:41:52 - Respuesta exitosa enviada
+2025-12-18 16:19:51 - === NUEVA SOLICITUD ===
+2025-12-18 16:19:51 - Usuario ID: 23
+2025-12-18 16:19:51 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 16:19:51 - Input recibido: {"id_historial":197}
+2025-12-18 16:19:51 - ID a cancelar: 197
+2025-12-18 16:19:51 - UPDATE ejecutado para ID: 197
+2025-12-18 16:19:51 - Bloqueos cancelados para reserva ID: 197 (filas afectadas: 0)
+2025-12-18 16:19:51 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 16:19:51 - Admin cancelando. Usuario destino: 23
+2025-12-18 16:19:51 - Antes de insertar notificación - id_usuario_destino: 23, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Francesita' el 25/12/2025 a las 16:00. Por favor agenda una nueva cita.
+2025-12-18 16:19:51 - Notificación insertada exitosamente para user_id=23
+2025-12-18 16:19:51 - Respuesta exitosa enviada
+2025-12-18 16:20:01 - === NUEVA SOLICITUD ===
+2025-12-18 16:20:01 - Usuario ID: 23
+2025-12-18 16:20:01 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 16:20:01 - Input recibido: {"id_historial":226}
+2025-12-18 16:20:01 - ID a cancelar: 226
+2025-12-18 16:20:01 - UPDATE ejecutado para ID: 226
+2025-12-18 16:20:01 - Bloqueos cancelados para reserva ID: 226 (filas afectadas: 0)
+2025-12-18 16:20:01 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 16:20:01 - Admin cancelando. Usuario destino: 23
+2025-12-18 16:20:01 - Antes de insertar notificación - id_usuario_destino: 23, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'AAAAAAAAAAAAAA' el 27/12/2025 a las 17:00. Por favor agenda una nueva cita.
+2025-12-18 16:20:01 - Notificación insertada exitosamente para user_id=23
+2025-12-18 16:20:01 - Respuesta exitosa enviada
+2025-12-18 16:24:13 - === NUEVA SOLICITUD ===
+2025-12-18 16:24:13 - Usuario ID: 23
+2025-12-18 16:24:13 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 16:24:13 - Input recibido: {"id_historial":198}
+2025-12-18 16:24:13 - ID a cancelar: 198
+2025-12-18 16:24:14 - UPDATE ejecutado para ID: 198
+2025-12-18 16:24:14 - Bloqueos cancelados para reserva ID: 198 (filas afectadas: 0)
+2025-12-18 16:24:14 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 16:24:14 - Admin cancelando. Usuario destino: 23
+2025-12-18 16:24:14 - Antes de insertar notificación - id_usuario_destino: 23, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Diseño Capping' el 25/12/2025 a las 19:00. Por favor agenda una nueva cita.
+2025-12-18 16:24:14 - Notificación insertada exitosamente para user_id=23
+2025-12-18 16:24:14 - Respuesta exitosa enviada
+2025-12-18 16:25:05 - === NUEVA SOLICITUD ===
+2025-12-18 16:25:05 - Usuario ID: 23
+2025-12-18 16:25:05 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 16:25:05 - Input recibido: {"id_historial":240}
+2025-12-18 16:25:05 - ID a cancelar: 240
+2025-12-18 16:25:35 - === NUEVA SOLICITUD ===
+2025-12-18 16:25:35 - Usuario ID: 23
+2025-12-18 16:25:35 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 16:25:35 - Input recibido: {"id_historial":199}
+2025-12-18 16:25:35 - ID a cancelar: 199
+2025-12-18 16:25:35 - UPDATE ejecutado para ID: 199
+2025-12-18 16:25:35 - Bloqueos cancelados para reserva ID: 199 (filas afectadas: 0)
+2025-12-18 16:25:35 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 16:25:35 - Admin cancelando. Usuario destino: 21
+2025-12-18 16:25:35 - Antes de insertar notificación - id_usuario_destino: 21, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Full Nail Art' el 25/12/2025 a las 17:00. Por favor agenda una nueva cita.
+2025-12-18 16:25:35 - Notificación insertada exitosamente para user_id=21
+2025-12-18 16:25:35 - Respuesta exitosa enviada
+2025-12-18 18:53:22 - === NUEVA SOLICITUD ===
+2025-12-18 18:53:22 - Usuario ID: 23
+2025-12-18 18:53:22 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 18:53:22 - Input recibido: {"id_historial":242}
+2025-12-18 18:53:22 - ID a cancelar: 242
+2025-12-18 18:53:22 - UPDATE ejecutado para ID: 242
+2025-12-18 18:53:22 - Bloqueos cancelados para reserva ID: 242 (filas afectadas: 0)
+2025-12-18 18:53:22 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 18:53:22 - Admin cancelando. Usuario destino: 23
+2025-12-18 18:53:22 - Antes de insertar notificación - id_usuario_destino: 23, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Francesita' el 26/12/2025 a las 18:00. Por favor agenda una nueva cita.
+2025-12-18 18:53:22 - Notificación insertada exitosamente para user_id=23
+2025-12-18 18:53:22 - Respuesta exitosa enviada
+2025-12-18 19:06:51 - === NUEVA SOLICITUD ===
+2025-12-18 19:06:51 - Usuario ID: 23
+2025-12-18 19:06:51 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 19:06:51 - Input recibido: {"id_historial":243}
+2025-12-18 19:06:51 - ID a cancelar: 243
+2025-12-18 19:06:51 - UPDATE ejecutado para ID: 243
+2025-12-18 19:06:51 - Bloqueos cancelados para reserva ID: 243 (filas afectadas: 0)
+2025-12-18 19:06:51 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 19:06:51 - Admin cancelando. Usuario destino: 23
+2025-12-18 19:06:51 - Antes de insertar notificación - id_usuario_destino: 23, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'Francesita Capping' el 27/12/2025 a las 19:00. Por favor agenda una nueva cita.
+2025-12-18 19:06:51 - Notificación insertada exitosamente para user_id=23
+2025-12-18 19:06:51 - Respuesta exitosa enviada
+2025-12-18 19:16:57 - === NUEVA SOLICITUD ===
+2025-12-18 19:16:57 - Usuario ID: 23
+2025-12-18 19:16:58 - Es admin: SÍ, tipo sesión: admin
+2025-12-18 19:16:58 - Input recibido: {"id_historial":246}
+2025-12-18 19:16:58 - ID a cancelar: 246
+2025-12-18 19:16:58 - UPDATE ejecutado para ID: 246
+2025-12-18 19:16:58 - Bloqueos cancelados para reserva ID: 246 (filas afectadas: 0)
+2025-12-18 19:16:58 - Verificación POST-UPDATE: cancelada = 1
+2025-12-18 19:16:58 - Admin cancelando. Usuario destino: 23
+2025-12-18 19:16:58 - Antes de insertar notificación - id_usuario_destino: 23, mensaje: Lo siento, por motivos de fuerza mayor debo cancelar tu cita de 'NUEVA PRUEBA' el 25/12/2025 a las 11:00. Por favor agenda una nueva cita.
+2025-12-18 19:16:58 - Notificación insertada exitosamente para user_id=23
+2025-12-18 19:16:58 - Respuesta exitosa enviada

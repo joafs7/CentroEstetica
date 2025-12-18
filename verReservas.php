@@ -21,63 +21,6 @@ if ($conexion->connect_error) {
     die("Error de conexión: " . $conexion->connect_error);
 }
 
-// Procesar cancelación de turno
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_turno'])) {
-    $id_historial = intval($_POST['id_historial']);
-    
-    // Obtener la fecha y hora de la reserva
-    $query_check = "SELECT fecha_realizacion FROM historial WHERE id = ?";
-    $stmt_check = $conexion->prepare($query_check);
-    $stmt_check->bind_param("i", $id_historial);
-    $stmt_check->execute();
-    $result_check = $stmt_check->get_result();
-    $reserva = $result_check->fetch_assoc();
-    $stmt_check->close();
-    
-    if ($reserva) {
-        $fecha_reserva = new DateTime($reserva['fecha_realizacion']);
-        $fecha_actual = new DateTime();
-        
-        // Calcular la diferencia en horas
-        $diferencia = $fecha_reserva->getTimestamp() - $fecha_actual->getTimestamp();
-        $horas_diferencia = $diferencia / 3600;
-        
-        // Verificar si faltan menos de 2 horas
-        if ($horas_diferencia < 2 && $horas_diferencia > 0) {
-            echo "<script>
-                alert('No se puede cancelar el turno con menos de 2 horas de anticipación.\\nTiempo restante: " . round($horas_diferencia, 1) . " horas');
-                window.location='verReservas.php';
-            </script>";
-            exit();
-        }
-        
-        // Si ya pasó el horario
-        if ($horas_diferencia < 0) {
-            echo "<script>
-                alert('No se puede cancelar un turno que ya pasó.');
-                window.location='verReservas.php';
-            </script>";
-            exit();
-        }
-    }
-    
-    // Verificar que el turno pertenezca al usuario o sea admin
-    if ($esAdmin) {
-        $stmt_delete = $conexion->prepare("DELETE FROM historial WHERE id = ? AND id_negocio = ?");
-        $stmt_delete->bind_param("ii", $id_historial, $id_negocio);
-    } else {
-        $stmt_delete = $conexion->prepare("DELETE FROM historial WHERE id = ? AND id_usuario = ? AND id_negocio = ?");
-        $stmt_delete->bind_param("iii", $id_historial, $usuario_id, $id_negocio);
-    }
-    
-    if ($stmt_delete->execute()) {
-        echo "<script>alert('Turno cancelado exitosamente.'); window.location='verReservas.php';</script>";
-    } else {
-        echo "<script>alert('Error al cancelar el turno.');</script>";
-    }
-    $stmt_delete->close();
-}
-
 // Consulta base para traer los datos del historial (agregamos el id)
 $query_base = "
     SELECT 
@@ -388,7 +331,7 @@ footer {
           <i class="fas fa-calendar-check me-2"></i>Reservas Activas
         </button>
       </li>
-      <li class="nav-item" role="presentation">
+      <li class="nav-item" role="presentation" style="display: none;">
         <button class="nav-link" id="reservasCanceladas-tab" data-bs-toggle="tab" data-bs-target="#reservasCanceladas" type="button" role="tab" aria-controls="reservasCanceladas" aria-selected="false">
           <i class="fas fa-ban me-2"></i>Reservas Canceladas
         </button>
@@ -465,7 +408,7 @@ footer {
       </div>
 
       <!-- Tab de Reservas Canceladas -->
-      <div class="tab-pane fade" id="reservasCanceladas" role="tabpanel" aria-labelledby="reservasCanceladas-tab">
+      <div class="tab-pane fade" id="reservasCanceladas" role="tabpanel" aria-labelledby="reservasCanceladas-tab" style="display: none;">
         <table id="tabla-canceladas">
           <thead>
             <tr>
@@ -608,8 +551,25 @@ document.addEventListener('DOMContentLoaded', function() {
     if (filtroServicio) filtroServicio.addEventListener("keyup", filtrar);
     if (filtroFecha) filtroFecha.addEventListener("change", filtrar);
     
-    // Agregar listeners para botones de cancelar en tabla activa
-    agregarListenersCancelarActivas();
+    // Usar event delegation para los botones de cancelar
+    const tablaCuerpo = document.getElementById('tabla-cuerpo');
+    if (tablaCuerpo) {
+        tablaCuerpo.addEventListener('click', function(e) {
+            const btn = e.target.closest('.cancelar-btn');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                reservaIdPendiente = btn.getAttribute('data-id');
+                console.log('Botón clickeado, data-id:', reservaIdPendiente, 'tipo:', typeof reservaIdPendiente);
+                if (!reservaIdPendiente || isNaN(reservaIdPendiente)) {
+                    console.error('ID inválido:', reservaIdPendiente);
+                    alert('Error: No se pudo obtener el ID de la cita. Por favor recargue la página.');
+                    return;
+                }
+                mostrarModalConfirm();
+            }
+        });
+    }
 
     // Agregar listeners para cambio de tabs
     const reservasActivasTab = document.getElementById('reservasActivas-tab');
@@ -621,9 +581,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (filtroNombre) filtroNombre.value = '';
             if (filtroServicio) filtroServicio.value = '';
             if (filtroFecha) filtroFecha.value = '';
-            
-            // Re-agregar listeners para tabla activa
-            agregarListenersCancelarActivas();
         });
     }
 
@@ -637,60 +594,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function agregarListenersCancelarActivas() {
-    document.querySelectorAll('#tabla-cuerpo .cancelar-btn').forEach(btn => {
-        btn.onclick = function() {
-            reservaIdPendiente = this.getAttribute('data-id');
-            if (!reservaIdPendiente || isNaN(reservaIdPendiente)) {
-                alert('Error: No se pudo obtener el ID de la cita. Por favor recargue la página.');
-                return;
-            }
-            mostrarModalConfirm();
-        };
-    });
-}
-
 function mostrarModalConfirm() {
+    console.log('mostrarModalConfirm(), reservaIdPendiente =', reservaIdPendiente);
     document.getElementById('confirmCancelModal').style.display = 'flex';
 }
 
 function cerrarModalConfirm() {
+    console.log('cerrarModalConfirm()');
     document.getElementById('confirmCancelModal').style.display = 'none';
     reservaIdPendiente = null;
 }
 
 function confirmarCancelacion() {
+    console.log('confirmarCancelacion(), reservaIdPendiente =', reservaIdPendiente, 'tipo:', typeof reservaIdPendiente);
     if (reservaIdPendiente) {
+        const idAGuardar = reservaIdPendiente;
         cerrarModalConfirm();
-        
-        // Crear un formulario dinámico para enviar por POST
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'verReservas.php';
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'cancelar_turno';
-        input.value = '1';
-        form.appendChild(input);
-        
-        const inputId = document.createElement('input');
-        inputId.type = 'hidden';
-        inputId.name = 'id_historial';
-        inputId.value = reservaIdPendiente;
-        form.appendChild(inputId);
-        
-        document.body.appendChild(form);
-        form.submit();
+        // Usar la función cancelarReserva que llama al endpoint correcto
+        cancelarReserva(idAGuardar);
+    } else {
+        console.error('ERROR: reservaIdPendiente es nulo o indefinido');
     }
 }
 
 function cancelarReserva(reservaId) {
     // Validación del ID
+    console.log('cancelarReserva recibido:', reservaId, 'tipo:', typeof reservaId, 'isNaN:', isNaN(reservaId), 'truthy:', !!reservaId);
+    
     if (!reservaId || isNaN(reservaId)) {
+        console.error('ID inválido en cancelarReserva:', reservaId);
         mostrarMensaje('Error: ID de reserva inválido');
         return;
     }
+
+    console.log('Llamando a cancelar_reserva.php con id:', reservaId);
 
     fetch('cancelar_reserva.php', {
         method: 'POST',
@@ -699,16 +636,19 @@ function cancelarReserva(reservaId) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Respuesta de cancelar_reserva.php:', data);
         if (data.success) {
             mostrarMensaje('Reserva cancelada correctamente');
-            // Remover la fila del DOM
-            const fila = document.querySelector(`tr[data-id="${reservaId}"]`);
-            if (fila) fila.remove();
+            // Recargar la página después de un pequeño delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
             mostrarMensaje('Error al cancelar: ' + (data.error || data.message || 'Error desconocido'));
         }
     })
     .catch(error => {
+        console.error('Error en fetch:', error);
         mostrarMensaje('Error al procesar la cancelación: ' + error.message);
     });
 }
