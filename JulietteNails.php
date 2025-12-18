@@ -1,24 +1,13 @@
 <?php
 session_start();
 
-<<<<<<< HEAD
 $nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
 $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
-=======
-// Si no hay sesión, redirige al login
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: Login.php");
-    exit();
-}
-
-$nombreUsuario = $_SESSION['usuario'];
->>>>>>> rama-joa
 $id_negocio = 2;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
 
-<<<<<<< HEAD
 // --- INICIO: Obtener notificaciones (para admin y usuarios) ---
 $notificaciones_no_leidas = 0;
 $lista_notificaciones = [];
@@ -35,26 +24,6 @@ if ($usuario_id) {  // Si hay usuario logueado (admin o usuario normal)
 }
 // --- FIN: Obtener notificaciones (para admin y usuarios) ---
 
-=======
-// --- INICIO: Obtener notificaciones para el admin ---
-$notificaciones_no_leidas = 0;
-$lista_notificaciones = [];
-if ($esAdmin) {
-    include_once 'conexEstetica.php';
-    $conexion_notif = conectarDB();
-    // La consulta ahora filtra por el id_negocio de Juliette Nails (2)
-    $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
-    $stmt_notif = $conexion_notif->prepare($query_notif);
-    $stmt_notif->bind_param('ii', $_SESSION['usuario_id'], $id_negocio);
-    $stmt_notif->execute();
-    $resultado_notif = $stmt_notif->get_result();
-    $notificaciones_no_leidas = $resultado_notif->num_rows;
-    while($fila = $resultado_notif->fetch_assoc()) {
-        $lista_notificaciones[] = $fila;
-    }
-}
-// --- FIN: Obtener notificaciones para el admin ---
->>>>>>> rama-joa
 ?>
 
 <!DOCTYPE html>
@@ -291,7 +260,6 @@ footer {
     <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
       <i class="fas fa-user-circle"></i> Mi cuenta
     </a>
-<<<<<<< HEAD
                     <?php if ($usuario_id): ?>
                 <div class="dropdown">
                     <button class="nav-btn position-relative" type="button" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
@@ -324,38 +292,6 @@ footer {
                 </div>
                 <?php endif; ?>
             </div>
-=======
-    <?php if ($esAdmin): ?>
-    <div class="dropdown">
-        <a href="#" class="nav-btn position-relative" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-bell"></i>
-            <?php if ($notificaciones_no_leidas > 0): ?>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                <?php echo $notificaciones_no_leidas; ?>
-            </span>
-            <?php endif; ?>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="dropdownNotificaciones" style="width: 380px; max-height: 450px; overflow-y: auto;">
-            <li class="dropdown-header fw-bold">Notificaciones</li>
-            <?php if (!empty($lista_notificaciones)): ?>
-                <?php foreach($lista_notificaciones as $notif): ?>
-                <li>
-                    <a class="dropdown-item d-flex align-items-start notification-item" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
-                        <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
-                        <div>
-                            <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
-                            <p class="mb-0 small lh-sm fw-normal text-wrap notification-message"><?php echo htmlspecialchars($notif['mensaje']); ?></p>
-                        </div>
-                    </a>
-                </li>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
-            <?php endif; ?>
-        </ul>
-    </div>
-    <?php endif; ?>
->>>>>>> rama-joa
   </div>
 </header>
       <!-- Offcanvas lateral: Perfil de usuario -->
