@@ -185,12 +185,12 @@ if (mysqli_stmt_execute($stmt_cancelar)) {
     
     if ($es_admin) {
         // El admin cancela, notificar al usuario
-        $id_usuario_destino = $reserva['id_usuario'];
+        $id_usuario_destino = intval($reserva['id_usuario']);
         $mensaje = "Lo siento, por motivos de fuerza mayor debo cancelar tu cita de '" . 
                    $reserva['servicio_nombre'] . "' el " . 
                    date('d/m/Y', strtotime($reserva['fecha_realizacion'])) . 
                    " a las " . date('H:i', strtotime($reserva['fecha_realizacion'])) . 
-                   ". Por favor agenda una nueva cita.";
+                   ". Por favor, agenda una nueva cita.";
         log_msg("Admin cancelando. Usuario destino: " . $id_usuario_destino);
     } else {
         // El usuario cancela, notificar a TODOS los admins de la negocio
