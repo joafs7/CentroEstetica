@@ -90,6 +90,7 @@ header a:hover, header a.active {
   background:var(--primary-color);
   color:white;
 }
+
 @media (max-width: 768px) {
   .glass-white {
     padding: 10px 8px;
@@ -110,6 +111,45 @@ header a:hover, header a.active {
     align-items: flex-start;
   }
 }
+/* Estilos súper mejorados para el dropdown de notificaciones */
+        .dropdown-menu-notifications {
+            border-radius: 0.75rem !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        .dropdown-menu-notifications .dropdown-item {
+            transition: background-color 0.2s ease-in-out;
+            border-bottom: 1px solid #f8f9fa;
+            padding: 1rem 1.25rem; /* Más espaciado */
+        }
+        .dropdown-menu-notifications .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-menu-notifications .dropdown-item:hover, .dropdown-menu-notifications .dropdown-item:focus {
+            background-color: var(--light-pink) !important;
+            color: var(--dark-pink) !important;
+        }
+        .dropdown-menu-notifications .dropdown-header {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            color: white;
+            border-top-left-radius: calc(0.75rem - 1px);
+            border-top-right-radius: calc(0.75rem - 1px);
+            padding: 1rem 1.25rem;
+        }
+        /* Estilo para notificaciones sin leer */
+        .dropdown-menu-notifications .unread-notification {
+            background-color: #fde8e6 !important;
+            font-weight: 500;
+        }
+        .dropdown-menu-notifications .unread-notification:hover, .dropdown-menu-notifications .unread-notification:focus {
+            background-color: var(--light-pink) !important;
+        }
+        
+        .offcanvas-header {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            color: white;
+        }
+
 /* ----- SERVICIOS ----- */
 .card {
   border:none;
