@@ -2,10 +2,27 @@
 session_start();
 
 $nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
+$usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
 $id_negocio = 2;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
+
+// --- INICIO: Obtener notificaciones (para admin y usuarios) ---
+$notificaciones_no_leidas = 0;
+$lista_notificaciones = [];
+if ($usuario_id) {  // Si hay usuario logueado (admin o usuario normal)
+    include_once 'conexEstetica.php';
+    $conexion_notif = conectarDB();
+    $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
+    $stmt_notif = $conexion_notif->prepare($query_notif);
+    $stmt_notif->bind_param('ii', $usuario_id, $id_negocio_para_notif);
+    $stmt_notif->execute();
+    $resultado_notif = $stmt_notif->get_result();
+    $notificaciones_no_leidas = $resultado_notif->num_rows;
+    while($fila = $resultado_notif->fetch_assoc()) $lista_notificaciones[] = $fila;
+}
+// --- FIN: Obtener notificaciones (para admin y usuarios) ---
 
 ?>
 
@@ -203,6 +220,38 @@ footer {
     <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
       <i class="fas fa-user-circle"></i> Mi cuenta
     </a>
+                    <?php if ($usuario_id): ?>
+                <div class="dropdown">
+                    <button class="nav-btn position-relative" type="button" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <?php if ($notificaciones_no_leidas > 0): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <?php echo $notificaciones_no_leidas; ?>
+                        </span>
+                        <?php endif; ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-notifications shadow-lg" aria-labelledby="dropdownNotificaciones" style="width: 380px; max-height: 450px; overflow-y: auto;">
+                        <li class="dropdown-header fw-bold">Notificaciones</li>
+                        <?php if (!empty($lista_notificaciones)): ?>
+                            <?php foreach($lista_notificaciones as $notif): ?>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-start notification-item unread-notification" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
+                                    <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
+                                    <div>
+                                        <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
+                                        <p class="mb-0 small lh-sm fw-normal text-wrap notification-message"><?php echo htmlspecialchars($notif['mensaje']); ?></p>
+                                    </div>
+                                </a>
+                            </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
+                        <?php endif; ?>
+                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="#" id="verTodasNotificaciones" data-bs-toggle="modal" data-bs-target="#todasNotificacionesModal" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
+                    </ul>
+                </div>
+                <?php endif; ?>
+            </div>
   </div>
 </header>
       <!-- Offcanvas lateral: Perfil de usuario -->
