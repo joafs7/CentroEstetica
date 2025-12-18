@@ -7,6 +7,85 @@ $id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : (isset(
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
+
+// Seguridad: si es admin, solo puede ver su propio negocio
+if (!$esAdmin && isset($_SESSION['id_negocio_admin'])) {
+    // Es admin pero de otro negocio, redirigir a su propio negocio
+    header("Location: configuracion.php?id_negocio=" . $_SESSION['id_negocio_admin']);
+    exit;
+}
+
+// Si no es admin y está tratando de acceder a otro negocio, redirigir
+if (!$esAdmin && $id_negocio != 1) {
+    // Usuario normal solo puede ver Kore (id_negocio=1) o su propio
+    header("Location: configuracion.php?id_negocio=1");
+    exit;
+}
+
+// Procesar guardar carousel (galería)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_carousel'])) {
+    $carousel_file = 'Imagenes/carousel.json';
+    $carousel_images = [];
+    
+    // Procesar imágenes existentes (URLs)
+    if (isset($_POST['carousel_url'])) {
+        foreach ($_POST['carousel_url'] as $index => $url) {
+            if (!empty($url)) {
+                $alt = $_POST['carousel_alt'][$index] ?? 'Imagen de galería';
+                $carousel_images[] = [
+                    'url' => htmlspecialchars($url),
+                    'alt' => htmlspecialchars($alt)
+                ];
+            }
+        }
+    }
+    
+    // Procesar archivos nuevos subidos
+    if (isset($_FILES['carousel_file']) && is_array($_FILES['carousel_file']['name'])) {
+        for ($i = 0; $i < count($_FILES['carousel_file']['name']); $i++) {
+            if (!empty($_FILES['carousel_file']['name'][$i]) && $_FILES['carousel_file']['error'][$i] == 0) {
+                $file_name = $_FILES['carousel_file']['name'][$i];
+                $file_tmp = $_FILES['carousel_file']['tmp_name'][$i];
+                $file_type = $_FILES['carousel_file']['type'][$i];
+                
+                // Validar que sea una imagen
+                $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!in_array($file_type, $allowed_types)) {
+                    continue;
+                }
+                
+                // Crear nombre único para la imagen
+                $timestamp = time();
+                $random = rand(1000, 9999);
+                $file_extension = pathinfo($file_name, PATHINFO_EXTENSION);
+                $new_file_name = "carousel_" . $timestamp . "_" . $random . "." . $file_extension;
+                
+                // Crear directorio si no existe
+                if (!is_dir('Imagenes/carousel')) {
+                    mkdir('Imagenes/carousel', 0755, true);
+                }
+                
+                $file_path = 'Imagenes/carousel/' . $new_file_name;
+                
+                if (move_uploaded_file($file_tmp, $file_path)) {
+                    $alt = $_POST['carousel_alt'][count($_POST['carousel_url']) + $i] ?? 'Imagen de galería';
+                    $carousel_images[] = [
+                        'url' => htmlspecialchars($file_path),
+                        'alt' => htmlspecialchars($alt)
+                    ];
+                }
+            }
+        }
+    }
+    
+    // Guardar en JSON
+    if (file_put_contents($carousel_file, json_encode($carousel_images, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=carousel_guardado#seccion-galeria';</script>";
+    } else {
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&error=error_guardar_carousel#seccion-galeria';</script>";
+    }
+    exit;
+}
     
 // Procesar la modificación masiva de servicios (nombre, desc, url, precio)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_servicios'])) {
@@ -125,7 +204,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['agregar_combo'])) {
     $stmt->execute();
     $stmt->close();
     $conexion->close();
-    echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combo_agregado#seccion-promociones';</script>";
+    
+    // Redirigir a la página principal si es Kore (id_negocio = 1), sino a configuracion
+    if ($id_negocio == 1) {
+        echo "<script>window.location='Kore_Estetica-Inicio.php?id_negocio=$id_negocio#promos';</script>";
+    } else {
+        echo "<script>window.location='configuracion.php?id_negocio=$id_negocio&success=combo_agregado#seccion-promociones';</script>";
+    }
     exit;
 }
 
@@ -559,7 +644,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 <?php
                     $pagina_inicio = ($id_negocio == 2) ? 'JulietteNails.php' : 'Kore_Estetica-Inicio.php';
                 ?>
+                <?php if ($id_negocio == 2): // Mostrar solo para Juliette Nails ?>
                 <li onclick="mostrarSeccion('seccion-galeria')"><i class="fas fa-images"></i> Galería</li>
+                <?php endif; ?>
                 <li onclick="window.location.href='<?php echo $pagina_inicio; ?>'"><i class="fas fa-arrow-left"></i> Volver al inicio</li>
             </ul>
         </aside>
@@ -567,6 +654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
         <!-- Contenido principal -->
         <div class="contenido">
 
+<?php if ($esAdmin): ?>
 <!-- Servicios -->
 <div id="seccion-servicios" class="seccion" style="display:block;">
     <h2><strong>Servicios y Precios</strong></h2>
@@ -592,28 +680,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                         <span class="input-group-text"><i class="fas fa-list-alt"></i></span>
                         <select name="servicio_categoria" class="form-select" required>
                             <option value="">Seleccionar categoría...</option>
-                            <option value="10">Corporales</option>
-                            <option value="11">Faciales</option>
-                            <option value="12">Masajes</option>
+                            <?php
+                            $conexion_cat = conectarDB();
+                            if ($id_negocio == 1) {
+                                // Kore Estética: mostrar categorías 10, 11, 12
+                                $query_cat = "SELECT id, nombre FROM categoria WHERE id IN (10, 11, 12) ORDER BY nombre";
+                            } else if ($id_negocio == 2) {
+                                // Juliette Nails: mostrar categorías 6, 7, 8, 9
+                                $query_cat = "SELECT id, nombre FROM categoria WHERE id IN (6, 7, 8, 9) ORDER BY nombre";
+                            }
+                            $result_cat = $conexion_cat->query($query_cat);
+                            while ($cat = $result_cat->fetch_assoc()) {
+                                echo '<option value="' . $cat['id'] . '">' . htmlspecialchars($cat['nombre']) . '</option>';
+                            }
+                            $conexion_cat->close();
+                            ?>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-12">
                     <textarea name="servicio_descripcion" class="form-control" rows="2" placeholder="Descripción breve del servicio..."></textarea>
                 </div>
+                <?php if ($id_negocio == 1): ?>
                 <div class="col-md-12">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-image"></i></span>
                         <input type="url" name="servicio_imagen_url" class="form-control" placeholder="URL de la imagen (opcional)">
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
             <button type="submit" name="agregar_servicio" class="btn btn-agregar-servicio text-white w-100 mt-3 fw-bold"><i class="fas fa-plus me-2"></i>Agregar Servicio</button>
         </form>
     </div>
 
     <h3 class="mt-5">Servicios Actuales</h3>
-    <form id="form-servicios" method="post" action="configuracion.php?id_negocio=<?php echo $id_negocio; ?>">
+    <form id="form-servicios" method="post" action="configuracion.php?id_negocio=<?php echo $id_negocio; ?>">>
         <div class="table-responsive">
             <table class="table table-bordered table-striped text-center mt-3">
                 <thead class="table-dark">
@@ -629,43 +731,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                 <tbody>
                     <?php
                     $conexion = conectarDB();
+                    // Debug: verificar id_negocio actual
+                    error_log("Configuración - ID Negocio: $id_negocio, Es Admin: " . ($esAdmin ? "SÍ" : "NO"));
+                    
                     $query = "SELECT id, nombre, descripcion, imagen_url, precio, duracion_minutos FROM servicios WHERE id_negocio = ? ORDER BY nombre ASC";
                     $stmt = $conexion->prepare($query);
-                    $stmt->bind_param('i', $id_negocio);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    while ($row = $result->fetch_assoc()) {
-                        echo '<tr>
-                            <td><input type="text" class="form-control" name="servicio_nombre[' . $row['id'] . ']" value="' . htmlspecialchars($row['nombre']) . '"></td>
-                            <td><input type="text" class="form-control" name="servicio_descripcion[' . $row['id'] . ']" value="' . htmlspecialchars($row['descripcion']) . '"></td>
-                            <td><input type="url" class="form-control" name="servicio_imagen_url[' . $row['id'] . ']" value="' . htmlspecialchars($row['imagen_url']) . '"></td>
-                            <td><input type="number" class="form-control" name="servicio_duracion[' . $row['id'] . ']" value="' . htmlspecialchars($row['duracion_minutos']) . '" step="5"></td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" name="servicio_precio[' . $row['id'] . ']" value="' . htmlspecialchars($row['precio']) . '" step="0.01">
-                                </div>
-                            </td>
-                            <td>
-                                <form method="post" action="configuracion.php?id_negocio=' . $id_negocio . '" class="form-eliminar-servicio" style="display:inline;">
-                                    <input type="hidden" name="servicio_id" value="' . $row['id'] . '">
-                                    <input type="hidden" name="eliminar_servicio" value="1">
-                                    <button type="button" class="btn btn-danger btn-sm btn-eliminar-servicio" data-servicio-id="' . $row['id'] . '" data-servicio-nombre="' . htmlspecialchars($row['nombre']) . '">Eliminar</button>
-                                </form>
-                            </td>
-                        </tr>';
+                    if (!$stmt) {
+                        error_log("Error en prepare: " . $conexion->error);
+                        echo "Error al consultar servicios";
+                    } else {
+                        $stmt->bind_param('i', $id_negocio);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        error_log("Servicios encontrados: " . $result->num_rows . " para id_negocio=$id_negocio");
+                        
+                        if ($result->num_rows == 0) {
+                            echo '<tr><td colspan="6" class="text-center text-muted">No hay servicios para este negocio</td></tr>';
+                        }
+                        
+                        while ($row = $result->fetch_assoc()) {
+                            echo '<tr>
+                                <td><input type="text" class="form-control" name="servicio_nombre[' . $row['id'] . ']" value="' . htmlspecialchars($row['nombre']) . '"></td>
+                                <td><input type="text" class="form-control" name="servicio_descripcion[' . $row['id'] . ']" value="' . htmlspecialchars($row['descripcion']) . '"></td>
+                                <td><input type="url" class="form-control" name="servicio_imagen_url[' . $row['id'] . ']" value="' . htmlspecialchars($row['imagen_url']) . '"></td>
+                                <td><input type="number" class="form-control" name="servicio_duracion[' . $row['id'] . ']" value="' . htmlspecialchars($row['duracion_minutos']) . '" step="5"></td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" name="servicio_precio[' . $row['id'] . ']" value="' . htmlspecialchars($row['precio']) . '" step="0.01">
+                                    </div>
+                                </td>
+                                <td>
+                                    <form method="post" action="configuracion.php?id_negocio=' . $id_negocio . '" class="form-eliminar-servicio" style="display:inline;">
+                                        <input type="hidden" name="servicio_id" value="' . $row['id'] . '">
+                                        <input type="hidden" name="eliminar_servicio" value="1">
+                                        <button type="button" class="btn btn-danger btn-sm btn-eliminar-servicio" data-servicio-id="' . $row['id'] . '" data-servicio-nombre="' . htmlspecialchars($row['nombre']) . '">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>';
+                        }
+                        $stmt->close();
                     }
-                    $stmt->close();
                     $conexion->close();
                     ?>
                 </tbody>
             </table>
         </div>
         <div class="text-center mt-3">
-            <button type="button" name="modificar_servicios" class="btn btn-primary btn-guardar-cambios" data-tipo="servicios">Guardar Cambios</button>
+            <button type="button" name="modificar_servicios" class="btn btn-primary btn-guardar-cambios" data-tipo="servicios" style="margin-right: 10px;">Guardar Cambios</button>
+            <button type="button" class="btn btn-success" onclick="location.reload()"><i class="fas fa-sync-alt me-2"></i>Actualizar</button>
         </div>
     </form>
 </div>
+<?php else: ?>
+<div id="seccion-servicios" class="seccion" style="display:block;">
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle me-2"></i>No tienes permisos para administrar servicios. Solo los administradores pueden acceder a esta sección.
+    </div>
+</div>
+<?php endif; ?>
 
             <!-- Usuarios -->
             <div id="seccion-usuarios" class="seccion">
@@ -791,6 +915,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
                     </div>
                 </form>
             </div>
+            <?php if ($id_negocio == 2): // Mostrar solo para Juliette Nails ?>
             <div id="seccion-galeria" class="seccion">
 <h2>Galería del Carousel</h2>
     
@@ -840,6 +965,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
     </div>
 </form>
 </div>
+            <?php endif; ?>
 </div>
         
 </div>
@@ -899,7 +1025,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             'combo_modificado': { titulo: '¡Combo Modificado!', mensaje: 'El combo se modificó correctamente.' },
             'combo_eliminado': { titulo: '¡Combo Eliminado!', mensaje: 'El combo se eliminó correctamente.' },
             'admin_asignado': { titulo: '¡Admin Asignado!', mensaje: 'El rol de administrador se asignó correctamente.' },
-            'admin_quitado': { titulo: '¡Admin Removido!', mensaje: 'El rol de administrador se removió correctamente.' }
+            'admin_quitado': { titulo: '¡Admin Removido!', mensaje: 'El rol de administrador se removió correctamente.' },
+            'carousel_guardado': { titulo: '¡Galería Guardada!', mensaje: 'Las imágenes de la galería se guardaron correctamente.' }
         };
 
         function mostrarSeccion(id){

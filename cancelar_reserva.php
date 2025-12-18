@@ -143,6 +143,36 @@ mysqli_stmt_bind_param($stmt_cancelar, "i", $id_historial);
 if (mysqli_stmt_execute($stmt_cancelar)) {
     log_msg("UPDATE ejecutado para ID: $id_historial");
     
+    // También cancelar todos los bloqueos relacionados (registros con nombre "Bloqueo por combo" del mismo usuario y horarios siguientes)
+    // Obtener fecha_realizacion y id_usuario de la reserva cancelada
+    $fecha_reserva = $reserva['fecha_realizacion'];
+    $id_usuario_reserva = $reserva['id_usuario'];
+    $id_negocio_reserva = $reserva['id_negocio'];
+    
+    // Calcular fecha límite (2 horas después de la reserva principal)
+    $fecha_limite = date('Y-m-d H:i:s', strtotime($fecha_reserva . ' +2 hours'));
+    
+    $query_cancelar_bloqueos = "UPDATE historial SET cancelada = 1, fecha_cancelacion = NOW() 
+                                WHERE id_usuario = ? 
+                                AND id_negocio = ?
+                                AND nombre = 'Bloqueo por combo' 
+                                AND fecha_realizacion > ? 
+                                AND fecha_realizacion <= ?
+                                AND (cancelada = 0 OR cancelada IS NULL)";
+    $stmt_cancelar_bloqueos = mysqli_prepare($conexion, $query_cancelar_bloqueos);
+    if ($stmt_cancelar_bloqueos) {
+        mysqli_stmt_bind_param($stmt_cancelar_bloqueos, "iiss", $id_usuario_reserva, $id_negocio_reserva, $fecha_reserva, $fecha_limite);
+        if (mysqli_stmt_execute($stmt_cancelar_bloqueos)) {
+            $filas_afectadas = mysqli_stmt_affected_rows($stmt_cancelar_bloqueos);
+            log_msg("Bloqueos cancelados para reserva ID: $id_historial (filas afectadas: " . $filas_afectadas . ")");
+        } else {
+            log_msg("Error al cancelar bloqueos: " . mysqli_stmt_error($stmt_cancelar_bloqueos));
+        }
+        mysqli_stmt_close($stmt_cancelar_bloqueos);
+    } else {
+        log_msg("Error al preparar consulta de cancelación de bloqueos: " . mysqli_error($conexion));
+    }
+    
     // Verificar inmediatamente el estado
     $verify_query = "SELECT cancelada FROM historial WHERE id = $id_historial";
     $verify_result = $conexion->query($verify_query);

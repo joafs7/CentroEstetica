@@ -6,7 +6,7 @@ $conexion = conectarDB();
 
 $year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 $month = isset($_GET['month']) ? intval($_GET['month']) : date('m');
-$id_negocio = 2; // Juliette Nails
+$id_negocio = isset($_GET['id_negocio']) ? intval($_GET['id_negocio']) : 2; // Usa el parámetro o Juliette Nails por defecto
 
 $month_padded = str_pad($month, 2, '0', STR_PAD_LEFT);
 $first_day = "$year-$month_padded-01";
