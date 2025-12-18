@@ -8,21 +8,23 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 $nombreUsuario = $_SESSION['usuario'];
+$usuario_id = $_SESSION['usuario_id']; // ID del usuario logueado
 $id_negocio = 2;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
 
-// --- INICIO: Obtener notificaciones para el admin ---
+// --- INICIO: Obtener notificaciones (para admin y usuarios) ---
 $notificaciones_no_leidas = 0;
 $lista_notificaciones = [];
-if ($esAdmin) {
+if ($usuario_id) { // Si hay un usuario logueado (sea admin o cliente)
     include_once 'conexEstetica.php';
     $conexion_notif = conectarDB();
-    // La consulta ahora filtra por el id_negocio de Juliette Nails (2)
+    // La consulta filtra por el id_usuario_destino y el id_negocio de Juliette Nails (2)
     $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
     $stmt_notif = $conexion_notif->prepare($query_notif);
-    $stmt_notif->bind_param('ii', $_SESSION['usuario_id'], $id_negocio);
+    // Usamos el $usuario_id del usuario logueado
+    $stmt_notif->bind_param('ii', $usuario_id, $id_negocio);
     $stmt_notif->execute();
     $resultado_notif = $stmt_notif->get_result();
     $notificaciones_no_leidas = $resultado_notif->num_rows;
@@ -30,7 +32,7 @@ if ($esAdmin) {
         $lista_notificaciones[] = $fila;
     }
 }
-// --- FIN: Obtener notificaciones para el admin ---
+// --- FIN: Obtener notificaciones ---
 ?>
 
 <!DOCTYPE html>
@@ -227,7 +229,7 @@ footer {
     <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
       <i class="fas fa-user-circle"></i> Mi cuenta
     </a>
-    <?php if ($esAdmin): ?>
+    <?php if ($usuario_id): // Mostrar la campana si hay un usuario logueado ?>
     <div class="dropdown">
         <a href="#" class="nav-btn position-relative" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fas fa-bell"></i>
