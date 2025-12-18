@@ -101,6 +101,24 @@ header img {height:50px;}
 header h2 {color:var(--dark-pink); font-weight:bold;}
 
 /* ----- FILTROS ----- */
+.home-link {
+  position: absolute;
+  top: 25px;
+  left: 30px;
+  color: var(--dark-pink);
+  font-size: 1.8rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  z-index: 20;
+}
+
+.home-link:hover {
+  transform: scale(1.15) rotate(-10deg);
+  color: #fff;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+}
+
+
 .filtros {
   background:white;
   border-radius:20px;
@@ -309,6 +327,7 @@ footer {
 
   <!-- HEADER -->
   <header>
+    <a href="JulietteNails.php" class="home-link" title="Ir a la página principal"><i class="fas fa-home"></i></a>
     <h2>Gestión de Reservas</h2>
     <span><i class="fa-regular fa-user"></i> <?php echo htmlspecialchars($nombreUsuario); ?></span>
   </header>
