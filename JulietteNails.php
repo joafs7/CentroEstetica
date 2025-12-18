@@ -1,29 +1,36 @@
 <?php
 session_start();
 
-$nombreUsuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : null;
-$usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
+// Si no hay sesión, redirige al login
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: Login.php");
+    exit();
+}
+
+$nombreUsuario = $_SESSION['usuario'];
 $id_negocio = 2;
 $esAdmin = isset($_SESSION['tipo'], $_SESSION['id_negocio_admin']) 
     && $_SESSION['tipo'] == 'admin' 
     && $_SESSION['id_negocio_admin'] == $id_negocio;
 
-// --- INICIO: Obtener notificaciones (para admin y usuarios) ---
+// --- INICIO: Obtener notificaciones para el admin ---
 $notificaciones_no_leidas = 0;
 $lista_notificaciones = [];
-if ($usuario_id) {  // Si hay usuario logueado (admin o usuario normal)
+if ($esAdmin) {
     include_once 'conexEstetica.php';
     $conexion_notif = conectarDB();
+    // La consulta ahora filtra por el id_negocio de Juliette Nails (2)
     $query_notif = "SELECT id, mensaje, fecha_creacion FROM notificaciones WHERE id_usuario_destino = ? AND id_negocio = ? AND leida = 0 ORDER BY fecha_creacion DESC";
     $stmt_notif = $conexion_notif->prepare($query_notif);
-    $stmt_notif->bind_param('ii', $usuario_id, $id_negocio_para_notif);
+    $stmt_notif->bind_param('ii', $_SESSION['usuario_id'], $id_negocio);
     $stmt_notif->execute();
     $resultado_notif = $stmt_notif->get_result();
     $notificaciones_no_leidas = $resultado_notif->num_rows;
-    while($fila = $resultado_notif->fetch_assoc()) $lista_notificaciones[] = $fila;
+    while($fila = $resultado_notif->fetch_assoc()) {
+        $lista_notificaciones[] = $fila;
+    }
 }
-// --- FIN: Obtener notificaciones (para admin y usuarios) ---
-
+// --- FIN: Obtener notificaciones para el admin ---
 ?>
 
 <!DOCTYPE html>
@@ -90,7 +97,6 @@ header a:hover, header a.active {
   background:var(--primary-color);
   color:white;
 }
-
 @media (max-width: 768px) {
   .glass-white {
     padding: 10px 8px;
@@ -111,45 +117,6 @@ header a:hover, header a.active {
     align-items: flex-start;
   }
 }
-/* Estilos súper mejorados para el dropdown de notificaciones */
-        .dropdown-menu-notifications {
-            border-radius: 0.75rem !important;
-            padding: 0 !important;
-            border: none !important;
-        }
-        .dropdown-menu-notifications .dropdown-item {
-            transition: background-color 0.2s ease-in-out;
-            border-bottom: 1px solid #f8f9fa;
-            padding: 1rem 1.25rem; /* Más espaciado */
-        }
-        .dropdown-menu-notifications .dropdown-item:last-child {
-            border-bottom: none;
-        }
-        .dropdown-menu-notifications .dropdown-item:hover, .dropdown-menu-notifications .dropdown-item:focus {
-            background-color: var(--light-pink) !important;
-            color: var(--dark-pink) !important;
-        }
-        .dropdown-menu-notifications .dropdown-header {
-            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-            color: white;
-            border-top-left-radius: calc(0.75rem - 1px);
-            border-top-right-radius: calc(0.75rem - 1px);
-            padding: 1rem 1.25rem;
-        }
-        /* Estilo para notificaciones sin leer */
-        .dropdown-menu-notifications .unread-notification {
-            background-color: #fde8e6 !important;
-            font-weight: 500;
-        }
-        .dropdown-menu-notifications .unread-notification:hover, .dropdown-menu-notifications .unread-notification:focus {
-            background-color: var(--light-pink) !important;
-        }
-        
-        .offcanvas-header {
-            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-            color: white;
-        }
-
 /* ----- SERVICIOS ----- */
 .card {
   border:none;
@@ -252,7 +219,7 @@ footer {
   <!-- HEADER -->
 <header class="glass-white d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
   <img src="Imagenes/LogoJuliettenails.png" alt="Juliette Nails" class="mb-3 mb-md-0">
-  <div class="d-flex flex-wrap justify-content-center">
+  <div class="d-flex flex-wrap justify-content-center align-items-center">
     <a href="#inicio" class="active">Inicio</a>
     <a href="#servicios">Servicios</a>
     <a href="#galeria">Galería</a>
@@ -260,38 +227,36 @@ footer {
     <a href="#" class="nav-btn" data-bs-toggle="offcanvas" data-bs-target="#userSidebar" aria-controls="userSidebar">
       <i class="fas fa-user-circle"></i> Mi cuenta
     </a>
-                    <?php if ($usuario_id): ?>
-                <div class="dropdown">
-                    <button class="nav-btn position-relative" type="button" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-bell"></i>
-                        <?php if ($notificaciones_no_leidas > 0): ?>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            <?php echo $notificaciones_no_leidas; ?>
-                        </span>
-                        <?php endif; ?>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-notifications shadow-lg" aria-labelledby="dropdownNotificaciones" style="width: 380px; max-height: 450px; overflow-y: auto;">
-                        <li class="dropdown-header fw-bold">Notificaciones</li>
-                        <?php if (!empty($lista_notificaciones)): ?>
-                            <?php foreach($lista_notificaciones as $notif): ?>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-start notification-item unread-notification" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
-                                    <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
-                                    <div>
-                                        <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
-                                        <p class="mb-0 small lh-sm fw-normal text-wrap notification-message"><?php echo htmlspecialchars($notif['mensaje']); ?></p>
-                                    </div>
-                                </a>
-                            </li>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
-                        <?php endif; ?>
-                        <li><a class="dropdown-item text-center pink-text small py-2 bg-light" href="#" id="verTodasNotificaciones" data-bs-toggle="modal" data-bs-target="#todasNotificacionesModal" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">Ver todas las notificaciones</a></li>
-                    </ul>
-                </div>
-                <?php endif; ?>
-            </div>
+    <?php if ($esAdmin): ?>
+    <div class="dropdown">
+        <a href="#" class="nav-btn position-relative" id="dropdownNotificaciones" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-bell"></i>
+            <?php if ($notificaciones_no_leidas > 0): ?>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                <?php echo $notificaciones_no_leidas; ?>
+            </span>
+            <?php endif; ?>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="dropdownNotificaciones" style="width: 380px; max-height: 450px; overflow-y: auto;">
+            <li class="dropdown-header fw-bold">Notificaciones</li>
+            <?php if (!empty($lista_notificaciones)): ?>
+                <?php foreach($lista_notificaciones as $notif): ?>
+                <li>
+                    <a class="dropdown-item d-flex align-items-start notification-item" href="#" data-id="<?php echo $notif['id']; ?>" data-bs-toggle="modal" data-bs-target="#notificationModal">
+                        <i class="fas fa-calendar-check pink-text me-3 mt-1"></i>
+                        <div>
+                            <small class="text-muted notification-date"><?php echo date('d/m/Y H:i', strtotime($notif['fecha_creacion'])); ?></small>
+                            <p class="mb-0 small lh-sm fw-normal text-wrap notification-message"><?php echo htmlspecialchars($notif['mensaje']); ?></p>
+                        </div>
+                    </a>
+                </li>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <li class="dropdown-item text-muted text-center">No tienes notificaciones nuevas.</li>
+            <?php endif; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
   </div>
 </header>
       <!-- Offcanvas lateral: Perfil de usuario -->
@@ -301,100 +266,92 @@ footer {
       <h5 class="offcanvas-title" id="userSidebarLabel">Mi cuenta</h5>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body">
-        <?php if (isset($_SESSION['usuario_id'])): ?>
-            <?php
-            // Mostrar datos básicos de la sesión
-            $usuarioId = $_SESSION['usuario_id'];
-            $usuarioNombre = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '';
-            $usuarioApellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : '';
-            $usuarioEmail = isset($_SESSION['email']) ? $_SESSION['email'] : '';
-            $usuarioCelular = isset($_SESSION['celular']) ? $_SESSION['celular'] : '';
-
-            // Si falta algún dato en la sesión, intentar obtenerlo desde la BD
-            if ($usuarioId && (empty($usuarioApellido) || empty($usuarioEmail) || empty($usuarioCelular))) {
-                if (file_exists('conexEstetica.php')) {
-                    include_once 'conexEstetica.php';
-                    $conexionTmp = conectarDB();
-                    if ($conexionTmp) {
-                        $stmt = mysqli_prepare($conexionTmp, "SELECT nombre, apellido, email, celular FROM usuarios WHERE id = ? LIMIT 1");
-                        if ($stmt) {
-                            mysqli_stmt_bind_param($stmt, 'i', $usuarioId);
-                            mysqli_stmt_execute($stmt);
-                            mysqli_stmt_bind_result($stmt, $dbNombre, $dbApellido, $dbEmail, $dbCelular);
-                            if (mysqli_stmt_fetch($stmt)) {
-                                if (empty($usuarioNombre)) $usuarioNombre = $dbNombre;
-                                if (empty($usuarioApellido)) $usuarioApellido = $dbApellido;
-                                if (empty($usuarioEmail)) $usuarioEmail = $dbEmail;
-                                if (empty($usuarioCelular)) $usuarioCelular = $dbCelular;
+            <div class="offcanvas-body">
+                <?php
+                // Mostrar datos básicos de la sesión
+                $usuarioId = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : '';
+                $usuarioNombre = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '';
+                $usuarioApellido = isset($_SESSION['apellido']) ? $_SESSION['apellido'] : '';
+                $usuarioEmail = isset($_SESSION['email']) ? $_SESSION['email'] : '';
+                $usuarioCelular = isset($_SESSION['celular']) ? $_SESSION['celular'] : '';
+            
+                // Si falta algún dato en la sesión, intentar obtenerlo desde la BD
+                if ($usuarioId && (empty($usuarioApellido) || empty($usuarioEmail) || empty($usuarioCelular))) {
+                    if (file_exists('conexEstetica.php')) {
+                      include_once 'conexEstetica.php';
+                      $conexionTmp = conectarDB();
+                        if ($conexionTmp) {
+                            $stmt = mysqli_prepare($conexionTmp, "SELECT nombre, apellido, email, celular FROM usuarios WHERE id = ? LIMIT 1");
+                            if ($stmt) {
+                                mysqli_stmt_bind_param($stmt, 'i', $usuarioId);
+                                mysqli_stmt_execute($stmt);
+                                mysqli_stmt_bind_result($stmt, $dbNombre, $dbApellido, $dbEmail, $dbCelular);
+                                if (mysqli_stmt_fetch($stmt)) {
+                                    if (empty($usuarioNombre)) $usuarioNombre = $dbNombre;
+                                    if (empty($usuarioApellido)) $usuarioApellido = $dbApellido;
+                                    if (empty($usuarioEmail)) $usuarioEmail = $dbEmail;
+                                    if (empty($usuarioCelular)) $usuarioCelular = $dbCelular;
+                                }
+                                mysqli_stmt_close($stmt);
                             }
-                            mysqli_stmt_close($stmt);
+                            mysqli_close($conexionTmp);
                         }
-                        mysqli_close($conexionTmp);
                     }
                 }
-            }
-            ?>
-            <div class="mb-4 text-center">
-                <div style="font-size:72px;color:var(--dark-pink)"><i class="fas fa-user-circle"></i></div>
-                <h5 class="mt-2"><?php echo htmlspecialchars($usuarioNombre . ' ' . $usuarioApellido); ?></h5>
-            </div>
-            <!-- Formulario para editar datos del usuario -->
-            <form action="editar_perfil.php" method="post">
-                <div class="row">
-                    <div class="col-12 mb-2">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo htmlspecialchars($usuarioNombre); ?>" required>
-                    </div>
-                    <div class="col-12 mb-2">
-                        <label for="apellido" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" id="apellido" name="apellido" value="<?php echo htmlspecialchars($usuarioApellido); ?>">
-                    </div>
-                    <div class="col-12 mb-2">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($usuarioEmail); ?>">
-                    </div>
-                    <div class="col-12 mb-3">
-                        <label for="celular" class="form-label">Celular</label>
-                        <input type="text" class="form-control" id="celular" name="celular" value="<?php echo htmlspecialchars($usuarioCelular); ?>">
-                    </div>
+                ?>
+
+                <div class="mb-4 text-center">
+                    <div style="font-size:72px;color:var(--dark-pink)"><i class="fas fa-user-circle"></i></div>
+                    <h5 class="mt-2"><?php echo htmlspecialchars($usuarioNombre . ' ' . $usuarioApellido); ?></h5>
                 </div>
-                <input type="hidden" name="usuario_id" value="<?php echo htmlspecialchars($usuarioId); ?>">
-                <input type="hidden" name="source" value="juliette">
-                <div class="row g-2 mb-2">
-                    <div class="col-12">
-                        <a href="verReservas.php" class="btn w-100" style="background-color: var(--primary-color); color: white;">
-                            <i class="fas fa-history"></i> Ver Historial de Citas
-                        </a>
+
+                <!-- Formulario para editar datos del usuario -->
+                <form action="editar_perfil.php" method="post">
+                    <div class="row">
+                        <div class="col-12 mb-2">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo htmlspecialchars($usuarioNombre); ?>" required>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" value="<?php echo htmlspecialchars($usuarioApellido); ?>">
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($usuarioEmail); ?>">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="celular" class="form-label">Celular</label>
+                            <input type="text" class="form-control" id="celular" name="celular" value="<?php echo htmlspecialchars($usuarioCelular); ?>">
+                        </div>
                     </div>
-                    <?php if ($esAdmin): ?>
-                    <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
+                    <input type="hidden" name="usuario_id" value="<?php echo htmlspecialchars($usuarioId); ?>">
+                    <input type="hidden" name="source" value="juliette">
+                    <div class="row g-2 mb-2">
+                        <div class="col-12">
+                            <a href="verReservas.php" class="btn w-100" style="background-color: var(--primary-color); color: white;">
+                                <i class="fas fa-history"></i> Ver Historial de Citas
+                            </a>
+                        </div>
+                        <?php if ($esAdmin): ?>
+                        <a href="configuracion.php?id_negocio=<?php echo $id_negocio; ?>" class="btn btn-pink w-100">
                         <i class="fas fa-cog"></i> Configuración
-                    </a>
-                    <?php endif; ?>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
+                        </a>
+                         <?php endif; ?>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-pink w-100">Guardar cambios</button>
+                        </div>
+                        <div class="col-12">
+                            <a href="logout.php" class="btn btn-outline-secondary w-100">Cerrar sesión</a>
+                        </div>
                     </div>
-                    <div class="col-12">
-                        <a href="logout.php" class="btn btn-outline-secondary w-100">Cerrar sesión</a>
-                    </div>
-                </div>
-            </form>
-            <?php if (isset($_GET['updated']) && $_GET['updated'] == '1') { ?>
-                <div class="alert alert-success mt-3">Perfil actualizado correctamente.</div>
-            <?php } ?>
-        <?php else: ?>
-            <!-- Usuario NO logueado: mostrar solo botones -->
-            <div class="mb-4 text-center">
-                <div style="font-size:72px;color:var(--dark-pink)"><i class="fas fa-user-circle"></i></div>
+                </form>
+
+                <?php if (isset($_GET['updated']) && $_GET['updated'] == '1') { ?>
+                    <div class="alert alert-success mt-3">Perfil actualizado correctamente.</div>
+                <?php } ?>
             </div>
-            <div class="d-grid gap-2">
-                <a href="Login.php" class="btn btn-pink w-100 mb-2"><i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión</a>
-                <a href="index.php#registro" class="btn btn-outline-secondary w-100"><i class="fas fa-user-plus me-2"></i>Registrarse</a>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
+        </div>
   <section id="inicio">
     <h1>¡Te damos la bienvenida <?php echo htmlspecialchars($nombreUsuario); ?> a Juliette Nails!</h1>
     <p class="text-center">Gracias por confiar en nosotr@s. Le ofrecemos una experiencia exclusiva, atención personalizada y resultados que reflejan elegancia y distinción.</p>
@@ -415,7 +372,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/Escudo.svg" alt="Capping">
           <div class="card-body">
             <h5>Capping</h5>
-            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
+            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
           </div>
         </div>
       </div>
@@ -424,7 +381,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/Pincel.svg" alt="Capping Polygel">
           <div class="card-body">
             <h5>Capping Polygel</h5>
-            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
+            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
           </div>
         </div>
       </div>
@@ -433,7 +390,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/Gotita.svg" alt="Soft Gel">
           <div class="card-body">
             <h5>Soft Gel</h5>
-            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
+            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
           </div>
         </div>
       </div>
@@ -442,7 +399,7 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
           <img src="Imagenes/botella.svg" alt="Esmaltado Semi">
           <div class="card-body">
             <h5>Esmaltado Semi</h5>
-            <button class="btn btn-pink" onclick="verificarSesionYReservar()">Agendar</button>
+            <a href="reservas-JulietteNails.php" class="btn btn-pink">Agendar</a>
           </div>
         </div>
       </div>
@@ -450,39 +407,22 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
   </section>
 
   <!-- GALERÍA -->
-  <?php
-  $carousel_file = 'Imagenes/carousel.json';
-$carousel_images = [];
-if (file_exists($carousel_file)) {
-    $carousel_images = json_decode(file_get_contents($carousel_file), true) ?? [];
-}
-?>
-<section id="galeria">
-  <h2>Galería</h2>
-  <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
-    <div class="carousel-inner">
-      <?php if (!empty($carousel_images)): ?>
-        <?php foreach($carousel_images as $index => $img): ?>
-          <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
-            <img src="<?= htmlspecialchars($img['url']) ?>" class="d-block w-100" alt="<?= htmlspecialchars($img['alt']) ?>" style="max-width:400px;margin:auto;">
-          </div>
-        <?php endforeach; ?>
-      <?php else: ?>
-        <div class="carousel-item active">
-          <img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Sin imágenes" style="max-width:400px;margin:auto;">
-        </div>
-      <?php endif; ?>
+  <section id="galeria">
+    <h2>Galería</h2>
+    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active"><img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Foto 1" style="max-width:400px;margin:auto;"></div>
+        <div class="carousel-item"><img src="Imagenes/Uñas2.jpeg" class="d-block w-100" alt="Foto 2"></div>
+        <div class="carousel-item"><img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Foto 3"></div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span><span class="visually-hidden">Anterior</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span><span class="visually-hidden">Siguiente</span>
+      </button>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon"></span>
-      <span class="visually-hidden">Anterior</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-      <span class="carousel-control-next-icon"></span>
-      <span class="visually-hidden">Siguiente</span>
-    </button>
-  </div>
-</section>
+  </section>
 
   <!-- CONTACTO -->
   <section id="contacto" class="contacto glass-white">
@@ -506,55 +446,61 @@ if (file_exists($carousel_file)) {
     © 2025 Juliette Nails - Todos los derechos reservados
   </footer>
 
-</div>
-
-<!-- Modal de Login requerido -->
-<div id="modalLoginRequired" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 400px; text-align: center; background: linear-gradient(135deg, #f8b6b0 0%, #f6b8b3 100%); border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <h2 style="margin-bottom: 20px; color: #333;">Debes Iniciar Sesión</h2>
-        <p style="margin-bottom: 30px; color: #555; font-size: 16px;">Para realizar una reserva, debes iniciar sesión o registrarte primero.</p>
-        <button onclick="window.location.href='Login.php';" class="btn btn-pink" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer;">
-            Iniciar Sesión
-        </button>
-        <button onclick="cerrarModalLogin();" class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer; margin-top: 10px;">
-            Cancelar
-        </button>
+  <!-- Modal para ver Notificación -->
+  <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--primary-color); color:white;">
+          <h5 class="modal-title" id="notificationModalLabel"><i class="fas fa-bell me-2"></i>Detalle de la Notificación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small" id="notificationDate"></p>
+          <p id="notificationMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<style>
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-</style>
+</div>
 
 <script>
-    function verificarSesionYReservar() {
-        // Verificar si hay sesión activa
-        const usuarioId = <?php echo isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 'null'; ?>;
-        
-        if (usuarioId === null) {
-            // No hay sesión, mostrar modal
-            document.getElementById('modalLoginRequired').style.display = 'flex';
-        } else {
-            // Hay sesión, ir a reservas
-            window.location.href = 'reservas-JulietteNails.php';
-        }
-    }
-    
-    function cerrarModalLogin() {
-        document.getElementById('modalLoginRequired').style.display = 'none';
-    }
-</script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notificationItems = document.querySelectorAll('.notification-item');
+    notificationItems.forEach(item => {
+        item.addEventListener('click', function(event) {
+            event.preventDefault();
 
+            const notificationId = this.dataset.id;
+            const date = this.querySelector('.notification-date').textContent;
+            const message = this.querySelector('.notification-message').textContent;
+
+            document.getElementById('notificationDate').textContent = date;
+            document.getElementById('notificationMessage').textContent = message;
+
+            fetch('marcar_notificacion_leida.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: notificationId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.closest('li').remove();
+                    const badge = document.querySelector('#dropdownNotificaciones .badge');
+                    if (badge) {
+                        let count = parseInt(badge.textContent) - 1;
+                        if (count > 0) badge.textContent = count;
+                        else badge.remove();
+                    }
+                }
+            }).catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
 </body>
 </html>
