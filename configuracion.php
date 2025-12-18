@@ -917,7 +917,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modificar_combos'])) 
             </div>
             <?php if ($id_negocio == 2): // Mostrar solo para Juliette Nails ?>
             <div id="seccion-galeria" class="seccion">
-<h2>Galería del Carousel</h2>
+        <h2>Galería del Carousel</h2>
     
     <form method="post" action="configuracion.php?id_negocio=<?= $id_negocio ?>" enctype="multipart/form-data">
     <div class="table-responsive">

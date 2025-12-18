@@ -409,22 +409,39 @@ $resultado_servicios = mysqli_query($conexion, $query_servicios);
   </section>
 
   <!-- GALERÍA -->
-  <section id="galeria">
-    <h2>Galería</h2>
-    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
-      <div class="carousel-inner">
-        <div class="carousel-item active"><img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Foto 1" style="max-width:400px;margin:auto;"></div>
-        <div class="carousel-item"><img src="Imagenes/Uñas2.jpeg" class="d-block w-100" alt="Foto 2"></div>
-        <div class="carousel-item"><img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Foto 3"></div>
-      </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span><span class="visually-hidden">Anterior</span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span><span class="visually-hidden">Siguiente</span>
-      </button>
+  <?php
+  $carousel_file = 'Imagenes/carousel.json';
+$carousel_images = [];
+if (file_exists($carousel_file)) {
+    $carousel_images = json_decode(file_get_contents($carousel_file), true) ?? [];
+}
+?>
+<section id="galeria">
+  <h2>Galería</h2>
+  <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      <?php if (!empty($carousel_images)): ?>
+        <?php foreach($carousel_images as $index => $img): ?>
+          <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+            <img src="<?= htmlspecialchars($img['url']) ?>" class="d-block w-100" alt="<?= htmlspecialchars($img['alt']) ?>" style="max-width:400px;margin:auto;">
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div class="carousel-item active">
+          <img src="Imagenes/Uñas1.jpeg" class="d-block w-100" alt="Sin imágenes" style="max-width:400px;margin:auto;">
+        </div>
+      <?php endif; ?>
     </div>
-  </section>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+      <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+      <span class="visually-hidden">Siguiente</span>
+    </button>
+  </div>
+</section>
 
   <!-- CONTACTO -->
   <section id="contacto" class="contacto glass-white">
